@@ -1,11 +1,16 @@
 // ════════════════════════════════════════════════════════════════════════
 // github.ts — Mejorate: scan read-only de repos de referencia via GitHub API
 // Regla P12: el contenido externo se procesa acotado (capa 2 sanitization)
+// AP-032 (fix): el scan era secuencial (19 repos × 2 llamadas ≈ 22s) y
+// mejorate bare totalizaba ~37s — excedía el timeout del gateway del preview
+// y el frontend recibía HTML 504 en vez de JSON. Ahora escanea en paralelo
+// con concurrencia limitada (~5s).
 // ════════════════════════════════════════════════════════════════════════
 import { db } from "@/lib/db";
 import type { ReferenceRepoDTO } from "./types";
 
 const TOKEN = process.env.GITHUB_TOKEN ?? "";
+const CONCURRENCY = 6;
 
 interface GhMeta {
   full_name?: string;
@@ -67,7 +72,7 @@ export async function scanReferenceRepos(): Promise<ScanOutcome> {
       reposScanned: 0,
       totalStars: 0,
       status: "RUNNING",
-      note: "Scan live via GitHub API (mejorate)",
+      note: "Scan live via GitHub API (mejorate, paralelo x6)",
     },
   });
 
@@ -75,11 +80,11 @@ export async function scanReferenceRepos(): Promise<ScanOutcome> {
   let totalStars = 0;
   const updated: ReferenceRepoDTO[] = [];
 
-  for (const entry of catalog) {
+  const scanOne = async (entry: (typeof catalog)[number]): Promise<void> => {
     const meta = await gh<GhMeta>(`/repos/${entry.repo}`);
     if (meta.__error) {
       errors.push(`${entry.repo}: HTTP ${meta.__error}`);
-      continue;
+      return;
     }
     const branch = meta.default_branch ?? "main";
     const tree = await gh<GhTree>(
@@ -121,12 +126,26 @@ export async function scanReferenceRepos(): Promise<ScanOutcome> {
     });
     updated.push({
       ...row,
-      topics: JSON.parse(row.topDirs ? row.topDirs : "[]") && JSON.parse(row.topics || "[]"),
+      topics: JSON.parse(row.topics || "[]"),
       topDirs: JSON.parse(row.topDirs || "[]"),
       keyFiles: JSON.parse(row.keyFiles || "[]"),
       lastScannedAt: row.lastScannedAt.toISOString(),
     } as ReferenceRepoDTO);
-  }
+  };
+
+  // Cola con concurrencia limitada: 19 repos en oleadas de 6 (~5s vs 22s secuencial)
+  const queue = [...catalog];
+  const workers = Array.from(
+    { length: Math.min(CONCURRENCY, Math.max(queue.length, 1)) },
+    async () => {
+      for (;;) {
+        const entry = queue.shift();
+        if (!entry) return;
+        await scanOne(entry);
+      }
+    }
+  );
+  await Promise.all(workers);
 
   await db.scanRun.update({
     where: { id: scanRun.id },

@@ -1,7 +1,10 @@
-// POST /api/agent-os/radiografia — Ejecuta el Pipeline de Radiografía Rayos X
-// Body: { url } → 5 fases: branding → DOM/3D → negocio → reconstrucción → verificación
+// POST /api/agent-os/radiografia — Lanza el Pipeline de Radiografía Rayos X
+// Body: { url } → valida, crea el run y responde INMEDIATO con status RUNNING.
+// El pipeline de 5 fases corre en background actualizando la BD fase a fase
+// (AP-032 fix: antes esperaba 25-40s y el gateway del preview cortaba con HTML).
+// El cliente hace polling GET /api/agent-os/radiografia?id=<runId>.
 import { NextRequest, NextResponse } from "next/server";
-import { runRadiografia, listRuns } from "@/lib/agent-os/radiografia";
+import { startRadiografia, validateTargetUrl, listRuns, getRun } from "@/lib/agent-os/radiografia";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -16,12 +19,21 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    const run = await runRadiografia(url);
+    // Validación ANTES de crear el run: URLs inválidas jamás producen runs basura
+    try {
+      validateTargetUrl(url);
+    } catch (e) {
+      return NextResponse.json(
+        { success: false, data: null, error: e instanceof Error ? e.message : "URL inválida", meta: {} },
+        { status: 400 }
+      );
+    }
+    const run = await startRadiografia(url);
     return NextResponse.json({
-      success: run.status === "COMPLETED",
+      success: true,
       data: run,
-      error: run.status === "FAILED" ? "Pipeline falló — ver fases" : null,
-      meta: { epoch: Math.floor(Date.now() / 1000), phases: 5 },
+      error: null,
+      meta: { epoch: Math.floor(Date.now() / 1000), phases: 5, background: true },
     });
   } catch (error) {
     return NextResponse.json(
@@ -36,7 +48,18 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const id = req.nextUrl.searchParams.get("id");
+  if (id) {
+    const run = await getRun(id);
+    if (!run) {
+      return NextResponse.json(
+        { success: false, data: null, error: `run ${id} no encontrado`, meta: {} },
+        { status: 404 }
+      );
+    }
+    return NextResponse.json({ success: true, data: run, error: null, meta: {} });
+  }
   const runs = await listRuns();
   return NextResponse.json({
     success: true,

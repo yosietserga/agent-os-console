@@ -27,6 +27,7 @@ import { ReposGallery } from "@/components/agent-os/repos-gallery";
 import { OnboardingTour, TourRestartButton } from "@/components/agent-os/onboarding-tour";
 import type { CtaState } from "@/components/agent-os/glowing-cta-button";
 import { GlowingCtaButton } from "@/components/agent-os/glowing-cta-button";
+import { executeCommandClient } from "@/lib/agent-os/client";
 import type { OverviewDTO, CommandResultDTO } from "@/lib/agent-os/types";
 
 // Los pasos con contadores se generan en runtime desde el overview (cero
@@ -69,6 +70,7 @@ export default function AgentOSPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [epoch, setEpoch] = useState(0);
   const [mejorateState, setMejorateState] = useState<CtaState>("ready");
+  const [activeTab, setActiveTab] = useState("mejorate");
 
   const load = useCallback(async () => {
     try {
@@ -95,6 +97,10 @@ export default function AgentOSPage() {
 
   const onCommandExecuted = useCallback(
     (result: CommandResultDTO) => {
+      // rayos-x / cold run reverse-engineer lanzan el pipeline en background:
+      // cambiar al tab Radiografía activa el polling en vivo de las 5 fases
+      const action = (result.data as { action?: string } | undefined)?.action;
+      if (action === "radiografia") setActiveTab("radiografia");
       if (result.refresh) load();
     },
     [load]
@@ -103,20 +109,12 @@ export default function AgentOSPage() {
   const runMejorate = useCallback(async () => {
     if (mejorateState === "loading") return;
     setMejorateState("loading");
-    try {
-      const res = await fetch("/api/agent-os/command", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input: "mejorate" }),
-      });
-      const json = (await res.json()) as { success: boolean; error: string | null };
-      setMejorateState(json.success ? "success" : "error");
-      await load();
-    } catch {
-      setMejorateState("error");
-    } finally {
-      setTimeout(() => setMejorateState("ready"), 3000);
-    }
+    // AP-032 (fix): helper cliente con verificación de content-type y
+    // timeout — antes un HTML 504 del gateway producía "Unexpected token '<'"
+    const result = await executeCommandClient("mejorate");
+    setMejorateState(result.status === "OK" ? "success" : "error");
+    await load();
+    setTimeout(() => setMejorateState("ready"), 3000);
   }, [mejorateState, load]);
 
   const tokensSession = overview?.ledger.reduce((a, l) => a + l.promptTokens + l.completionTokens, 0) ?? 0;
@@ -294,7 +292,7 @@ export default function AgentOSPage() {
 
             {/* ══ POSICIÓN 4: main ══════════════════════════════════════ */}
             <main className="min-w-0 lg:col-span-6">
-              <Tabs defaultValue="mejorate" className="w-full">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList
                   aria-label="Módulos del Agent OS"
                   className="os-scroll h-auto w-full justify-start gap-1 overflow-x-auto rounded-full border border-[#e5e5ea] bg-white p-1"

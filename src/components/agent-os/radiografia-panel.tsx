@@ -4,9 +4,13 @@
 // radiografia-panel.tsx — Pipeline de Radiografía Rayos X (comando 17)
 // Input URL → 5 fases: branding → DOM/3D → modelo de negocio →
 // reconstrucción → verificación. Muestra hallazgos estructurados.
+// AP-032 (fix): el POST ya NO espera el pipeline completo (25-40s — el
+// gateway del preview lo cortaba con HTML 504). Ahora lanza en background y
+// este panel hace polling GET /radiografia?id= cada 2s mostrando las fases
+// en vivo. También auto-polea runs RUNNING lanzados desde la consola (rayos-x).
 // ════════════════════════════════════════════════════════════════════════
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ScanLine, Globe, Palette, Box, Briefcase, Blocks, BadgeCheck,
   Loader2, Check, X, ChevronRight, Layers, Type, Ruler, ArrowRight,
@@ -16,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { GlowingCtaButton } from "./glowing-cta-button";
 import type { CtaState } from "./glowing-cta-button";
 import { cn } from "@/lib/utils";
+import { startRadiografiaClient, getRadiografiaRunClient } from "@/lib/agent-os/client";
 import type { RadiografiaRunDTO } from "@/lib/agent-os/types";
 
 interface RadiografiaPanelProps {
@@ -24,41 +29,77 @@ interface RadiografiaPanelProps {
 }
 
 const PHASE_ICONS = [Palette, Box, Briefcase, Blocks, BadgeCheck];
+const POLL_INTERVAL_MS = 2000;
 
 export function RadiografiaPanel({ runs, onCompleted }: RadiografiaPanelProps) {
   const [url, setUrl] = useState("");
   const [state, setState] = useState<CtaState>("disabled");
   const [activeRun, setActiveRun] = useState<RadiografiaRunDTO | null>(runs[0] ?? null);
   const [error, setError] = useState<string | null>(null);
+  const pollRef = useRef<string | null>(null);
+  const onCompletedRef = useRef(onCompleted);
+
+  useEffect(() => {
+    onCompletedRef.current = onCompleted;
+  }, [onCompleted]);
 
   const canRun = url.trim().length > 3 && state !== "loading";
   const ctaState: CtaState = state === "loading" ? "loading" : canRun ? "ready" : "disabled";
+
+  // Polling del run: consulta cada 2s hasta COMPLETED/FAILED. Todos los
+  // setState ocurren dentro de callbacks de timer (nunca síncronos en el
+  // cuerpo de un effect — regla react-hooks/set-state-in-effect).
+  const pollRun = useCallback((runId: string) => {
+    if (pollRef.current === runId) return;
+    pollRef.current = runId;
+    const tick = async () => {
+      if (pollRef.current !== runId) return;
+      const run = await getRadiografiaRunClient(runId);
+      if (!run || pollRef.current !== runId) return;
+      setActiveRun(run);
+      if (run.status === "RUNNING") {
+        setState("loading");
+        setTimeout(tick, POLL_INTERVAL_MS);
+      } else {
+        pollRef.current = null;
+        if (run.status === "COMPLETED") {
+          setState("success");
+          setTimeout(() => setState("disabled"), 2600);
+        } else {
+          setError("El pipeline falló — revisa la fase marcada en rojo");
+          setState("error");
+          setTimeout(() => setState("disabled"), 3600);
+        }
+        onCompletedRef.current?.();
+      }
+    };
+    setTimeout(tick, 300);
+  }, []);
+
+  // Auto-polling de runs RUNNING lanzados desde la consola (rayos-x <url>):
+  // el effect solo ARRANCA el polling (efecto externo); las actualizaciones
+  // de estado las hace el primer tick a los 300ms.
+  useEffect(() => {
+    const newest = runs[0];
+    if (newest && newest.status === "RUNNING") pollRun(newest.id);
+  }, [runs, pollRun]);
+
+  // Limpieza al desmontar
+  useEffect(() => () => { pollRef.current = null; }, []);
 
   async function run() {
     if (!canRun) return;
     setState("loading");
     setError(null);
-    try {
-      const res = await fetch("/api/agent-os/radiografia", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url.trim() }),
-      });
-      const json = (await res.json()) as {
-        success: boolean;
-        data: RadiografiaRunDTO | null;
-        error: string | null;
-      };
-      if (!json.success || !json.data) throw new Error(json.error ?? "El pipeline falló");
-      setActiveRun(json.data);
-      setState("success");
-      onCompleted?.();
-      setTimeout(() => setState("disabled"), 2600);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error desconocido");
+    const launched = await startRadiografiaClient(url.trim());
+    if (!launched.ok) {
+      setError(launched.error);
       setState("error");
       setTimeout(() => setState("disabled"), 3200);
+      return;
     }
+    setActiveRun(launched.run);
+    pollRun(launched.run.id);
   }
 
   return (

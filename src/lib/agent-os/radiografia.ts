@@ -195,8 +195,9 @@ function deterministicXray(html: string, title: string): XrayJSON {
   };
 }
 
-export async function runRadiografia(targetUrl: string): Promise<RadiografiaRunDTO> {
-  // Validación de URL (capa 2 P12)
+// Validación de URL (capa 2 P12) — lanzada ANTES de crear el run para que
+// una URL inválida jamás produzca runs basura en el historial.
+export function validateTargetUrl(targetUrl: string): URL {
   let url: URL;
   try {
     url = new URL(targetUrl.startsWith("http") ? targetUrl : `https://${targetUrl}`);
@@ -206,7 +207,18 @@ export async function runRadiografia(targetUrl: string): Promise<RadiografiaRunD
   if (!["http:", "https:"].includes(url.protocol)) {
     throw new Error("Solo se aceptan protocolos http/https");
   }
+  return url;
+}
 
+/**
+ * AP-032 (fix): el pipeline tarda 25-40s (page_reader + inferencia L2) y
+ * excedía el timeout del gateway del preview (~30s) — el frontend recibía
+ * HTML 504 en vez de JSON. Ahora el POST crea el run, lanza el pipeline en
+ * background (que actualiza la BD fase a fase) y responde de inmediato con
+ * el run en estado RUNNING. El cliente hace polling GET /radiografia?id=.
+ */
+export async function startRadiografia(targetUrl: string): Promise<RadiografiaRunDTO> {
+  const url = validateTargetUrl(targetUrl);
   const run = await db.radiografiaRun.create({
     data: {
       targetUrl: url.toString(),
@@ -215,6 +227,15 @@ export async function runRadiografia(targetUrl: string): Promise<RadiografiaRunD
       summary: JSON.stringify({ phases: freshPhases() } satisfies PhasesDoc),
     },
   });
+  void executePipeline(run.id, url).catch(() => {
+    // El pipeline registra su propio error en la BD (status FAILED);
+    // este catch es defensivo para evitar promesas no observadas.
+  });
+  return toDTO(run as RunRow);
+}
+
+async function executePipeline(runId: string, url: URL): Promise<void> {
+  const run = { id: runId };
 
   const readPhases = async (): Promise<PhasesDoc> => {
     const row = await db.radiografiaRun.findUnique({ where: { id: run.id } });
@@ -288,7 +309,7 @@ export async function runRadiografia(targetUrl: string): Promise<RadiografiaRunD
       ...p,
       status: "DONE" as const,
     }));
-    const updated = await db.radiografiaRun.update({
+    await db.radiografiaRun.update({
       where: { id: run.id },
       data: {
         status: "COMPLETED",
@@ -302,7 +323,6 @@ export async function runRadiografia(targetUrl: string): Promise<RadiografiaRunD
         completedAt: new Date(),
       },
     });
-    return toDTO(updated as RunRow);
   } catch (error) {
     const doc = await readPhases();
     const firstPending = doc.phases.find((p) => p.status !== "DONE")?.id ?? 1;
@@ -311,7 +331,5 @@ export async function runRadiografia(targetUrl: string): Promise<RadiografiaRunD
       where: { id: run.id },
       data: { status: "FAILED", completedAt: new Date() },
     });
-    const row = await db.radiografiaRun.findUnique({ where: { id: run.id } });
-    return toDTO(row as RunRow);
   }
 }

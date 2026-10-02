@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import { scanReferenceRepos } from "./github";
 import { synthesize } from "./synthesize";
 import { judgeProposal } from "./pre-judge";
-import { runRadiografia } from "./radiografia";
+import { startRadiografia } from "./radiografia";
 import { runGapsFinder } from "./gaps-finder";
 import { breakerVerdict, BREAKER } from "./l2";
 import type { CommandResultDTO } from "./types";
@@ -24,7 +24,10 @@ export function parseCommand(input: string): ParsedCommand {
   // Acepta el prefijo canónico completo o su variante corta
   const canonical = raw.match(/^lee\s+agents\.md,?\s*ejecuta:\s*(.+)$/i);
   if (canonical) raw = canonical[1].trim();
-  const ide = raw.match(/^(?:en\s+)?(?:este\s+)?(?:ide|entorno),?\s*(.+)$/i);
+  // Prefijo de entorno SOLO con coma ("en este ide, cold run") — sin coma el
+  // texto es el comando canónico `ide detect|all` y no debe strippearse
+  // (AP-033: el regex sin coma se comía "ide detect" → "detect" desconocido)
+  const ide = raw.match(/^(?:en\s+)?(?:este\s+)?(?:ide|entorno)\s*,\s*(.+)$/i);
   if (ide) raw = ide[1].trim();
 
   const known = [
@@ -54,6 +57,36 @@ async function gateHonesty(): Promise<string> {
     db.radiografiaRun.count(),
     db.commandLog.count(),
   ]);
+
+  // Dispatcher smoke (AP-032): ejercita comandos read-only EN VIVO — si un
+  // caso del dispatcher revienta, verify lo reporta en vez de dar PASS ciego.
+  const smokeT0 = Date.now();
+  let smoke = "PASS";
+  let smokeDetail = "";
+  try {
+    await Promise.all([helpCmd(), coldRun(), auditMemory(), l2Status()]);
+    smokeDetail = `4 comandos read-only en ${Date.now() - smokeT0}ms`;
+  } catch (e) {
+    smoke = "FAIL";
+    smokeDetail = e instanceof Error ? e.message : "error desconocido";
+  }
+
+  // Presupuesto de gateway (AP-032): el gateway del preview corta respuestas
+  // >30s con HTML 504. Flaggear cualquier comando cuya duración máxima
+  // observada en el CommandLog exceda 25s (margen de seguridad).
+  const logs = await db.commandLog.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 200,
+    select: { command: true, durationMs: true },
+  });
+  const maxByCmd = new Map<string, number>();
+  for (const l of logs) {
+    maxByCmd.set(l.command, Math.max(maxByCmd.get(l.command) ?? 0, l.durationMs));
+  }
+  const risky = [...maxByCmd.entries()]
+    .filter(([, ms]) => ms > 25_000)
+    .sort((a, b) => b[1] - a[1]);
+
   return [
     "[GATE HONESTY] Puertas ejecutadas EN ESTA SESIÓN (P2 — cero PASS sin comando real):",
     "  ┌ Puerta                         ─── Estado ─── Evidencia",
@@ -61,6 +94,10 @@ async function gateHonesty(): Promise<string> {
     `  │ Ledger L2 inmutable            ─── PASS     ─── ${ledger} entradas registradas`,
     `  │ Pipeline radiografía           ─── ${runs > 0 ? "PASS" : "NOT RUN"}     ─── ${runs} runs registrados`,
     `  │ Comandos canónicos             ─── PASS     ─── ${cmds} ejecutados vía dispatcher`,
+    `  │ Dispatcher smoke (read-only)   ─── ${smoke.padEnd(8)} ─── ${smokeDetail}`,
+    risky.length
+      ? `  │ Presupuesto gateway (<30s)     ─── RISK   ${risky.length} comando(s) exceden 25s: ${risky.map(([c, ms]) => `${c} ${(ms / 1000).toFixed(1)}s`).join(" · ")}`
+      : "  │ Presupuesto gateway (<30s)     ─── PASS     ─── ningún comando superó 25s (últimos ${logs.length} registros)",
     "  │ Lint/compilación del host      ─── NOT RUN  ─── fuera del alcance del sandbox (verificar con bun run lint externo)",
     `  │ Epoch                          ─── ${EPOCH()}`,
   ].join("\n");
@@ -460,16 +497,16 @@ export async function executeCommand(input: string): Promise<CommandResultDTO> {
             output = "[COLD RUN REVERSE-ENGINEER] Uso: cold run reverse-engineer <url> — Radiografía Rayos X de 5 etapas (docs/reverse-engineering/protocol.md)";
             break;
           }
-          const run = await runRadiografia(url);
+          // AP-032 (fix): pipeline en background — el POST responde inmediato
+          // y el panel Radiografía hace polling de las fases (inmune al
+          // timeout del gateway que cortaba respuestas >30s con HTML 504)
+          const run = await startRadiografia(url);
           output = [
-            `[RADIOGRAFÍA (cold run reverse-engineer)] ${run.targetUrl}`,
-            `  Etapa 1 Extracción visual/branding: ${run.phases[0]?.detail}`,
-            `  Etapa 2 Shaders/3D: ${run.phases[1]?.detail}`,
-            `  Etapa 3 Modelo de negocio: ${run.businessModel?.pricingModel} · ${run.businessModel?.plans.length} planes · Porter ${run.businessModel?.porter?.length ?? 0} insights`,
-            `  Etapa 4 Reconstrucción: ${run.reconstruction?.components.length} componentes · 3D: ${run.reconstruction?.threeJs.detected ? "sí" : "no"}`,
-            `  Etapa 5 Verificación: ${run.verification?.verdict}`,
-            `  ${run.summary ?? ""}`,
-            "  Detalle completo en el panel Radiografía. Disclaimer legal: responsabilidad del operador verificar ToS del target (protocol.md §1.0).",
+            `[RADIOGRAFÍA (cold run reverse-engineer)] Pipeline lanzado en background — run ${run.id.slice(-8)}`,
+            `  Target: ${run.targetUrl}`,
+            "  Las 5 etapas (branding → 3D → negocio → reconstrucción → verificación)",
+            "  progresan EN VIVO en el panel Radiografía con polling cada 2s.",
+            "  Disclaimer legal: responsabilidad del operador verificar ToS del target (protocol.md §1.0).",
           ].join("\n");
           refresh = true;
           data = { action: "radiografia", runId: run.id };
@@ -580,16 +617,15 @@ export async function executeCommand(input: string): Promise<CommandResultDTO> {
           output = "[RADIOGRAFIA] Uso: radiografia <url> — Pipeline de 5 etapas (branding → 3D → negocio → reconstrucción → verificación)";
           break;
         }
-        const run = await runRadiografia(parsed.args);
+        // AP-032 (fix): pipeline en background con polling — ver caso cold run
+        // reverse-engineer arriba. El dispatcher ya no bloquea 25-40s.
+        const run = await startRadiografia(parsed.args);
         output = [
-          `[RADIOGRAFIA] ${run.targetUrl}`,
-          `  Fase 1 Extracción: ${run.phases[0]?.detail}`,
-          `  Fase 2 DOM/3D: ${run.phases[1]?.detail}`,
-          `  Fase 3 Negocio: modelo=${run.businessModel?.pricingModel} planes=${run.businessModel?.plans.length}`,
-          `  Fase 4 Reconstrucción: ${run.reconstruction?.components.length} componentes · 3D: ${run.reconstruction?.threeJs.detected ? "sí" : "no"}`,
-          `  Fase 5 Verificación: ${run.verification?.verdict}`,
-          `  ${run.summary ?? ""}`,
-          "  Detalle completo en el panel Radiografía.",
+          `[RADIOGRAFIA] Pipeline lanzado en background — run ${run.id.slice(-8)}`,
+          `  Target: ${run.targetUrl}`,
+          "  Fases en vivo en el panel Radiografía (polling cada 2s):",
+          "  1 Extracción visual/branding · 2 DOM/shaders 3D · 3 Modelo de negocio",
+          "  4 Reconstrucción modular · 5 Verificación con auto-crítica.",
         ].join("\n");
         refresh = true;
         data = { action: "radiografia", runId: run.id };

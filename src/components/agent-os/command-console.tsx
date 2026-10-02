@@ -4,11 +4,15 @@
 // command-console.tsx — Consola de invocación canónica (column_left)
 // `lee AGENTS.md, ejecuta: <comando>` → dispatcher real vía /api/command
 // 4 estados obligatorios (Fase 3): loading, vacío, error, éxito.
+// AP-032 (fix): usa executeCommandClient — verifica content-type antes de
+// parsear JSON (el gateway devuelve HTML 504 en comandos >30s) y reporta el
+// tiempo REAL transcurrido (P2) en vez de un durationMs: 0 falso.
 // ════════════════════════════════════════════════════════════════════════
 
 import { useEffect, useRef, useState } from "react";
 import { Terminal, CornerDownLeft, Loader2, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { executeCommandClient } from "@/lib/agent-os/client";
 import type { CommandDefDTO, CommandResultDTO } from "@/lib/agent-os/types";
 
 interface HistoryItem {
@@ -53,47 +57,10 @@ export function CommandConsole({ commands, onExecuted, onMejorate }: CommandCons
     setInput("");
     setRunning(true);
     try {
-      const res = await fetch("/api/agent-os/command", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input: cmd }),
-      });
-      const json = (await res.json()) as {
-        success: boolean;
-        data: CommandResultDTO | null;
-        error: string | null;
-      };
-      const result: CommandResultDTO =
-        json.data ?? {
-          command: cmd,
-          args: null,
-          output: json.error ?? "Error desconocido",
-          status: "ERROR",
-          durationMs: 0,
-          refresh: false,
-        };
+      const result = await executeCommandClient(cmd);
       setHistory((h) => h.map((it) => (it.id === id ? { ...it, result, pending: false } : it)));
       onExecuted?.(result);
       if (result.command === "mejorate" && onMejorate) onMejorate();
-    } catch (error) {
-      setHistory((h) =>
-        h.map((it) =>
-          it.id === id
-            ? {
-                ...it,
-                pending: false,
-                result: {
-                  command: cmd,
-                  args: null,
-                  output: `Error de red: ${error instanceof Error ? error.message : "desconocido"}`,
-                  status: "ERROR",
-                  durationMs: 0,
-                  refresh: false,
-                },
-              }
-            : it
-        )
-      );
     } finally {
       setRunning(false);
       inputRef.current?.focus();
