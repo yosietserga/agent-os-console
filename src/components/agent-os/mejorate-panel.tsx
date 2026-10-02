@@ -2,8 +2,8 @@
 
 // ════════════════════════════════════════════════════════════════════════
 // mejorate-panel.tsx — Panel del comando `mejorate` (Auto-Improvement Loop)
-// Muestra: scans ejecutados, catálogo de 10 repos (datos reales GitHub API),
-// patrones extraídos y acceso al synthesize vía consola o botón.
+// Muestra: scans ejecutados, catálogo completo de repos (datos reales
+// GitHub API), patrones extraídos y acceso al synthesize vía consola o botón.
 // ════════════════════════════════════════════════════════════════════════
 
 import { useState } from "react";
@@ -26,6 +26,9 @@ const CATEGORY_LABEL: Record<string, string> = {
   "replicacion-visual": "Replicación Visual",
   "agent-skills": "Agent Skills",
   "modelo-negocio": "Modelo de Negocio",
+  "agent-tooling": "Agent Tooling",
+  "llm-gateway": "LLM Gateway",
+  "prompt-intelligence": "Prompt Intelligence",
 };
 
 interface MejoratePanelProps {
@@ -194,7 +197,7 @@ export function MejoratePanel({ repos, scans, patterns, onSynthesize, synthesize
         </h3>
         <div className="os-scroll mt-4 max-h-72 space-y-2 overflow-y-auto pr-1">
           {patterns.length === 0 && (
-            <p className="text-xs text-[#86868b]">Sin patrones aún. Ejecuta: mejororate synthesize</p>
+            <p className="py-8 text-center text-xs text-[#86868b]">Sin patrones aún. Ejecuta: mejorate</p>
           )}
           {patterns.map((p) => (
             <div key={p.id} className="rounded-xl border border-[#e5e5ea] bg-[#fafafc] px-4 py-3">

@@ -1,8 +1,8 @@
 "use client";
 
 // ════════════════════════════════════════════════════════════════════════
-// repos-gallery.tsx — featuredFooter: galería de los 10 repos de
-// referencia del catálogo de radiografía (datos reales del scan).
+// repos-gallery.tsx — featuredFooter: galería del catálogo completo de
+// repos de referencia de radiografía (datos reales del scan en vivo).
 // ════════════════════════════════════════════════════════════════════════
 
 import { Star, Github, Boxes } from "lucide-react";
@@ -18,6 +18,9 @@ const CATEGORY_COLOR: Record<string, string> = {
   "replicacion-visual": "#ff9f0a",
   "agent-skills": "#34c759",
   "modelo-negocio": "#ff375f",
+  "agent-tooling": "#00c7be",
+  "llm-gateway": "#ffcc00",
+  "prompt-intelligence": "#ac8e68",
 };
 
 export function ReposGallery({ repos }: ReposGalleryProps) {
@@ -28,7 +31,7 @@ export function ReposGallery({ repos }: ReposGalleryProps) {
         <div>
           <h2 className="flex items-center gap-2 text-base font-semibold tracking-tight text-[#1d1d1f]">
             <Boxes className="size-4 text-[#0071e3]" aria-hidden="true" />
-            Arsenal de Radiografía — 10 Repos Referentes
+            Arsenal de Radiografía — {repos.length} Repos Referentes
           </h2>
           <p className="mt-1 text-xs text-[#86868b]">
             Skills, herramientas de extracción profunda y sandboxes agénticos ·{" "}

@@ -152,7 +152,7 @@ export function CommandConsole({ commands, onExecuted, onMejorate }: CommandCons
                     item.result.status === "ERROR" ? "text-[#ff6961]" : "text-[#a8e2a0]"
                   )}
                 >
-                  {item.result.output}
+                  {item.result.output}{"\n"}
                   <span className="mt-1 block text-white/35">
                     exit {item.result.status === "OK" ? "0" : "1"} · {item.result.durationMs}ms
                   </span>
@@ -220,13 +220,13 @@ export function CommandConsole({ commands, onExecuted, onMejorate }: CommandCons
       </form>
 
       {/* Chips rápidos */}
-      <div className="flex flex-wrap gap-1.5 border-t border-white/10 px-3 py-2.5">
+      <div className="flex flex-wrap gap-2 border-t border-white/10 px-3 py-2.5">
         {QUICK.map((q) => (
           <button
             key={q}
             onClick={() => execute(q)}
             disabled={running}
-            className="rounded-full border border-white/15 px-2.5 py-1 font-mono text-[10px] text-white/70 transition-colors hover:border-[#0a84ff]/60 hover:bg-[#0a84ff]/15 hover:text-white disabled:opacity-40"
+            className="rounded-full border border-white/15 px-3 py-1.5 font-mono text-[10px] text-white/70 transition-colors hover:border-[#0a84ff]/60 hover:bg-[#0a84ff]/15 hover:text-white disabled:opacity-40"
           >
             {q}
           </button>

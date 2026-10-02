@@ -8,7 +8,7 @@
 // Tema Apple Light inmutable (P5). Cero emojis (P7).
 // ════════════════════════════════════════════════════════════════════════
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Cpu, GitBranch, Layers, Database, Sparkles, Clock, TerminalSquare,
   BookOpen, Scale, Network, ScanLine, ShieldCheck, ChevronRight,
@@ -29,21 +29,23 @@ import type { CtaState } from "@/components/agent-os/glowing-cta-button";
 import { GlowingCtaButton } from "@/components/agent-os/glowing-cta-button";
 import type { OverviewDTO, CommandResultDTO } from "@/lib/agent-os/types";
 
-const TOUR_STEPS = [
+// Los pasos con contadores se generan en runtime desde el overview (cero
+// desincronización con la BD: el tour siempre dice la verdad del momento).
+const TOUR_STEPS_STATIC = [
   {
     target: "console",
     title: "Consola Canónica",
-    body: "Invoca los 16 comandos operativos con la sintaxis universal: lee AGENTS.md, ejecuta: <comando>. El dispatcher ejecuta acciones reales contra la base de datos, GitHub API y el Control Plane L2.",
+    body: "Invoca los comandos operativos canónicos con la sintaxis universal: lee AGENTS.md, ejecuta: <comando>. El dispatcher ejecuta acciones reales contra la base de datos, GitHub API y el Control Plane L2.",
   },
   {
     target: "mejorate",
     title: "Auto-Improvement Loop",
-    body: "El comando mejorate escanea los 10 repos de referencia en vivo, extrae patrones agénticos con LLM y propone adoptions. El botón con glow ejecuta el flujo completo scan → synthesize.",
+    body: "El comando mejorate escanea los repos de referencia en vivo, extrae patrones agénticos con LLM y propone adoptions. El botón con glow ejecuta el flujo completo scan → synthesize.",
   },
   {
     target: "memoria",
     title: "Memoria Empírica",
-    body: "Ledgers append-only (P9): 28 anti-patrones, victorias W1-W8, worklog y feedback del operador. Ningún LLM olvida las restricciones del proyecto.",
+    body: "Ledgers append-only (P9): anti-patrones, victorias W1-W8, worklog y feedback del operador. Ningún LLM olvida las restricciones del proyecto.",
   },
   {
     target: "pre",
@@ -120,9 +122,35 @@ export default function AgentOSPage() {
   const tokensSession = overview?.ledger.reduce((a, l) => a + l.promptTokens + l.completionTokens, 0) ?? 0;
   const promotedCount = overview?.proposals.filter((p) => p.status === "PROMOTED").length ?? 0;
 
+  // Tour con contadores derivados del overview (v1.8.0: 17 comandos, 19 repos,
+  // 30 APs + 18 WINs) — se recalcula en cada carga, imposible de desincronizar.
+  const tourSteps = useMemo(() => {
+    const cmdCount = overview?.commands.length;
+    const repoCount = overview?.repos.length;
+    const apCount = overview?.memory.antiPatterns.length;
+    const winCount = overview?.memory.wins.length;
+    return TOUR_STEPS_STATIC.map((step) => {
+      if (step.target === "console" && cmdCount) {
+        return { ...step, body: `Invoca los ${cmdCount} comandos operativos con la sintaxis universal: lee AGENTS.md, ejecuta: <comando>. El dispatcher ejecuta acciones reales contra la base de datos, GitHub API y el Control Plane L2.` };
+      }
+      if (step.target === "mejorate" && repoCount) {
+        return { ...step, body: `El comando mejorate escanea los ${repoCount} repos de referencia en vivo, extrae patrones agénticos con LLM y propone adoptions. El botón con glow ejecuta el flujo completo scan → synthesize.` };
+      }
+      if (step.target === "memoria" && apCount !== undefined) {
+        return { ...step, body: `Ledgers append-only (P9): ${apCount} anti-patrones, ${winCount ?? 0} victorias W1-W8, worklog y feedback del operador. Ningún LLM olvida las restricciones del proyecto.` };
+      }
+      return step;
+    });
+  }, [overview]);
+
+  const totalStars = overview?.repos.reduce((a, r) => a + r.stars, 0) ?? 0;
+  const starsLabel = totalStars >= 1_000_000
+    ? `${(totalStars / 1_000_000).toFixed(2)}M`
+    : `${Math.round(totalStars / 1000)}k`;
+
   return (
     <div className="flex min-h-screen flex-col bg-[#f5f5f7]">
-      <OnboardingTour steps={TOUR_STEPS} storageKey="agent-os-tour" version={1} />
+      <OnboardingTour steps={tourSteps} storageKey="agent-os-tour" version={2} />
 
       {/* ══ POSICIÓN 1: header ══════════════════════════════════════════ */}
       <header className="sticky top-0 z-30 border-b border-[#e5e5ea]/80 bg-white/80 backdrop-blur-xl">
@@ -193,15 +221,15 @@ export default function AgentOSPage() {
                 >
                   {mejorateState === "loading" ? "Auto-mejorando..." : mejorateState === "success" ? "Auto-mejora completada" : "Ejecutar mejorate"}
                 </GlowingCtaButton>
-                <TourRestartButton storageKey="agent-os-tour" version={1} />
+                <TourRestartButton storageKey="agent-os-tour" version={2} />
               </div>
             </div>
             <dl className="grid shrink-0 grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
               {[
-                { icon: ShieldCheck, label: "Reglas P1-P15", value: overview ? `${overview.rules.length}` : "—" },
+                { icon: ShieldCheck, label: "Reglas cardinales", value: overview ? `${overview.rules.length}` : "—" },
                 { icon: TerminalSquare, label: "Comandos", value: overview ? `${overview.commands.length}` : "—" },
                 { icon: BookOpen, label: "Memoria", value: overview ? `${overview.memory.antiPatterns.length + overview.memory.wins.length + overview.memory.worklog.length + overview.memory.feedback.length + overview.memory.project.length + overview.memory.reference.length + overview.memory.user.length}` : "—" },
-                { icon: Layers, label: "Repos (stars)", value: overview ? `${(overview.repos.reduce((a, r) => a + r.stars, 0) / 1000).toFixed(0)}k` : "—" },
+                { icon: Layers, label: "Repos (stars)", value: overview ? starsLabel : "—" },
               ].map((s) => (
                 <div key={s.label} className="rounded-xl border border-[#e5e5ea] bg-[#fafafc] px-3.5 py-3">
                   <s.icon className="size-4 text-[#0071e3]" aria-hidden="true" />
@@ -361,7 +389,7 @@ export default function AgentOSPage() {
             Windows dev / Ubuntu deploy (P10)
           </p>
           <p className="font-mono text-[10px] text-[#86868b]">
-            16 comandos · 15 reglas + W-CTA · memoria append-only · LLM-agnóstico
+            17 comandos · 15 reglas + W-CTA · memoria append-only · LLM-agnóstico
           </p>
         </div>
       </footer>

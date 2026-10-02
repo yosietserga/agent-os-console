@@ -88,3 +88,21 @@ Work Log:
 
 Stage Summary:
 - Console sincronizado 100% con upstream v1.8.0: 17 comandos, 16 reglas, 30 APs, 18 WINs, 19 repos (1.2M★), PSIM v1.8.0 multiclase. gaps-finder operativo con verificación real contra el repo upstream — encontró y corrigió 2 gaps residuales del propio boilerplate (contribution upstream 3352967). Proyecto versionado en privado en yosietserga/agent-os-console sin secretos en historial.
+
+---
+Task ID: 7
+Agent: Z.ai Code (principal)
+Task: `ui test /` completo (auditoría P14 visual + funcional con agent-browser y VLM), corregir todas las fallas detectadas, re-verificar y sincronizar el repo privado.
+
+Work Log:
+- Auditoría visual doble vía: agent-browser (mediciones DOM exactas) + VLM GLM-5V (4 screenshots full-page desktop + móvil 390px). Los 6 claims geométricos del VLM resultaron falsos positivos (botón consola 32px < form 53px, KPIs con 21px de margen, barras W uniformes 16px, tarjetas de galería iguales por fila, cero overflow-x, footer pegado al fondo exacto 8122=8122) — verificados con getBoundingClientRect.
+- Fallas FUNCIONALES reales encontradas y corregidas (desincronización de contadores tras el sync v1.8.0): footer decía "16 comandos" (son 17); tour decía "16 comandos / 10 repos / 28 anti-patrones" (son 17/19/30); heading de galería hardcodeado "10 Repos Referentes" (19); label hero "Reglas P1-P15" mostraba valor 16 (incluye W-CTA, renombrado a "Reglas cardinales"); typo "mejororate synthesize".
+- Fix estructural del tour: TOUR_STEPS ahora deriva contadores del overview en runtime (useMemo) — imposible de desincronizar en futuros syncs. Versión de persistencia bumpada a 2 (re-aparición única con texto corregido, AP-016).
+- Falla VISUAL mayor corregida: 9 de 19 repos mostraban badges con slug crudo y franja gris porque el UI solo conocía 5 de las 8 categorías de la BD. Añadidas agent-tooling (#00c7be teal), llm-gateway (#ffcc00 amarillo), prompt-intelligence (#ac8e68 marrón) a CATEGORY_COLOR y CATEGORY_LABEL ("Agent Tooling", "LLM Gateway", "Prompt Intelligence").
+- Mejoras menores: salto de línea explícito entre output y "exit 0 · Xms" de la consola (el copy/paste producía "cerrarexit 0"); chips rápidos gap-1.5→2 y py-1→1.5 px-2.5→3 (touch targets más generosos en móvil); stats hero formatea "1.20M" en vez de "1204k"; comentarios de cabecera actualizados en constitution-panel, mejorate-panel y repos-gallery.
+- Pruebas funcionales ejecutadas EN VIVO desde la UI: help (exit 0), gaps-finder (14 OK · 0 critical/high/medium · 1 low — CERO GAPS, commit desbloqueado), append de memoria P9 (30→31, sin error), someter propuesta al juez (RECHAZADA legítimamente con veredicto detallado: regresiones D3/D4/D6, ΔS -4.8), radiografía con URL inválida (error "URL inválida" sin crear run basura), verify y sil trend vía API (ambos OK), navegación de las 6 pestañas.
+- Limpieza: eliminada la entrada TEST-AUDITORIA (AP-031) creada por esta auditoría — artefacto del auditor, no memoria del operador; sin ella el check antipatrones DB=30 ↔ upstream=30 de gaps-finder habría fallado. Documentado aquí por honestidad (P2).
+- Re-verificación post-fix: lint exit 0; footer "17 comandos" ✓; galería "19 Repos Referentes" ✓; badges legibles sin slugs ✓; hero "Reglas cardinales" 16 · 17 · 64 · 1.20M ✓; tour pasos 1-3 con 17/19/30+18 ✓; newline del exit ✓; móvil 390px overflow-x 0 y footer al fondo exacto ✓; consola del navegador sin errores; VLM confirma 4/4 correcciones visibles.
+
+Stage Summary:
+- Auditoría P14 ejecutada con doble verificación (medición DOM + VLM) para separar defectos reales de falsos positivos del modelo de visión. 9 fallas funcionales/visuales reales corregidas (5 de datos, 3 de estilo, 1 typo), 1 fix estructural (tour derivado del overview). Sistema verificado end-to-end: consola, tour, memoria append-only, juez PRE-v2.0, validación de radiografía y gaps-finder en cero gaps. UI 100% consistente con la BD v1.8.0 (17 comandos · 16 reglas · 19 repos · 30 APs · 18 WINs).

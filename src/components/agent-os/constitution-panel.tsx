@@ -1,8 +1,8 @@
 "use client";
 
 // ════════════════════════════════════════════════════════════════════════
-// constitution-panel.tsx — Constitución AGENTS.md: 15 reglas cardinales +
-// W-CTA en detalle, y el directorio de los 16 comandos canónicos.
+// constitution-panel.tsx — Constitución AGENTS.md: 16 reglas cardinales
+// (P1-P15 + W-CTA) en detalle, y el directorio de los 17 comandos canónicos.
 // ════════════════════════════════════════════════════════════════════════
 
 import { ScrollText, TerminalSquare, ShieldCheck } from "lucide-react";
