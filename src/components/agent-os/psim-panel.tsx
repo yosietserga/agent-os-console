@@ -42,7 +42,7 @@ export function PsimPanel({ psim, rules, totalTokens = 0 }: PsimPanelProps) {
         { id: "K1", name: "P0/P1 Closure", value: `${Math.round(psim.k1 * 100)}%`, target: "≥ 90%", progress: psim.k1 * 100, ok: psim.k1 >= 0.9 },
         { id: "K2", name: "Mock Reduction", value: `${psim.k2}`, target: "pendiente neta negativa", progress: Math.min(Math.abs(psim.k2) * 20, 100), ok: psim.k2 < 0 },
         { id: "K3", name: "Finding Half-Life", value: `${psim.k3} it`, target: "≤ 2 iter", progress: Math.min((psim.k3 / 2) * 100, 100), ok: psim.k3 <= 2 },
-        { id: "K4", name: "Capability Count", value: `${psim.w1 + psim.w6}`, target: "≥ 1 W1/iter", progress: Math.min(((psim.w1 + psim.w6) / 4) * 100, 100), ok: psim.w1 + psim.w6 >= 1 },
+        { id: "K4", name: "Capability Count", value: `${psim.k4}`, target: "≥ 1 win/iter (W1+W6 incl.)", progress: Math.min((psim.k4 / 18) * 100, 100), ok: psim.k4 >= 1 },
         { id: "K5", name: "Gate Streak", value: `${psim.k5}`, target: "racha monótona creciente", progress: Math.min((psim.k5 / 10) * 100, 100), ok: psim.k5 >= 5 },
       ]
     : [];
@@ -94,7 +94,7 @@ export function PsimPanel({ psim, rules, totalTokens = 0 }: PsimPanelProps) {
             Victorias
           </h2>
           <span className="rounded-full bg-[#f5f5f7] px-2.5 py-0.5 font-mono text-[11px] font-semibold text-[#1d1d1f]">
-            {winsTotal} total
+            {psim?.k4 ?? 0} victorias · {winsTotal} clases
           </span>
         </div>
         <ul className="mt-4 space-y-2">
