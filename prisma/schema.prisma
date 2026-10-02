@@ -1,0 +1,209 @@
+// ════════════════════════════════════════════════════════════════════════
+// Agent OS — Esquema de Datos del Sistema de Control Agéntico
+// Implementa: Memoria Empírica Append-Only (P9), PRE-v2.0, PSIM,
+// L2 Control Plane, Mejorate Scans y Radiografía de Ingeniería Inversa
+// ════════════════════════════════════════════════════════════════════════
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ── Constitución AGENTS.md ──────────────────────────────────────────────
+
+model CardinalRule {
+  id          String   @id @default(cuid())
+  code        String   @unique // P1..P15, W-CTA
+  title       String
+  description String
+  severity    String // RED | YELLOW
+  category    String
+  order       Int
+}
+
+model CommandDef {
+  id          String @id @default(cuid())
+  name        String @unique
+  aliases     String // separados por coma
+  action      String
+  methodology String
+  description String
+  order       Int
+}
+
+// ── Memoria Empírica (Append-Only, Regla P9) ────────────────────────────
+
+model MemoryEntry {
+  id        String   @id @default(cuid())
+  type      String // ANTI_PATTERN | WIN | WORKLOG | FEEDBACK | USER | PROJECT | REFERENCE
+  code      String?  @unique // AP-001, WIN-001...
+  title     String
+  content   String
+  winClass  String? // W1..W8 (solo WIN)
+  severity  String? // CRITICA | ALTA | MEDIA
+  epoch     Int
+  createdAt DateTime @default(now())
+
+  @@index([type, createdAt])
+}
+
+// ── Mejorate: Repos de Referencia y Scans ───────────────────────────────
+
+model ReferenceRepo {
+  id            String   @id @default(cuid())
+  repo          String   @unique // owner/name
+  category      String // extraccion-estructural | inspeccion-tecnica | replicacion-visual | agent-skills | modelo-negocio
+  role          String // integración en el pipeline
+  description   String
+  stars         Int
+  sizeKb        Int
+  language      String?
+  branch        String
+  topics        String // JSON array
+  topDirs       String // JSON array
+  keyFiles      String // JSON array {path,size}
+  ghDescription String?
+  lastScannedAt DateTime @default(now())
+}
+
+model ScanRun {
+  id           String    @id @default(cuid())
+  mode         String // scan | synthesize
+  startedAt    DateTime  @default(now())
+  finishedAt   DateTime?
+  reposScanned Int
+  totalStars   Int
+  status       String // RUNNING | COMPLETED | FAILED
+  note         String?
+  patterns     ExtractedPattern[]
+}
+
+model ExtractedPattern {
+  id         String   @id @default(cuid())
+  scanRunId  String?
+  scanRun    ScanRun? @relation(fields: [scanRunId], references: [id])
+  repo       String
+  category   String
+  pattern    String
+  evidence   String
+  createdAt  DateTime @default(now())
+}
+
+// ── Gobernanza PRE-v2.0 (Ejecutor / Optimizador / Juez) ─────────────────
+
+model AdoptionProposal {
+  id          String    @id @default(cuid())
+  title       String
+  type        String // BP | AP | KILLER | SKILL | WIDGET | MCP
+  origin      String // repo de origen
+  description String
+  status      String // PROPOSED | EVALUATED | PROMOTED | REJECTED
+  d1          Float? // Compilación/Tipado (w=0.20)
+  d2          Float? // Fidelidad de Contratos (w=0.15)
+  d3          Float? // Adherencia al Pipeline (w=0.20)
+  d4          Float? // Casos Ocultos (w=0.20)
+  d5          Float? // Eficiencia de Tokens (w=0.10)
+  d6          Float? // Arquitectura/Reglas Críticas (w=0.15)
+  deltaS      Float?
+  verdict     String?
+  createdAt   DateTime  @default(now())
+  evaluatedAt DateTime?
+}
+
+// ── PSIM: Estado de KPIs y Victorias ────────────────────────────────────
+
+model PsimState {
+  id        String   @id @default(cuid())
+  version   String
+  epoch     Int
+  k1        Float // P0/P1 Closure Rate (>= 0.90)
+  k2        Float // Mock Reduction Velocity (pendiente negativa)
+  k3        Float // Finding Half-Life (<= 2 iteraciones)
+  k4        Float // Capability-Strengthening Count (>= 1 por iteración)
+  k5        Float // Gate Stability Streak (racha monótona)
+  w1        Int
+  w2        Int
+  w3        Int
+  w4        Int
+  w5        Int
+  w6        Int
+  w7        Int
+  w8        Int
+  updatedAt DateTime @updatedAt
+}
+
+// ── L2 Control Plane ────────────────────────────────────────────────────
+
+model L2Model {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  provider    String
+  tier        String // REASONING_FRONTIER | GENERAL_PURPOSE | FAST_CHEAP | SLM_MICRO
+  latencySlaMs Int
+  role        String // PRIMARY | FALLBACK | ESCALATION | LOCAL_RULES
+  archetype   String // Vision-to-Spec | Accounting-OCR | Commerce-Bot | Fraud-Guard | Console
+  status      String  @default("CLOSED") // CLOSED | OPEN | HALF_OPEN
+  failRate    Float   @default(0)
+  samples     Int     @default(0)
+}
+
+model CostLedgerEntry {
+  id               String   @id @default(cuid())
+  model            String
+  tenant           String
+  purpose          String // mejorate-synthesize | radiografia | l2-infer
+  promptTokens     Int
+  completionTokens Int
+  costUsd          Float
+  latencyMs        Int
+  outcome          String // OK | FALLBACK | ERROR
+  createdAt        DateTime @default(now())
+}
+
+// ── Bitácora de Comandos (auditoría) ────────────────────────────────────
+
+model CommandLog {
+  id         String   @id @default(cuid())
+  command    String
+  args       String?
+  output     String
+  status     String // OK | ERROR
+  durationMs Int
+  createdAt  DateTime @default(now())
+}
+
+// ── Radiografía de Ingeniería Inversa (Pipeline Rayos X) ────────────────
+
+model RadiografiaRun {
+  id            String    @id @default(cuid())
+  targetUrl     String
+  targetTitle   String?
+  status        String    @default("PENDING") // PENDING | RUNNING | COMPLETED | FAILED
+  phase         Int       @default(0) // 0..5
+  brandTokens   String? // JSON: paleta, tipografías, radius, layout
+  domStructure  String? // JSON: jerarquía DOM y posiciones canónicas
+  shaders3d     String? // JSON: WebGL/Three.js detectado
+  businessModel String? // JSON: pricing, planes, valor
+  contracts     String? // JSON: APIs/contratos detectados
+  reconstruction String? // JSON: componentes y tokens normalizados
+  verification  String? // JSON: veredicto AGREE/DISAGREE
+  summary       String?
+  tokensUsed    Int       @default(0)
+  createdAt     DateTime  @default(now())
+  completedAt   DateTime?
+}
+
+// ── Reportes Époch (inmutables) ─────────────────────────────────────────
+
+model Report {
+  id        String   @id @default(cuid())
+  epoch     Int
+  title     String
+  verdict   String // AGREE | DISAGREE | MIXED
+  content   String
+  createdAt DateTime @default(now())
+}

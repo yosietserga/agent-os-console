@@ -1,0 +1,207 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Regla Cardinal P5 — Paleta Inmutable Apple Modo Claro
+   #ffffff fondo puro · #f5f5f7 superficies · #e5e5ea/#d2d2d7 bordes
+   #1d1d1f texto titular · #86868b texto secundario · #0071e3 interacción
+   Prohibido: dark mode base, marrón/mostaza, !important
+   ════════════════════════════════════════════════════════════════════════ */
+:root {
+  --radius: 0.75rem;
+  --background: #f5f5f7;
+  --foreground: #1d1d1f;
+  --card: #ffffff;
+  --card-foreground: #1d1d1f;
+  --popover: #ffffff;
+  --popover-foreground: #1d1d1f;
+  --primary: #0071e3;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f7;
+  --secondary-foreground: #1d1d1f;
+  --muted: #f5f5f7;
+  --muted-foreground: #86868b;
+  --accent: #e8e8ed;
+  --accent-foreground: #1d1d1f;
+  --destructive: #ff3b30;
+  --border: #e5e5ea;
+  --input: #d2d2d7;
+  --ring: #0071e3;
+  --chart-1: #0071e3;
+  --chart-2: #34c759;
+  --chart-3: #af52de;
+  --chart-4: #ff9f0a;
+  --chart-5: #ff375f;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1d1d1f;
+  --sidebar-primary: #0071e3;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f5f5f7;
+  --sidebar-accent-foreground: #1d1d1f;
+  --sidebar-border: #e5e5ea;
+  --sidebar-ring: #0071e3;
+}
+
+/* P5: sin dark mode como tema base — .dark replica la paleta clara */
+.dark {
+  --background: #f5f5f7;
+  --foreground: #1d1d1f;
+  --card: #ffffff;
+  --card-foreground: #1d1d1f;
+  --popover: #ffffff;
+  --popover-foreground: #1d1d1f;
+  --primary: #0071e3;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f7;
+  --secondary-foreground: #1d1d1f;
+  --muted: #f5f5f7;
+  --muted-foreground: #86868b;
+  --accent: #e8e8ed;
+  --accent-foreground: #1d1d1f;
+  --destructive: #ff3b30;
+  --border: #e5e5ea;
+  --input: #d2d2d7;
+  --ring: #0071e3;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "ss01", "cv01";
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* ── W-CTA: GlowingCtaButton — glow sutil Apple-style, pulso 2.4s ─────── */
+@keyframes cta-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 0 rgba(0, 113, 227, 0.38),
+      0 10px 28px -10px rgba(0, 113, 227, 0.55);
+  }
+  50% {
+    box-shadow:
+      0 0 0 14px rgba(0, 113, 227, 0),
+      0 14px 34px -10px rgba(0, 113, 227, 0.7);
+  }
+}
+
+.cta-glow {
+  background-image: linear-gradient(135deg, #0071e3 0%, #005bb5 100%);
+  animation: cta-glow 2.4s ease-in-out infinite;
+}
+
+.cta-glow:hover {
+  background-image: linear-gradient(135deg, #0a7ef0 0%, #0666c7 100%);
+}
+
+.cta-glow:active {
+  transform: scale(0.977);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta-glow {
+    animation: none; /* W-CTA: desactiva glow, mantiene gradient */
+    box-shadow: 0 10px 28px -10px rgba(0, 113, 227, 0.45);
+  }
+}
+
+/* ── Terminal: scrollbar sobrio estilo macOS ──────────────────────────── */
+.os-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.os-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.os-scroll::-webkit-scrollbar-thumb {
+  background: #d2d2d7;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.os-scroll::-webkit-scrollbar-thumb:hover {
+  background: #b8b8bf;
+  background-clip: padding-box;
+}
+.os-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #d2d2d7 transparent;
+}
+
+/* ── Terminal cursor blink ─────────────────────────────────────────────── */
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.term-cursor {
+  animation: blink 1.06s step-end infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .term-cursor {
+    animation: none;
+  }
+}
+
+/* ── OnboardingTour: pulso del spotlight (respetando reduced-motion) ──── */
+@keyframes tour-spot {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.55); }
+  50% { box-shadow: 0 0 0 6px rgba(0, 113, 227, 0.28); }
+}
+.tour-spot {
+  animation: tour-spot 2s ease-in-out infinite;
+  border-radius: 14px;
+  position: relative;
+  z-index: 45;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-spot {
+    animation: none;
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.65);
+  }
+}

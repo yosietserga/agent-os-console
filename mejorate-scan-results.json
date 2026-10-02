@@ -1,0 +1,780 @@
+[
+  {
+    "repo": "browser-use/browser-use",
+    "category": "extraccion-estructural",
+    "role": "Fase 0 + Fase 3",
+    "desc": "Navegación web para agentes IA combinando visión artificial y análisis del DOM accesible. Extrae jerarquía de elementos interactivos, captura pantallas por sección, mapea user journeys completos.",
+    "stars": 116983,
+    "sizeKb": 37067,
+    "branch": "main",
+    "language": "Python",
+    "ghDescription": "Agents that use the browser.",
+    "topics": [
+      "ai-agents",
+      "ai-tools",
+      "browser-automation",
+      "browser-use",
+      "llm",
+      "playwright",
+      "python"
+    ],
+    "pushedAt": "2026-10-02T02:56:28Z",
+    "topDirs": [
+      ".github",
+      "bin",
+      "browser_use",
+      "docker",
+      "examples",
+      "scripts",
+      "skills",
+      "static",
+      "tests"
+    ],
+    "keyFiles": [
+      {
+        "path": "AGENTS.md",
+        "size": 38463
+      },
+      {
+        "path": "CLAUDE.md",
+        "size": 11149
+      },
+      {
+        "path": "browser_use/README.md",
+        "size": 877
+      },
+      {
+        "path": "browser_use/__init__.py",
+        "size": 6583
+      },
+      {
+        "path": "browser_use/__main__.py",
+        "size": 196
+      },
+      {
+        "path": "browser_use/actor/README.md",
+        "size": 9537
+      },
+      {
+        "path": "browser_use/actor/__init__.py",
+        "size": 261
+      },
+      {
+        "path": "browser_use/actor/element.py",
+        "size": 35454
+      },
+      {
+        "path": "browser_use/actor/mouse.py",
+        "size": 5990
+      },
+      {
+        "path": "browser_use/actor/page.py",
+        "size": 20202
+      },
+      {
+        "path": "browser_use/actor/playground/flights.py",
+        "size": 1019
+      },
+      {
+        "path": "browser_use/actor/playground/mixed_automation.py",
+        "size": 1119
+      }
+    ],
+    "truncated": false,
+    "license": "MIT"
+  },
+  {
+    "repo": "mendableai/firecrawl",
+    "category": "extraccion-estructural",
+    "role": "Fase 0 + Fase 3",
+    "desc": "Motor de crawling que convierte sitios completos en Markdown limpio, sitemaps y esquemas JSON estructurados para LLMs. Extrae SEO, OpenGraph, términos legales.",
+    "stars": 187706,
+    "sizeKb": 181825,
+    "branch": "main",
+    "language": "TypeScript",
+    "ghDescription": "🔥 Supercharge your AI agents with data from the web and beyond. A web data API to search, scrape, and access more sources.",
+    "topics": [
+      "ai",
+      "ai-agents",
+      "ai-crawler",
+      "ai-scraping",
+      "ai-search",
+      "crawler",
+      "data-extraction",
+      "html-to-markdown",
+      "llm",
+      "markdown",
+      "scraper",
+      "scraping",
+      "web-crawler",
+      "web-data",
+      "web-data-extraction",
+      "web-scraper",
+      "web-scraping",
+      "web-search",
+      "webscraping"
+    ],
+    "pushedAt": "2026-10-02T08:58:41Z",
+    "topDirs": [
+      ".github",
+      "apps",
+      "examples",
+      "firecrawl-cli",
+      "firecrawl-cli-skills",
+      "firecrawl-skills",
+      "firecrawl-workflows",
+      "img",
+      "skills"
+    ],
+    "keyFiles": [
+      {
+        "path": ".github/workflows/deploy-playwright.yml",
+        "size": 2700
+      },
+      {
+        "path": ".github/workflows/scrape-evals.yml",
+        "size": 4814
+      },
+      {
+        "path": "AGENTS.md",
+        "size": 1464
+      },
+      {
+        "path": "CLAUDE.md",
+        "size": 1668
+      },
+      {
+        "path": "apps/api/native/src/crawler.rs",
+        "size": 39556
+      },
+      {
+        "path": "apps/api/native/wasi-worker-browser.mjs",
+        "size": 840
+      },
+      {
+        "path": "apps/api/requests/v2/browser.requests.http",
+        "size": 3605
+      },
+      {
+        "path": "apps/api/requests/v2/crawl.requests.http",
+        "size": 1217
+      },
+      {
+        "path": "apps/api/requests/v2/scrape.requests.http",
+        "size": 1105
+      },
+      {
+        "path": "apps/api/src/__tests__/lib/branding/llm-failure-fallback.test.ts",
+        "size": 2671
+      },
+      {
+        "path": "apps/api/src/__tests__/nuq-fdb/router.test.ts",
+        "size": 10197
+      },
+      {
+        "path": "apps/api/src/__tests__/snips/generateDomainSplits.test.ts",
+        "size": 1765
+      }
+    ],
+    "truncated": false,
+    "license": "AGPL-3.0"
+  },
+  {
+    "repo": "punkpeye/awesome-mcp-servers",
+    "category": "inspeccion-tecnica",
+    "role": "Matriz MCP",
+    "desc": "Catálogo curado de servidores MCP: Chrome DevTools Protocol, Puppeteer, volcadores de tráfico. Permite inspeccionar WebGL, geometrías, shaders GLSL y getComputedStyle.",
+    "stars": 95761,
+    "sizeKb": 396394,
+    "branch": "main",
+    "language": null,
+    "ghDescription": "A collection of MCP servers.",
+    "topics": [
+      "ai",
+      "mcp"
+    ],
+    "pushedAt": "2026-09-27T02:12:17Z",
+    "topDirs": [
+      ".github"
+    ],
+    "keyFiles": [],
+    "truncated": false,
+    "license": "MIT"
+  },
+  {
+    "repo": "modelcontextprotocol/servers",
+    "category": "inspeccion-tecnica",
+    "role": "Matriz MCP",
+    "desc": "Servidores MCP oficiales de Anthropic. Módulos puppeteer y fetch instrumentan navegador headless, interceptan APIs internas y contratos JSON no documentados.",
+    "stars": 90947,
+    "sizeKb": 30064,
+    "branch": "main",
+    "language": "TypeScript",
+    "ghDescription": "Model Context Protocol Servers",
+    "topics": [],
+    "pushedAt": "2026-10-01T15:33:30Z",
+    "topDirs": [
+      ".github",
+      "scripts",
+      "src"
+    ],
+    "keyFiles": [
+      {
+        "path": ".mcp.json",
+        "size": 123
+      },
+      {
+        "path": "CLAUDE.md",
+        "size": 4155
+      },
+      {
+        "path": "src/everything/AGENTS.md",
+        "size": 3051
+      },
+      {
+        "path": "src/everything/__tests__/prompts.test.ts",
+        "size": 6667
+      },
+      {
+        "path": "src/everything/prompts/args.ts",
+        "size": 1066
+      },
+      {
+        "path": "src/everything/prompts/completions.ts",
+        "size": 2072
+      },
+      {
+        "path": "src/everything/prompts/index.ts",
+        "size": 587
+      },
+      {
+        "path": "src/everything/prompts/resource.ts",
+        "size": 2548
+      },
+      {
+        "path": "src/everything/prompts/simple.ts",
+        "size": 656
+      },
+      {
+        "path": "src/fetch/src/mcp_server_fetch/__init__.py",
+        "size": 717
+      },
+      {
+        "path": "src/fetch/src/mcp_server_fetch/__main__.py",
+        "size": 57
+      },
+      {
+        "path": "src/fetch/src/mcp_server_fetch/server.py",
+        "size": 10643
+      }
+    ],
+    "truncated": false,
+    "license": "NOASSERTION"
+  },
+  {
+    "repo": "abi/screenshot-to-code",
+    "category": "replicacion-visual",
+    "role": "Fase 3",
+    "desc": "Convierte capturas de pantalla y videos en código frontend limpio (React, Tailwind, Vue). Extrae proporciones espaciales, tipografías y sombras hacia tokens Apple Light.",
+    "stars": 79922,
+    "sizeKb": 11139,
+    "branch": "main",
+    "language": "Python",
+    "ghDescription": "Drop in a screenshot and convert it to clean code (HTML/Tailwind/React/Vue)",
+    "topics": [],
+    "pushedAt": "2026-09-29T19:38:42Z",
+    "topDirs": [
+      ".claude",
+      ".github",
+      ".vscode",
+      ".zed",
+      "backend",
+      "blog",
+      "design-docs",
+      "frontend",
+      "scripts"
+    ],
+    "keyFiles": [
+      {
+        "path": "AGENTS.md",
+        "size": 3383
+      },
+      {
+        "path": "CLAUDE.md",
+        "size": 9
+      },
+      {
+        "path": "backend/agent/tools/screenshot_preview.py",
+        "size": 3439
+      },
+      {
+        "path": "backend/fs_logging/prompt_reports.py",
+        "size": 5440
+      },
+      {
+        "path": "backend/preview_screenshot/__init__.py",
+        "size": 1002
+      },
+      {
+        "path": "backend/preview_screenshot/base.py",
+        "size": 983
+      },
+      {
+        "path": "backend/preview_screenshot/playwright_backend.py",
+        "size": 3192
+      },
+      {
+        "path": "backend/preview_screenshot/registry.py",
+        "size": 1903
+      },
+      {
+        "path": "backend/prompts/__init__.py",
+        "size": 84
+      },
+      {
+        "path": "backend/prompts/create/__init__.py",
+        "size": 1732
+      },
+      {
+        "path": "backend/prompts/create/image.py",
+        "size": 3238
+      },
+      {
+        "path": "backend/prompts/create/text.py",
+        "size": 1124
+      }
+    ],
+    "truncated": false,
+    "license": "MIT"
+  },
+  {
+    "repo": "e2b-dev/fragments",
+    "category": "replicacion-visual",
+    "role": "Fase 5",
+    "desc": "Sandboxes aislados para que agentes generen, ejecuten y previsualicen apps Next.js, Vite y Three.js en caliente. Verifica compilación de shaders WebGL y FPS.",
+    "stars": 6382,
+    "sizeKb": 5403,
+    "branch": "main",
+    "language": "TypeScript",
+    "ghDescription": "Open-source Next.js template for building apps that are fully generated by AI. By E2B.",
+    "topics": [
+      "ai",
+      "ai-code-generation",
+      "anthropic",
+      "claude",
+      "claude-ai",
+      "code-interpreter",
+      "e2b",
+      "javascript",
+      "llm",
+      "nextjs",
+      "react",
+      "sandbox",
+      "typescript"
+    ],
+    "pushedAt": "2026-10-01T15:11:40Z",
+    "topDirs": [
+      ".github",
+      "app",
+      "components",
+      "lib",
+      "public",
+      "readme-assets",
+      "sandbox-templates"
+    ],
+    "keyFiles": [
+      {
+        "path": "app/api/sandbox/route.ts",
+        "size": 2419
+      },
+      {
+        "path": "lib/prompt.ts",
+        "size": 532
+      },
+      {
+        "path": "sandbox-templates/gradio-developer/app.py",
+        "size": 240
+      },
+      {
+        "path": "sandbox-templates/gradio-developer/build.dev.ts",
+        "size": 301
+      },
+      {
+        "path": "sandbox-templates/gradio-developer/build.prod.ts",
+        "size": 292
+      },
+      {
+        "path": "sandbox-templates/gradio-developer/package-lock.json",
+        "size": 227
+      },
+      {
+        "path": "sandbox-templates/gradio-developer/package.json",
+        "size": 184
+      },
+      {
+        "path": "sandbox-templates/gradio-developer/template.ts",
+        "size": 395
+      },
+      {
+        "path": "sandbox-templates/nextjs-developer/build.dev.ts",
+        "size": 301
+      },
+      {
+        "path": "sandbox-templates/nextjs-developer/build.prod.ts",
+        "size": 292
+      },
+      {
+        "path": "sandbox-templates/nextjs-developer/package-lock.json",
+        "size": 195
+      },
+      {
+        "path": "sandbox-templates/nextjs-developer/package.json",
+        "size": 184
+      }
+    ],
+    "truncated": false,
+    "license": "Apache-2.0"
+  },
+  {
+    "repo": "crewAIInc/crewAI-tools",
+    "category": "agent-skills",
+    "role": "Subagentes",
+    "desc": "Herramientas empaquetadas como skills: SeleniumScrapingTool, ScrapeWebsiteTool, DirectoryReadTool. Equipo de agentes: extractor de assets, analista de contratos, sintetizador.",
+    "stars": 1477,
+    "sizeKb": 5862,
+    "branch": "main",
+    "language": "Python",
+    "ghDescription": "Extend the capabilities of your CrewAI agents with Tools",
+    "topics": [
+      "ai",
+      "aiagents",
+      "crewai",
+      "crewai-tools"
+    ],
+    "pushedAt": "2025-10-23T18:08:34Z",
+    "topDirs": [
+      ".github",
+      "assets",
+      "crewai_tools",
+      "tests"
+    ],
+    "keyFiles": [
+      {
+        "path": "crewai_tools/adapters/mcp_adapter.py",
+        "size": 5256
+      },
+      {
+        "path": "crewai_tools/aws/bedrock/browser/README.md",
+        "size": 4737
+      },
+      {
+        "path": "crewai_tools/aws/bedrock/browser/__init__.py",
+        "size": 123
+      },
+      {
+        "path": "crewai_tools/aws/bedrock/browser/browser_session_manager.py",
+        "size": 8602
+      },
+      {
+        "path": "crewai_tools/aws/bedrock/browser/browser_toolkit.py",
+        "size": 21275
+      },
+      {
+        "path": "crewai_tools/aws/bedrock/browser/utils.py",
+        "size": 1327
+      },
+      {
+        "path": "crewai_tools/tools/browserbase_load_tool/README.md",
+        "size": 1637
+      },
+      {
+        "path": "crewai_tools/tools/browserbase_load_tool/browserbase_load_tool.py",
+        "size": 2447
+      },
+      {
+        "path": "crewai_tools/tools/firecrawl_crawl_website_tool/README.md",
+        "size": 1528
+      },
+      {
+        "path": "crewai_tools/tools/firecrawl_crawl_website_tool/firecrawl_crawl_website_tool.py",
+        "size": 4220
+      },
+      {
+        "path": "crewai_tools/tools/firecrawl_scrape_website_tool/README.md",
+        "size": 1118
+      },
+      {
+        "path": "crewai_tools/tools/firecrawl_scrape_website_tool/firecrawl_scrape_website_tool.py",
+        "size": 3495
+      }
+    ],
+    "truncated": false,
+    "license": "MIT"
+  },
+  {
+    "repo": "microsoft/autogen",
+    "category": "agent-skills",
+    "role": "Skills Library",
+    "desc": "Arquitectura de habilidades reutilizables y persistentes (autogen.agentchat.contrib). Registro de funciones de ingeniería inversa en biblioteca local determinista.",
+    "stars": 61252,
+    "sizeKb": 148692,
+    "branch": "main",
+    "language": "Python",
+    "ghDescription": "A programming framework for agentic AI",
+    "topics": [
+      "agentic",
+      "agentic-agi",
+      "agents",
+      "ai",
+      "autogen",
+      "autogen-ecosystem",
+      "chatgpt",
+      "framework",
+      "llm-agent",
+      "llm-framework"
+    ],
+    "pushedAt": "2026-04-15T11:59:09Z",
+    "topDirs": [
+      ".azure",
+      ".devcontainer",
+      ".github",
+      "docs",
+      "dotnet",
+      "protos",
+      "python"
+    ],
+    "keyFiles": [
+      {
+        "path": "dotnet/samples/AgentChat/AutoGen.Anthropic.Sample/Anthropic_Agent_With_Prompt_Caching.cs",
+        "size": 13914
+      },
+      {
+        "path": "dotnet/samples/dev-team/DevTeam.Backend/Agents/Developer/DeveloperPrompts.cs",
+        "size": 3202
+      },
+      {
+        "path": "dotnet/samples/dev-team/DevTeam.Backend/Agents/DeveloperLead/DeveloperLeadPrompts.cs",
+        "size": 2892
+      },
+      {
+        "path": "dotnet/samples/dev-team/DevTeam.Backend/Agents/ProductManager/PMPrompts.cs",
+        "size": 1842
+      },
+      {
+        "path": "dotnet/samples/dev-team/DevTeam.Backend/Agents/Sandbox.cs",
+        "size": 3660
+      },
+      {
+        "path": "dotnet/src/AutoGen.Core/Orchestrator/IOrchestrator.cs",
+        "size": 888
+      },
+      {
+        "path": "dotnet/src/AutoGen.Core/Orchestrator/RolePlayOrchestrator.cs",
+        "size": 3855
+      },
+      {
+        "path": "dotnet/src/AutoGen.Core/Orchestrator/RoundRobinOrchestrator.cs",
+        "size": 1266
+      },
+      {
+        "path": "dotnet/src/AutoGen.Core/Orchestrator/WorkflowOrchestrator.cs",
+        "size": 1558
+      },
+      {
+        "path": "dotnet/src/AutoGen.OpenAI/Orchestrator/RolePlayToolCallOrchestrator.cs",
+        "size": 4424
+      },
+      {
+        "path": "dotnet/src/Microsoft.AutoGen/AgentChat/GroupChat/ChatAgentRouter.cs",
+        "size": 4509
+      },
+      {
+        "path": "dotnet/src/Microsoft.AutoGen/AgentChat/GroupChat/GroupChatHandlerRouter.cs",
+        "size": 2512
+      }
+    ],
+    "truncated": false,
+    "license": "CC-BY-4.0"
+  },
+  {
+    "repo": "assafelovic/gpt-researcher",
+    "category": "modelo-negocio",
+    "role": "Fase 2 + Porter",
+    "desc": "Agente autónomo de investigación comprensiva: mapea pricing, analiza propuestas de valor, extrae testimonios y pain points, audita canales y pasarelas de pago.",
+    "stars": 29867,
+    "sizeKb": 53675,
+    "branch": "main",
+    "language": "Python",
+    "ghDescription": "An autonomous agent that conducts deep research on any data using any LLM providers",
+    "topics": [
+      "agent",
+      "ai",
+      "automation",
+      "deepresearch",
+      "llms",
+      "mcp",
+      "mcp-server",
+      "python",
+      "research",
+      "search",
+      "webscraping"
+    ],
+    "pushedAt": "2026-10-01T19:33:35Z",
+    "topDirs": [
+      ".claude",
+      ".codex-plugin",
+      ".github",
+      "backend",
+      "deep_agents",
+      "docs",
+      "evals",
+      "frontend",
+      "gpt_researcher",
+      "mcp-server",
+      "multi_agents",
+      "skills",
+      "terraform",
+      "tests"
+    ],
+    "keyFiles": [
+      {
+        "path": ".claude/SKILL.md",
+        "size": 7327
+      },
+      {
+        "path": ".claude/references/mcp.md",
+        "size": 2438
+      },
+      {
+        "path": ".claude/references/multi-agents.md",
+        "size": 1839
+      },
+      {
+        "path": ".claude/references/prompts.md",
+        "size": 3719
+      },
+      {
+        "path": ".cursorrules",
+        "size": 5937
+      },
+      {
+        "path": ".mcp.json",
+        "size": 128
+      },
+      {
+        "path": "docs/blog/2023-09-22-gpt-researcher/planner.jpeg",
+        "size": 135677
+      },
+      {
+        "path": "docs/docs/examples/custom_prompt.py",
+        "size": 3111
+      },
+      {
+        "path": "docs/docs/gpt-researcher/context/filtering-by-domain.md",
+        "size": 2299
+      },
+      {
+        "path": "docs/docs/gpt-researcher/context/img/nextjs-filter-by-domain.JPG",
+        "size": 62882
+      },
+      {
+        "path": "docs/docs/gpt-researcher/context/img/vanilla-filter-by-domains.png",
+        "size": 442082
+      },
+      {
+        "path": "docs/docs/gpt-researcher/gptr/claude-skill.md",
+        "size": 2472
+      }
+    ],
+    "truncated": false,
+    "license": "Apache-2.0"
+  },
+  {
+    "repo": "Significant-Gravitas/AutoGPT",
+    "category": "modelo-negocio",
+    "role": "Fase 2 + Sagas",
+    "desc": "Framework de bloques modulares y pipelines: procesamiento web, análisis de sitemaps, parsing APIs REST/GraphQL, ejecución en sandboxes. Orquestación secuencial por lotes.",
+    "stars": 187652,
+    "sizeKb": 695125,
+    "branch": "master",
+    "language": "Python",
+    "ghDescription": "AutoGPT is the vision of accessible AI for everyone, to use and to build on. Our mission is to provide the tools, so that you can focus on what matters.",
+    "topics": [
+      "agentic-ai",
+      "agents",
+      "ai",
+      "artificial-intelligence",
+      "autonomous-agents",
+      "claude",
+      "gpt",
+      "llama-api",
+      "llm",
+      "openai",
+      "python"
+    ],
+    "pushedAt": "2026-10-02T07:05:00Z",
+    "topDirs": [
+      ".agents",
+      ".claude",
+      ".github",
+      ".orca",
+      ".vscode",
+      "assets",
+      "autogpt_platform",
+      "classic",
+      "docs"
+    ],
+    "keyFiles": [
+      {
+        "path": ".claude/skills/open-pr/SKILL.md",
+        "size": 5548
+      },
+      {
+        "path": ".claude/skills/orchestrate/SKILL.md",
+        "size": 37102
+      },
+      {
+        "path": ".claude/skills/orchestrate/scripts/capacity.sh",
+        "size": 1277
+      },
+      {
+        "path": ".claude/skills/orchestrate/scripts/classify-pane.sh",
+        "size": 2930
+      },
+      {
+        "path": ".claude/skills/orchestrate/scripts/find-spare.sh",
+        "size": 778
+      },
+      {
+        "path": ".claude/skills/orchestrate/scripts/notify.sh",
+        "size": 1349
+      },
+      {
+        "path": ".claude/skills/orchestrate/scripts/poll-cycle.sh",
+        "size": 9804
+      },
+      {
+        "path": ".claude/skills/orchestrate/scripts/recycle-agent.sh",
+        "size": 1073
+      },
+      {
+        "path": ".claude/skills/orchestrate/scripts/run-loop.sh",
+        "size": 9322
+      },
+      {
+        "path": ".claude/skills/orchestrate/scripts/spawn-agent.sh",
+        "size": 5385
+      },
+      {
+        "path": ".claude/skills/orchestrate/scripts/status.sh",
+        "size": 1487
+      },
+      {
+        "path": ".claude/skills/orchestrate/scripts/verify-complete.sh",
+        "size": 8621
+      }
+    ],
+    "truncated": false,
+    "license": "NOASSERTION"
+  }
+]
