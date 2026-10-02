@@ -207,3 +207,31 @@ model Report {
   content   String
   createdAt DateTime @default(now())
 }
+
+// ── Ciclo Autónomo de Calidad (comando vigila, v1.9.0, AP-031) ──────────
+// El sentinela detecta fallas sin procesar y abre por cada una un ciclo de
+// 7 etapas: detectar → analizar → investigar → corregir → verificar →
+// criterios posteriores → reportar. Append-only en evidencia (P9).
+
+model Finding {
+  id         String   @id @default(cuid())
+  sourceRef  String   @unique // cmd:<logId> | radio:<runId> | l2:<model>:<purpose> | budget:<command>
+  source     String // COMMAND_LOG | RADIOGRAFIA | L2_LEDGER | GATEWAY_BUDGET
+  severity   String // CRITICAL | HIGH | MEDIUM | LOW
+  title      String
+  evidence   String // JSON: contexto crudo + análisis + investigación (append P9)
+  status     String   @default("DETECTED") // DETECTED | ANALYZED | CORRECTED | VERIFIED | RESOLVED | NO_DEFECT | ESCALATED
+  detectedAt DateTime @default(now())
+}
+
+model CycleRun {
+  id          String    @id @default(cuid())
+  trigger     String // AUTO_ON_ERROR | SENTINEL_SCAN | MANUAL
+  status      String    @default("RUNNING") // RUNNING | COMPLETED | FAILED | ESCALATED
+  findingId   String?   @unique
+  stages      String    @default("[]") // JSON [{name, status, durationMs, evidence}]
+  reportEpoch Int?
+  summary     String?
+  startedAt   DateTime  @default(now())
+  finishedAt  DateTime?
+}

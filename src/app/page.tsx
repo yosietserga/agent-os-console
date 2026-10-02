@@ -11,7 +11,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Cpu, GitBranch, Layers, Database, Sparkles, Clock, TerminalSquare,
-  BookOpen, Scale, Network, ScanLine, ShieldCheck, ChevronRight,
+  BookOpen, Scale, Network, ScanLine, ShieldCheck, ChevronRight, Radar,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,6 +22,7 @@ import { MemoryPanel } from "@/components/agent-os/memory-panel";
 import { GovernancePanel } from "@/components/agent-os/governance-panel";
 import { L2Panel } from "@/components/agent-os/l2-panel";
 import { RadiografiaPanel } from "@/components/agent-os/radiografia-panel";
+import { SentinelPanel } from "@/components/agent-os/sentinel-panel";
 import { ConstitutionPanel } from "@/components/agent-os/constitution-panel";
 import { ReposGallery } from "@/components/agent-os/repos-gallery";
 import { OnboardingTour, TourRestartButton } from "@/components/agent-os/onboarding-tour";
@@ -57,6 +58,11 @@ const TOUR_STEPS_STATIC = [
     target: "radiografia",
     title: "Radiografía Rayos X",
     body: "Pipeline de ingeniería inversa de 5 fases: branding → DOM/shaders 3D → modelo de negocio → reconstrucción modular → verificación con auto-crítica.",
+  },
+  {
+    target: "sentinela",
+    title: "Ciclo Autónomo de Calidad",
+    body: "El comando vigila (18º canónico) detecta fallas automáticamente y abre ciclos de 7 etapas: detectar → analizar → investigar → corregir → verificar → criterios posteriores → reportar. Ninguna falla muere en el log sin procesar.",
   },
   {
     target: "psim",
@@ -98,9 +104,11 @@ export default function AgentOSPage() {
   const onCommandExecuted = useCallback(
     (result: CommandResultDTO) => {
       // rayos-x / cold run reverse-engineer lanzan el pipeline en background:
-      // cambiar al tab Radiografía activa el polling en vivo de las 5 fases
+      // cambiar al tab Radiografía activa el polling en vivo de las 5 fases.
+      // vigila abre ciclos en background: el tab Sentinela muestra las 7 etapas.
       const action = (result.data as { action?: string } | undefined)?.action;
       if (action === "radiografia") setActiveTab("radiografia");
+      if (action === "sentinel") setActiveTab("sentinela");
       if (result.refresh) load();
     },
     [load]
@@ -148,7 +156,7 @@ export default function AgentOSPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f5f5f7]">
-      <OnboardingTour steps={tourSteps} storageKey="agent-os-tour" version={2} />
+      <OnboardingTour steps={tourSteps} storageKey="agent-os-tour" version={3} />
 
       {/* ══ POSICIÓN 1: header ══════════════════════════════════════════ */}
       <header className="sticky top-0 z-30 border-b border-[#e5e5ea]/80 bg-white/80 backdrop-blur-xl">
@@ -163,7 +171,7 @@ export default function AgentOSPage() {
             </span>
           </div>
           <span className="rounded-full border border-[#e5e5ea] bg-[#f5f5f7] px-2 py-0.5 font-mono text-[10px] font-semibold text-[#1d1d1f]">
-            v1.8.0
+            v1.9.0
           </span>
           <div className="ml-auto flex items-center gap-4">
             <span className="hidden items-center gap-1.5 font-mono text-[11px] text-[#86868b] md:flex" aria-label="Epoch Unix en vivo">
@@ -219,7 +227,7 @@ export default function AgentOSPage() {
                 >
                   {mejorateState === "loading" ? "Auto-mejorando..." : mejorateState === "success" ? "Auto-mejora completada" : "Ejecutar mejorate"}
                 </GlowingCtaButton>
-                <TourRestartButton storageKey="agent-os-tour" version={2} />
+                <TourRestartButton storageKey="agent-os-tour" version={3} />
               </div>
             </div>
             <dl className="grid shrink-0 grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
@@ -303,6 +311,7 @@ export default function AgentOSPage() {
                     { value: "gobernanza", icon: Scale, label: "Gobernanza" },
                     { value: "l2", icon: Network, label: "L2 Control Plane" },
                     { value: "radiografia", icon: ScanLine, label: "Radiografía" },
+                    { value: "sentinela", icon: Radar, label: "Sentinela" },
                     { value: "constitucion", icon: ShieldCheck, label: "Constitución" },
                   ].map((t) => (
                     <TabsTrigger
@@ -335,6 +344,9 @@ export default function AgentOSPage() {
                 </TabsContent>
                 <TabsContent value="radiografia" className="mt-4">
                   <RadiografiaPanel runs={overview.radiografiaRuns} onCompleted={load} />
+                </TabsContent>
+                <TabsContent value="sentinela" className="mt-4">
+                  <SentinelPanel />
                 </TabsContent>
                 <TabsContent value="constitucion" className="mt-4">
                   <ConstitutionPanel rules={overview.rules} commands={overview.commands} />
@@ -382,12 +394,12 @@ export default function AgentOSPage() {
       <footer className="mt-auto border-t border-[#e5e5ea] bg-white/90 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
         <div className="mx-auto flex max-w-[1440px] flex-col items-center justify-between gap-2 px-4 py-4 text-center sm:flex-row sm:px-6 sm:text-left">
           <p className="text-[11px] text-[#86868b]">
-            <span className="font-semibold text-[#1d1d1f]">Agent OS v1.8.0</span> · Operador:{" "}
+            <span className="font-semibold text-[#1d1d1f]">Agent OS v1.9.0</span> · Operador:{" "}
             <span className="font-medium text-[#1d1d1f]">Yosiet Serga</span> · Venezuela ·
             Windows dev / Ubuntu deploy (P10)
           </p>
           <p className="font-mono text-[10px] text-[#86868b]">
-            17 comandos · 15 reglas + W-CTA · memoria append-only · LLM-agnóstico
+            18 comandos · 15 reglas + W-CTA · memoria append-only · LLM-agnóstico · ciclo autónomo de calidad
           </p>
         </div>
       </footer>

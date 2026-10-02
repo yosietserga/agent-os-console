@@ -61,6 +61,48 @@ export interface L2InferenceResult {
   error?: string;
 }
 
+// ── Research Loop: web_search vía Control Plane (backend only, P8) ──────
+export interface WebSearchResultItem {
+  url: string;
+  name: string;
+  snippet: string;
+  host_name: string;
+  rank: number;
+  date: string;
+}
+
+export async function webSearch(query: string, num = 5): Promise<{ items: WebSearchResultItem[]; outcome: "OK" | "ERROR"; error?: string }> {
+  const started = Date.now();
+  try {
+    const zai = await ZAI.create();
+    const res = await zai.functions.invoke("web_search", { query, num });
+    const items = Array.isArray(res) ? (res as WebSearchResultItem[]) : [];
+    await logLedger({
+      model: L2_PRIMARY,
+      tenant: "agent-os-console",
+      purpose: "investiga-websearch",
+      promptTokens: Math.ceil(query.length / 4),
+      completionTokens: 0,
+      latencyMs: Date.now() - started,
+      outcome: items.length ? "OK" : "ERROR",
+    });
+    return items.length
+      ? { items, outcome: "OK" }
+      : { items: [], outcome: "ERROR", error: "web_search devolvió cero resultados" };
+  } catch (e) {
+    await logLedger({
+      model: L2_PRIMARY,
+      tenant: "agent-os-console",
+      purpose: "investiga-websearch",
+      promptTokens: Math.ceil(query.length / 4),
+      completionTokens: 0,
+      latencyMs: Date.now() - started,
+      outcome: "ERROR",
+    });
+    return { items: [], outcome: "ERROR", error: e instanceof Error ? e.message : "error desconocido" };
+  }
+}
+
 // ── Inference vía envelope canónico (sandwich P12 capa 3) ───────────────
 export async function infer(opts: {
   systemPrompt: string;
