@@ -205,3 +205,57 @@
     box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.65);
   }
 }
+
+/* ── Living Topology Visualizer: canvas theme vars (dark command center) ── */
+:root {
+  --app-canvas-bg-1: #0c1422;
+  --app-canvas-bg-2: #05070c;
+  --app-node-fill: #0b1220;
+  --app-glyph: #e2e8f0;
+  --app-node-label: #cbd5e1;
+}
+
+/* Scrollbar for dark command-center panels */
+.topo-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.topo-scroll::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 999px;
+}
+.topo-scroll::-webkit-scrollbar-thumb {
+  background: rgba(34, 211, 238, 0.25);
+  border-radius: 999px;
+}
+.topo-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(34, 211, 238, 0.45);
+}
+
+/* Live pulse dot for connection indicator */
+@keyframes topo-ping {
+  0% { transform: scale(1); opacity: 0.75; }
+  75%, 100% { transform: scale(2.2); opacity: 0; }
+}
+.topo-ping {
+  animation: topo-ping 1.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .topo-ping {
+    animation: none;
+  }
+}
+
+/* KPI flash: replays whenever the keyed overlay remounts (value change) */
+@keyframes topo-flash {
+  0% { background-color: rgba(34, 211, 238, 0.16); }
+  100% { background-color: rgba(34, 211, 238, 0); }
+}
+.topo-flash {
+  animation: topo-flash 0.9s ease-out forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .topo-flash {
+    animation: none;
+  }
+}

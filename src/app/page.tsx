@@ -1,17 +1,19 @@
 "use client";
 
 // ════════════════════════════════════════════════════════════════════════
-// page.tsx — Agent OS Console (ruta única /)
+// page.tsx — Agent OS · Living Topology Visualizer (ruta única /)
 // Layout canónico de 7 posiciones (P6):
 //   header · featuredContent · column_left · main · column_right ·
 //   featuredFooter · footer (sticky, mt-auto)
-// Tema Apple Light inmutable (P5). Cero emojis (P7).
+// Shell Apple Light (P5) con vistas embebidas dark command-center:
+//   Topología Viva · Kanban KPI · Consola Agent OS
 // ════════════════════════════════════════════════════════════════════════
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Cpu, GitBranch, Layers, Database, Sparkles, Clock, TerminalSquare,
   BookOpen, Scale, Network, ScanLine, ShieldCheck, ChevronRight, Radar,
+  KanbanSquare, Waypoints,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,6 +32,9 @@ import type { CtaState } from "@/components/agent-os/glowing-cta-button";
 import { GlowingCtaButton } from "@/components/agent-os/glowing-cta-button";
 import { executeCommandClient } from "@/lib/agent-os/client";
 import type { OverviewDTO, CommandResultDTO } from "@/lib/agent-os/types";
+import { TopologyLiveView } from "@/components/topology-live/topology-live-view";
+import { KanbanKpiBoard } from "@/components/topology-live/kanban-kpi-board";
+import { useTopologyLive } from "@/lib/topology-live/use-topology-live";
 
 // Los pasos con contadores se generan en runtime desde el overview (cero
 // desincronización con la BD: el tour siempre dice la verdad del momento).
@@ -71,12 +76,19 @@ const TOUR_STEPS_STATIC = [
   },
 ];
 
+// El Kanban KPI consume la misma conexión viva que la topología.
+function KanbanLiveTab() {
+  const live = useTopologyLive();
+  return <KanbanKpiBoard live={live} />;
+}
+
 export default function AgentOSPage() {
   const [overview, setOverview] = useState<OverviewDTO | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [epoch, setEpoch] = useState(0);
   const [mejorateState, setMejorateState] = useState<CtaState>("ready");
   const [activeTab, setActiveTab] = useState("mejorate");
+  const [rootTab, setRootTab] = useState("topologia");
 
   const load = useCallback(async () => {
     try {
@@ -156,7 +168,11 @@ export default function AgentOSPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f5f5f7]">
-      <OnboardingTour steps={tourSteps} storageKey="agent-os-tour" version={3} />
+      {/* Tour del console: solo se monta cuando la Consola está visible,
+          porque sus targets [data-tour] viven dentro de ese tab. */}
+      {rootTab === "consola" && (
+        <OnboardingTour steps={tourSteps} storageKey="agent-os-tour" version={3} />
+      )}
 
       {/* ══ POSICIÓN 1: header ══════════════════════════════════════════ */}
       <header className="sticky top-0 z-30 border-b border-[#e5e5ea]/80 bg-white/80 backdrop-blur-xl">
@@ -167,7 +183,7 @@ export default function AgentOSPage() {
           <div className="flex items-baseline gap-2">
             <h1 className="text-sm font-semibold tracking-tight text-[#1d1d1f]">Agent OS</h1>
             <span className="hidden font-mono text-[10px] text-[#86868b] sm:inline">
-              L2 Control Plane &amp; Empirical Memory
+              Living Topology Visualizer
             </span>
           </div>
           <span className="rounded-full border border-[#e5e5ea] bg-[#f5f5f7] px-2 py-0.5 font-mono text-[10px] font-semibold text-[#1d1d1f]">
@@ -179,13 +195,13 @@ export default function AgentOSPage() {
               {epoch || overview?.epoch || 0}
             </span>
             <a
-              href="https://github.com/yosietserga/agent-os-boilerplate"
+              href="https://github.com/yosietserga/living-topology-visualizer"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 rounded-full border border-[#e5e5ea] bg-white px-3 py-1.5 text-[11px] font-medium text-[#1d1d1f] transition-colors hover:border-[#d2d2d7] hover:bg-[#f5f5f7]"
             >
               <GitBranch className="size-3.5" aria-hidden="true" />
-              <span className="hidden sm:inline">yosietserga/</span>agent-os-boilerplate
+              <span className="hidden sm:inline">yosietserga/</span>living-topology-visualizer
             </a>
           </div>
         </div>
@@ -193,201 +209,270 @@ export default function AgentOSPage() {
 
       {/* Contenido scrollable */}
       <div className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-6 sm:px-6">
-        {/* ══ POSICIÓN 2: featuredContent ══════════════════════════════ */}
-        <section
-          data-tour="hero"
-          aria-label="Agent OS — Sistema Universal de Control Agéntico"
-          className="relative overflow-hidden rounded-2xl border border-[#e5e5ea] bg-white p-6 sm:p-8"
-        >
-          <div
-            className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-[#0071e3]/6 blur-3xl"
-            aria-hidden="true"
-          />
-          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#0071e3]">
-                Documento Cero · Constitución AGENTS.md
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold leading-tight tracking-tight text-[#1d1d1f] sm:text-3xl">
-                Escribe las reglas una vez.
-                <br />
-                Opéralas para siempre.
-              </h2>
-              <p className="mt-3 text-sm leading-relaxed text-[#86868b]">
-                Sistema Universal de Control Agéntico, L2 Control Plane y Protocolo de Memoria
-                Empírica. Gobernanza PRE-v2.0 con juez determinista, medición PSIM y auto-mejora
-                continua mediante <span className="font-medium text-[#1d1d1f]">mejorate</span>.
-              </p>
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <GlowingCtaButton
-                  ctaState={mejorateState}
-                  onClick={runMejorate}
-                  icon={<Sparkles className="size-4" aria-hidden="true" />}
-                  aria-label="Ejecutar el comando mejorate: scan y synthesize"
-                >
-                  {mejorateState === "loading" ? "Auto-mejorando..." : mejorateState === "success" ? "Auto-mejora completada" : "Ejecutar mejorate"}
-                </GlowingCtaButton>
-                <TourRestartButton storageKey="agent-os-tour" version={3} />
-              </div>
-            </div>
-            <dl className="grid shrink-0 grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
-              {[
-                { icon: ShieldCheck, label: "Reglas cardinales", value: overview ? `${overview.rules.length}` : "—" },
-                { icon: TerminalSquare, label: "Comandos", value: overview ? `${overview.commands.length}` : "—" },
-                { icon: BookOpen, label: "Memoria", value: overview ? `${overview.memory.antiPatterns.length + overview.memory.wins.length + overview.memory.worklog.length + overview.memory.feedback.length + overview.memory.project.length + overview.memory.reference.length + overview.memory.user.length}` : "—" },
-                { icon: Layers, label: "Repos (stars)", value: overview ? starsLabel : "—" },
-              ].map((s) => (
-                <div key={s.label} className="rounded-xl border border-[#e5e5ea] bg-[#fafafc] px-3.5 py-3">
-                  <s.icon className="size-4 text-[#0071e3]" aria-hidden="true" />
-                  <dd className="mt-1.5 font-mono text-xl font-semibold text-[#1d1d1f]">{s.value}</dd>
-                  <dt className="text-[10px] font-medium text-[#86868b]">{s.label}</dt>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </section>
+        {/* ══ Navegación raíz: Topología Viva · Kanban KPI · Consola ═══ */}
+        <Tabs value={rootTab} onValueChange={setRootTab} className="w-full">
+          <TabsList
+            aria-label="Vistas del Agent OS"
+            className="os-scroll h-auto w-full justify-start gap-1 overflow-x-auto rounded-full border border-[#e5e5ea] bg-white p-1"
+          >
+            {[
+              { value: "topologia", icon: Waypoints, label: "Topología Viva" },
+              { value: "kanban", icon: KanbanSquare, label: "Kanban KPI" },
+              { value: "consola", icon: TerminalSquare, label: "Consola Agent OS" },
+            ].map((t) => (
+              <TabsTrigger
+                key={t.value}
+                value={t.value}
+                className="h-9 shrink-0 rounded-full px-4 text-xs font-medium text-[#4b4b50] data-[state=active]:bg-[#1d1d1f] data-[state=active]:text-white"
+              >
+                <t.icon className="size-3.5" aria-hidden="true" />
+                {t.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-        {/* Estado de carga / error */}
-        {loadError && (
-          <div role="alert" className="mt-6 rounded-2xl border border-[#ff3b30]/30 bg-[#ff3b30]/5 p-5">
-            <p className="text-sm font-semibold text-[#d70015]">Error cargando el Agent OS</p>
-            <p className="mt-1 font-mono text-xs text-[#86868b]">{loadError}</p>
-          </div>
-        )}
-        {!overview && !loadError && (
-          <div className="mt-6 space-y-4">
-            <div className="grid gap-4 lg:grid-cols-12">
-              <Skeleton className="h-96 rounded-2xl lg:col-span-3" />
-              <Skeleton className="h-96 rounded-2xl lg:col-span-6" />
-              <Skeleton className="h-96 rounded-2xl lg:col-span-3" />
-            </div>
-          </div>
-        )}
-
-        {overview && (
-          <div className="mt-6 grid gap-4 lg:grid-cols-12">
-            {/* ══ POSICIÓN 3: column_left ══════════════════════════════ */}
-            <div className="min-w-0 lg:col-span-3">
-              <CommandConsole commands={overview.commands} onExecuted={onCommandExecuted} />
-              <div className="mt-4 rounded-2xl border border-[#e5e5ea] bg-white p-4">
-                <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-[#86868b]">
-                  <Database className="size-3" aria-hidden="true" /> Auditoría de sesión
+          {/* ══ VISTA 1: Topología Viva (dark command center) ═════════ */}
+          <TabsContent value="topologia" className="mt-4">
+            <div className="rounded-2xl bg-slate-950 p-3 sm:p-5">
+              <div className="mb-4 flex flex-col gap-1 px-1">
+                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-400">
+                  Living Topology Visualizer · motor en vivo :3003
                 </p>
-                <ul className="mt-2.5 space-y-1.5 text-[11px] text-[#4b4b50]">
-                  <li className="flex justify-between gap-2">
-                    <span>Inferencias L2</span>
-                    <span className="font-mono font-semibold">{overview.ledger.length}</span>
-                  </li>
-                  <li className="flex justify-between gap-2">
-                    <span>Tokens auditados</span>
-                    <span className="font-mono font-semibold">{tokensSession.toLocaleString("es-VE")}</span>
-                  </li>
-                  <li className="flex justify-between gap-2">
-                    <span>Adoptions promoted</span>
-                    <span className="font-mono font-semibold text-[#248a3d]">{promotedCount}</span>
-                  </li>
-                  <li className="flex justify-between gap-2">
-                    <span>Comandos ejecutados</span>
-                    <span className="font-mono font-semibold">{overview.commandLog.length}</span>
-                  </li>
-                  <li className="flex justify-between gap-2">
-                    <span>Radiografías</span>
-                    <span className="font-mono font-semibold">{overview.radiografiaRuns.length}</span>
-                  </li>
-                </ul>
+                <h2 className="text-lg font-semibold tracking-tight text-slate-100">
+                  Mira el workflow agéntico respirar
+                </h2>
+                <p className="max-w-3xl text-xs leading-relaxed text-slate-400">
+                  Pasos, flujos y nodos activos e inactivos del ciclo autónomo de calidad en
+                  tiempo real. Cada partícula es una transferencia de contexto real entre
+                  órganos — incluidas las transferencias de inferencia L2 con chars medidos de
+                  prompt y respuesta. Ejecuta una iteración y observa cómo se activan y
+                  desactivan los nodos etapa por etapa.
+                </p>
               </div>
+              <TopologyLiveView />
             </div>
+          </TabsContent>
 
-            {/* ══ POSICIÓN 4: main ══════════════════════════════════════ */}
-            <main className="min-w-0 lg:col-span-6">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList
-                  aria-label="Módulos del Agent OS"
-                  className="os-scroll h-auto w-full justify-start gap-1 overflow-x-auto rounded-full border border-[#e5e5ea] bg-white p-1"
-                >
-                  {[
-                    { value: "mejorate", icon: Sparkles, label: "Mejorate" },
-                    { value: "memoria", icon: BookOpen, label: "Memoria" },
-                    { value: "gobernanza", icon: Scale, label: "Gobernanza" },
-                    { value: "l2", icon: Network, label: "L2 Control Plane" },
-                    { value: "radiografia", icon: ScanLine, label: "Radiografía" },
-                    { value: "sentinela", icon: Radar, label: "Sentinela" },
-                    { value: "constitucion", icon: ShieldCheck, label: "Constitución" },
-                  ].map((t) => (
-                    <TabsTrigger
-                      key={t.value}
-                      value={t.value}
-                      className="h-9 shrink-0 rounded-full px-3.5 text-xs font-medium text-[#4b4b50] data-[state=active]:bg-[#1d1d1f] data-[state=active]:text-white"
+          {/* ══ VISTA 2: Kanban KPI (dark command center) ═════════════ */}
+          <TabsContent value="kanban" className="mt-4">
+            <div className="rounded-2xl bg-slate-950 p-3 sm:p-5">
+              <div className="mb-4 flex flex-col gap-1 px-1">
+                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-cyan-400">
+                  Kanban KPI · iteraciones, etapas y hallazgos reales
+                </p>
+                <h2 className="text-lg font-semibold tracking-tight text-slate-100">
+                  El ciclo autónomo en un tablero kanban
+                </h2>
+                <p className="max-w-3xl text-xs leading-relaxed text-slate-400">
+                  Cada iteración es una tarjeta que avanza por las 7 etapas del ciclo en vivo.
+                  Los KPIs superiores agregan nodos activos, transferencias de contexto,
+                  inferencias L2 y veredictos; abajo, los hallazgos reales de la base de
+                  datos fluyen por su ciclo de vida.
+                </p>
+              </div>
+              <KanbanLiveTab />
+            </div>
+          </TabsContent>
+
+          {/* ══ VISTA 3: Consola Agent OS (Apple Light) ═══════════════ */}
+          <TabsContent value="consola" className="mt-4">
+            {/* ══ POSICIÓN 2: featuredContent ══════════════════════════ */}
+            <section
+              data-tour="hero"
+              aria-label="Agent OS — Sistema Universal de Control Agéntico"
+              className="relative overflow-hidden rounded-2xl border border-[#e5e5ea] bg-white p-6 sm:p-8"
+            >
+              <div
+                className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-[#0071e3]/6 blur-3xl"
+                aria-hidden="true"
+              />
+              <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                <div className="max-w-2xl">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#0071e3]">
+                    Documento Cero · Constitución AGENTS.md
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold leading-tight tracking-tight text-[#1d1d1f] sm:text-3xl">
+                    Escribe las reglas una vez.
+                    <br />
+                    Opéralas para siempre.
+                  </h2>
+                  <p className="mt-3 text-sm leading-relaxed text-[#86868b]">
+                    Sistema Universal de Control Agéntico, L2 Control Plane y Protocolo de Memoria
+                    Empírica. Gobernanza PRE-v2.0 con juez determinista, medición PSIM y auto-mejora
+                    continua mediante <span className="font-medium text-[#1d1d1f]">mejorate</span>.
+                  </p>
+                  <div className="mt-4 flex flex-wrap items-center gap-3">
+                    <GlowingCtaButton
+                      ctaState={mejorateState}
+                      onClick={runMejorate}
+                      icon={<Sparkles className="size-4" aria-hidden="true" />}
+                      aria-label="Ejecutar el comando mejorate: scan y synthesize"
                     >
-                      <t.icon className="size-3.5" aria-hidden="true" />
-                      {t.label}
-                    </TabsTrigger>
+                      {mejorateState === "loading" ? "Auto-mejorando..." : mejorateState === "success" ? "Auto-mejora completada" : "Ejecutar mejorate"}
+                    </GlowingCtaButton>
+                    <TourRestartButton storageKey="agent-os-tour" version={3} />
+                  </div>
+                </div>
+                <dl className="grid shrink-0 grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
+                  {[
+                    { icon: ShieldCheck, label: "Reglas cardinales", value: overview ? `${overview.rules.length}` : "—" },
+                    { icon: TerminalSquare, label: "Comandos", value: overview ? `${overview.commands.length}` : "—" },
+                    { icon: BookOpen, label: "Memoria", value: overview ? `${overview.memory.antiPatterns.length + overview.memory.wins.length + overview.memory.worklog.length + overview.memory.feedback.length + overview.memory.project.length + overview.memory.reference.length + overview.memory.user.length}` : "—" },
+                    { icon: Layers, label: "Repos (stars)", value: overview ? starsLabel : "—" },
+                  ].map((s) => (
+                    <div key={s.label} className="rounded-xl border border-[#e5e5ea] bg-[#fafafc] px-3.5 py-3">
+                      <s.icon className="size-4 text-[#0071e3]" aria-hidden="true" />
+                      <dd className="mt-1.5 font-mono text-xl font-semibold text-[#1d1d1f]">{s.value}</dd>
+                      <dt className="text-[10px] font-medium text-[#86868b]">{s.label}</dt>
+                    </div>
                   ))}
-                </TabsList>
-                <TabsContent value="mejorate" className="mt-4">
-                  <MejoratePanel
-                    repos={overview.repos}
-                    scans={overview.scans}
-                    patterns={overview.patterns}
-                    onSynthesize={runMejorate}
-                    synthesizeState={mejorateState}
-                  />
-                </TabsContent>
-                <TabsContent value="memoria" className="mt-4">
-                  <MemoryPanel memory={overview.memory} onAppended={load} />
-                </TabsContent>
-                <TabsContent value="gobernanza" className="mt-4">
-                  <GovernancePanel proposals={overview.proposals} onChanged={load} />
-                </TabsContent>
-                <TabsContent value="l2" className="mt-4">
-                  <L2Panel models={overview.l2Models} ledger={overview.ledger} />
-                </TabsContent>
-                <TabsContent value="radiografia" className="mt-4">
-                  <RadiografiaPanel runs={overview.radiografiaRuns} onCompleted={load} />
-                </TabsContent>
-                <TabsContent value="sentinela" className="mt-4">
-                  <SentinelPanel />
-                </TabsContent>
-                <TabsContent value="constitucion" className="mt-4">
-                  <ConstitutionPanel rules={overview.rules} commands={overview.commands} />
-                </TabsContent>
-              </Tabs>
-            </main>
+                </dl>
+              </div>
+            </section>
 
-            {/* ══ POSICIÓN 5: column_right ═════════════════════════════ */}
-            <aside className="min-w-0 lg:col-span-3">
-              <PsimPanel psim={overview.psim} rules={overview.rules} totalTokens={tokensSession} />
-            </aside>
-          </div>
-        )}
+            {/* Estado de carga / error */}
+            {loadError && (
+              <div role="alert" className="mt-6 rounded-2xl border border-[#ff3b30]/30 bg-[#ff3b30]/5 p-5">
+                <p className="text-sm font-semibold text-[#d70015]">Error cargando el Agent OS</p>
+                <p className="mt-1 font-mono text-xs text-[#86868b]">{loadError}</p>
+              </div>
+            )}
+            {!overview && !loadError && (
+              <div className="mt-6 space-y-4">
+                <div className="grid gap-4 lg:grid-cols-12">
+                  <Skeleton className="h-96 rounded-2xl lg:col-span-3" />
+                  <Skeleton className="h-96 rounded-2xl lg:col-span-6" />
+                  <Skeleton className="h-96 rounded-2xl lg:col-span-3" />
+                </div>
+              </div>
+            )}
 
-        {/* ══ POSICIÓN 6: featuredFooter ═══════════════════════════════ */}
-        {overview && (
-          <div className="mt-6">
-            <ReposGallery repos={overview.repos} />
-          </div>
-        )}
+            {overview && (
+              <div className="mt-6 grid gap-4 lg:grid-cols-12">
+                {/* ══ POSICIÓN 3: column_left ════════════════════════════ */}
+                <div className="min-w-0 lg:col-span-3">
+                  <CommandConsole commands={overview.commands} onExecuted={onCommandExecuted} />
+                  <div className="mt-4 rounded-2xl border border-[#e5e5ea] bg-white p-4">
+                    <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-[#86868b]">
+                      <Database className="size-3" aria-hidden="true" /> Auditoría de sesión
+                    </p>
+                    <ul className="mt-2.5 space-y-1.5 text-[11px] text-[#4b4b50]">
+                      <li className="flex justify-between gap-2">
+                        <span>Inferencias L2</span>
+                        <span className="font-mono font-semibold">{overview.ledger.length}</span>
+                      </li>
+                      <li className="flex justify-between gap-2">
+                        <span>Tokens auditados</span>
+                        <span className="font-mono font-semibold">{tokensSession.toLocaleString("es-VE")}</span>
+                      </li>
+                      <li className="flex justify-between gap-2">
+                        <span>Adoptions promoted</span>
+                        <span className="font-mono font-semibold text-[#248a3d]">{promotedCount}</span>
+                      </li>
+                      <li className="flex justify-between gap-2">
+                        <span>Comandos ejecutados</span>
+                        <span className="font-mono font-semibold">{overview.commandLog.length}</span>
+                      </li>
+                      <li className="flex justify-between gap-2">
+                        <span>Radiografías</span>
+                        <span className="font-mono font-semibold">{overview.radiografiaRuns.length}</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
 
-        {/* Reportes recientes */}
-        {overview && overview.reports.length > 0 && (
-          <section aria-label="Reportes recientes" className="mt-4 rounded-2xl border border-[#e5e5ea] bg-white p-5">
-            <h2 className="text-sm font-semibold text-[#1d1d1f]">Reportes Époch (inmutables)</h2>
-            <div className="os-scroll mt-3 max-h-40 space-y-1.5 overflow-y-auto pr-1">
-              {overview.reports.map((r) => (
-                <details key={r.id} className="group rounded-xl border border-[#e5e5ea] bg-[#fafafc] px-3.5 py-2.5">
-                  <summary className="flex cursor-pointer list-none items-center gap-2 text-[11px]">
-                    <ChevronRight className="size-3 text-[#86868b] transition-transform group-open:rotate-90" aria-hidden="true" />
-                    <span className="font-mono font-semibold text-[#1d1d1f]">{r.epoch}-{r.title}</span>
-                    <span className="ml-auto rounded-full bg-[#f5f5f7] px-2 py-0.5 font-mono text-[9px] text-[#86868b]">{r.verdict}</span>
-                  </summary>
-                  <pre className="os-scroll mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-white px-3 py-2 font-mono text-[10px] leading-relaxed text-[#4b4b50]">
-                    {r.content}
-                  </pre>
-                </details>
-              ))}
-            </div>
-          </section>
-        )}
+                {/* ══ POSICIÓN 4: main ══════════════════════════════════ */}
+                <main className="min-w-0 lg:col-span-6">
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList
+                      aria-label="Módulos del Agent OS"
+                      className="os-scroll h-auto w-full justify-start gap-1 overflow-x-auto rounded-full border border-[#e5e5ea] bg-white p-1"
+                    >
+                      {[
+                        { value: "mejorate", icon: Sparkles, label: "Mejorate" },
+                        { value: "memoria", icon: BookOpen, label: "Memoria" },
+                        { value: "gobernanza", icon: Scale, label: "Gobernanza" },
+                        { value: "l2", icon: Network, label: "L2 Control Plane" },
+                        { value: "radiografia", icon: ScanLine, label: "Radiografía" },
+                        { value: "sentinela", icon: Radar, label: "Sentinela" },
+                        { value: "constitucion", icon: ShieldCheck, label: "Constitución" },
+                      ].map((t) => (
+                        <TabsTrigger
+                          key={t.value}
+                          value={t.value}
+                          className="h-9 shrink-0 rounded-full px-3.5 text-xs font-medium text-[#4b4b50] data-[state=active]:bg-[#1d1d1f] data-[state=active]:text-white"
+                        >
+                          <t.icon className="size-3.5" aria-hidden="true" />
+                          {t.label}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                    <TabsContent value="mejorate" className="mt-4">
+                      <MejoratePanel
+                        repos={overview.repos}
+                        scans={overview.scans}
+                        patterns={overview.patterns}
+                        onSynthesize={runMejorate}
+                        synthesizeState={mejorateState}
+                      />
+                    </TabsContent>
+                    <TabsContent value="memoria" className="mt-4">
+                      <MemoryPanel memory={overview.memory} onAppended={load} />
+                    </TabsContent>
+                    <TabsContent value="gobernanza" className="mt-4">
+                      <GovernancePanel proposals={overview.proposals} onChanged={load} />
+                    </TabsContent>
+                    <TabsContent value="l2" className="mt-4">
+                      <L2Panel models={overview.l2Models} ledger={overview.ledger} />
+                    </TabsContent>
+                    <TabsContent value="radiografia" className="mt-4">
+                      <RadiografiaPanel runs={overview.radiografiaRuns} onCompleted={load} />
+                    </TabsContent>
+                    <TabsContent value="sentinela" className="mt-4">
+                      <SentinelPanel />
+                    </TabsContent>
+                    <TabsContent value="constitucion" className="mt-4">
+                      <ConstitutionPanel rules={overview.rules} commands={overview.commands} />
+                    </TabsContent>
+                  </Tabs>
+                </main>
+
+                {/* ══ POSICIÓN 5: column_right ══════════════════════════ */}
+                <aside className="min-w-0 lg:col-span-3">
+                  <PsimPanel psim={overview.psim} rules={overview.rules} totalTokens={tokensSession} />
+                </aside>
+              </div>
+            )}
+
+            {/* ══ POSICIÓN 6: featuredFooter ═══════════════════════════ */}
+            {overview && (
+              <div className="mt-6">
+                <ReposGallery repos={overview.repos} />
+              </div>
+            )}
+
+            {/* Reportes recientes */}
+            {overview && overview.reports.length > 0 && (
+              <section aria-label="Reportes recientes" className="mt-4 rounded-2xl border border-[#e5e5ea] bg-white p-5">
+                <h2 className="text-sm font-semibold text-[#1d1d1f]">Reportes Époch (inmutables)</h2>
+                <div className="os-scroll mt-3 max-h-40 space-y-1.5 overflow-y-auto pr-1">
+                  {overview.reports.map((r) => (
+                    <details key={r.id} className="group rounded-xl border border-[#e5e5ea] bg-[#fafafc] px-3.5 py-2.5">
+                      <summary className="flex cursor-pointer list-none items-center gap-2 text-[11px]">
+                        <ChevronRight className="size-3 text-[#86868b] transition-transform group-open:rotate-90" aria-hidden="true" />
+                        <span className="font-mono font-semibold text-[#1d1d1f]">{r.epoch}-{r.title}</span>
+                        <span className="ml-auto rounded-full bg-[#f5f5f7] px-2 py-0.5 font-mono text-[9px] text-[#86868b]">{r.verdict}</span>
+                      </summary>
+                      <pre className="os-scroll mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-white px-3 py-2 font-mono text-[10px] leading-relaxed text-[#4b4b50]">
+                        {r.content}
+                      </pre>
+                    </details>
+                  ))}
+                </div>
+              </section>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* ══ POSICIÓN 7: footer (sticky bottom, mt-auto) ═════════════════ */}
@@ -399,7 +484,7 @@ export default function AgentOSPage() {
             Windows dev / Ubuntu deploy (P10)
           </p>
           <p className="font-mono text-[10px] text-[#86868b]">
-            18 comandos · 15 reglas + W-CTA · memoria append-only · LLM-agnóstico · ciclo autónomo de calidad
+            18 comandos · ciclo autónomo de calidad · living topology · 15 reglas + W-CTA · LLM-agnóstico
           </p>
         </div>
       </footer>

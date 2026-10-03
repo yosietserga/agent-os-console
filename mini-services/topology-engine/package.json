@@ -1,0 +1,14 @@
+{
+  "name": "topology-engine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Living Topology engine: executes the 7-stage autonomous quality cycle with real DB reads and real L2 inference, streaming live events over socket.io",
+  "scripts": {
+    "dev": "bun --hot index.ts",
+    "start": "bun index.ts"
+  },
+  "dependencies": {
+    "socket.io": "^4.8.4",
+    "z-ai-web-dev-sdk": "^0.0.18"
+  }
+}

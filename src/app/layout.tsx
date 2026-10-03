@@ -14,21 +14,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Agent OS — L2 Control Plane & Empirical Memory Console",
+  title: "Agent OS — Living Topology Visualizer & Ciclo Autónomo de Calidad",
   description:
-    "Sistema Universal de Control Agéntico: constitución AGENTS.md v1.8.0, memoria empírica append-only, gobernanza PRE-v2.0, PSIM K1-K5, L2 Control Plane y pipeline de radiografía de ingeniería inversa.",
+    "Mira el workflow agéntico respirar: topología viva con nodos activos/inactivos, flujos y transferencias de contexto en tiempo real (incluidas las transferencias de inferencia L2), iteraciones del ciclo autónomo de calidad en un kanban KPI, y la consola Agent OS con constitución AGENTS.md v1.9.0, memoria empírica y gobernanza PRE-v2.0.",
   keywords: [
-    "Agent OS", "AGENTS.md", "Control Plane L2", "PRE-v2.0", "PSIM",
-    "mejorate", "radiografía", "ingeniería inversa", "memoria empírica",
+    "Agent OS", "AGENTS.md", "Living Topology Visualizer", "topología viva",
+    "kanban KPI", "transferencias de contexto", "Control Plane L2", "PRE-v2.0", "PSIM",
+    "mejorate", "radiografía", "ciclo autónomo de calidad",
   ],
   authors: [{ name: "Yosiet Serga" }],
   icons: {
     icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
   },
   openGraph: {
-    title: "Agent OS — Universal Agent Operating System",
+    title: "Agent OS — Living Topology Visualizer",
     description:
-      "Escribe las reglas una vez. Opéralas para siempre. Consola de control agéntico con auto-mejora (mejorate), juez determinista PRE-v2.0 y radiografía de ingeniería inversa.",
+      "Topología viva del workflow agéntico: pasos, flujos, nodos activados y desactivados, iteraciones y contextos transferidos en cada inferencia — con kanban KPI y consola de control.",
     siteName: "Agent OS",
     type: "website",
   },
