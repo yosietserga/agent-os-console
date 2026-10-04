@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ════════════════════════════════════════════════════════════════════════
+  L2 Cognitive Request — Canonical Ingress Envelope (XSD)
+  ════════════════════════════════════════════════════════════════════════
+  Toda petición de una aplicación satélite hacia el Control Plane L2 DEBE
+  cumplir este esquema. El envelope es agnóstico al proveedor LLM y permite
+  tracking de presupuesto, latencia y correlación distribuida.
+
+  Versión: 1.0.0  —  2026-10-02
+  ════════════════════════════════════════════════════════════════════════
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="https://agent-os.dev/l2/envelope/v1"
+           xmlns:l2="https://agent-os.dev/l2/envelope/v1"
+           elementFormDefault="qualified">
+
+  <xs:element name="L2CognitiveRequest">
+    <xs:complexType>
+      <xs:sequence>
+        <!-- ── HEADER: metadatos de control ── -->
+        <xs:element name="Header">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="AppId" type="xs:string">
+                <xs:annotation>
+                  <xs:documentation>Identificador de la aplicación satélite (FK a l2_tenants_apps.app_id).</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name="RequestId" type="xs:string">
+                <xs:annotation>
+                  <xs:documentation>UUID v4 generado por la app satélite para correlación distribuida.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name="Timestamp" type="xs:dateTime"/>
+              <xs:element name="ExecutionMode">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:enumeration value="SYNC"/>
+                    <xs:enumeration value="ASYNC"/>
+                    <xs:enumeration value="STREAM"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="MaxBudgetUSD" type="xs:decimal">
+                <xs:annotation>
+                  <xs:documentation>Presupuesto máximo en USD para esta petición. L2 aborta si se excede.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name="MaxLatencyMs" type="xs:integer">
+                <xs:annotation>
+                  <xs:documentation>SLA de latencia en milisegundos. L2 aplica AbortController a este valor.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name="RouteKey" type="xs:string" minOccurs="1">
+                <xs:annotation>
+                  <xs:documentation>Clave de enrutamiento (FK a l2_app_routing_profiles.route_key). Ej: "commerce-bot", "fraud-guard".</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name="TenantId" type="xs:string" minOccurs="1">
+                <xs:annotation>
+                  <xs:documentation>Identificador del tenant. OBLIGATORIO para aislamiento RLS y ledger financiero.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name="CorrelationId" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                  <xs:documentation>Trace ID de OpenTelemetry para propagación distribuida.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+
+        <!-- ── PAYLOAD: contexto cognitivo ── -->
+        <xs:element name="Payload">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="AgentId" type="xs:string">
+                <xs:annotation>
+                  <xs:documentation>Identificador del agente (manifiesto .agent.md deployado en l2_manifest_deployments).</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name="SystemPrompt" type="xs:string" minOccurs="0">
+                <xs:annotation>
+                  <xs:documentation>Prompt de sistema. Si se omite, L2 usa el del manifiesto deployado activo.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name="ContextData" type="xs:anyType">
+                <xs:annotation>
+                  <xs:documentation>Datos de contexto estructurados (JSON, EAV, etc.). Será serializado y pasado al modelo.</xs:documentation>
+                </xs:annotation>
+              </xs:element>
+              <xs:element name="Messages" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Message" maxOccurs="unbounded">
+                      <xs:complexType>
+                        <xs:simpleContent>
+                          <xs:extension base="xs:string">
+                            <xs:attribute name="role" use="required">
+                              <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                  <xs:enumeration value="system"/>
+                                  <xs:enumeration value="user"/>
+                                  <xs:enumeration value="assistant"/>
+                                  <xs:enumeration value="tool"/>
+                                </xs:restriction>
+                              </xs:simpleType>
+                            </xs:attribute>
+                            <xs:attribute name="toolCallId" type="xs:string" use="optional"/>
+                          </xs:extension>
+                        </xs:simpleContent>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="MediaAttachments" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Media" maxOccurs="unbounded">
+                      <xs:complexType>
+                        <xs:simpleContent>
+                          <xs:extension base="xs:string">
+                            <xs:annotation>
+                              <xs:documentation>Contenido del medio: URL pública O base64 (según encoding).</xs:documentation>
+                            </xs:annotation>
+                            <xs:attribute name="type" use="required">
+                              <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                  <xs:enumeration value="image"/>
+                                  <xs:enumeration value="audio"/>
+                                  <xs:enumeration value="video"/>
+                                  <xs:enumeration value="document"/>
+                                </xs:restriction>
+                              </xs:simpleType>
+                            </xs:attribute>
+                            <xs:attribute name="encoding" use="required">
+                              <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                  <xs:enumeration value="url"/>
+                                  <xs:enumeration value="base64"/>
+                                </xs:restriction>
+                              </xs:simpleType>
+                            </xs:attribute>
+                            <xs:attribute name="mimeType" type="xs:string" use="optional"/>
+                          </xs:extension>
+                        </xs:simpleContent>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="Tools" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Tool" maxOccurs="unbounded">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="Name" type="xs:string"/>
+                          <xs:element name="Description" type="xs:string"/>
+                          <xs:element name="Schema" type="xs:anyType">
+                            <xs:annotation>
+                              <xs:documentation>JSON Schema de los parámetros de la herramienta.</xs:documentation>
+                            </xs:annotation>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="GrammarConstraint" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Format">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:enumeration value="JSON"/>
+                          <xs:enumeration value="JSON_SCHEMA"/>
+                          <xs:enumeration value="REGEX"/>
+                          <xs:enumeration value="EBNF"/>
+                          <xs:enumeration value="CHOICE"/>
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element name="Value" type="xs:string"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="version" type="xs:string" fixed="1.0.0" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- ── Response envelope (canonical wrapper) ── -->
+  <xs:element name="L2CognitiveResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Header">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="RequestId" type="xs:string"/>
+              <xs:element name="CorrelationId" type="xs:string" minOccurs="0"/>
+              <xs:element name="Timestamp" type="xs:dateTime"/>
+              <xs:element name="ExecutionStatus">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:enumeration value="SUCCESS"/>
+                    <xs:enumeration value="FALLBACK_SUCCESS"/>
+                    <xs:enumeration value="ESCALATED"/>
+                    <xs:enumeration value="FAILED_CIRCUIT"/>
+                    <xs:enumeration value="FATAL_ABORT"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="ModelUsed" type="xs:string"/>
+              <xs:element name="CircuitStateOnEntry">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:enumeration value="CLOSED"/>
+                    <xs:enumeration value="OPEN"/>
+                    <xs:enumeration value="HALF_OPEN"/>
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Data" type="xs:anyType" minOccurs="0"/>
+        <xs:element name="Error" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Code" type="xs:string"/>
+              <xs:element name="Message" type="xs:string"/>
+              <xs:element name="Provider" type="xs:string" minOccurs="0"/>
+              <xs:element name="Retryable" type="xs:boolean"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Meta">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="PromptTokens" type="xs:integer"/>
+              <xs:element name="CompletionTokens" type="xs:integer"/>
+              <xs:element name="CachedTokens" type="xs:integer"/>
+              <xs:element name="CostUSD" type="xs:decimal"/>
+              <xs:element name="DurationMs" type="xs:integer"/>
+              <xs:element name="Retries" type="xs:integer"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="version" type="xs:string" fixed="1.0.0" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

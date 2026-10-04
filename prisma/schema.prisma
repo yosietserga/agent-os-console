@@ -294,3 +294,40 @@ model TaskStep {
 
   @@index([runId, iteration, order])
 }
+
+// ── Instanciador Zero-Shot (Protocolo 11): scaffold AGENTS.md adaptado ────
+model BootstrapRun {
+  id           String          @id @default(cuid())
+  prompt       String // prompt crudo del operador (cero conocimiento asumido)
+  projectName  String?
+  slug         String?
+  status       String          @default("PENDING") // PENDING | RESEARCHING | PLANNING | GENERATING | VERIFYING | PACKAGING | COMPLETED | ERROR
+  progress     Int             @default(0) // 0-100
+  phaseDetail  String?
+  researchJson String? // hallazgos web_search (fase investigate)
+  specJson     String? // spec estructurada (fase plan)
+  fileCount    Int             @default(0)
+  llmCalls     Int             @default(0)
+  durationMs   Int?
+  error        String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  files        BootstrapFile[]
+
+  @@index([createdAt])
+}
+
+model BootstrapFile {
+  id        String       @id @default(cuid())
+  runId     String
+  run       BootstrapRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  path      String // ruta relativa dentro del scaffold (ej. AGENTS.md)
+  content   String
+  bytes     Int          @default(0)
+  origin    String // llm | template | static
+  phase     String?
+  createdAt DateTime     @default(now())
+
+  @@unique([runId, path])
+  @@index([runId])
+}

@@ -1,0 +1,141 @@
+name: PRE Cycle
+
+# ════════════════════════════════════════════════════════════════════════
+# PRE Cycle — Juez determinista PRE-v2.0 para propuestas de mutación de reglas.
+# Solo se ejecuta en PRs que tocan archivos constitucionales (AGENTS.md,
+# docs/governance/, docs/catalogs/, docs/memory/anti-patterns.md).
+# Implementa: docs/governance/PRE-v2.0.md
+# ════════════════════════════════════════════════════════════════════════
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'AGENTS.md'
+      - 'docs/governance/**'
+      - 'docs/catalogs/**'
+      - 'docs/memory/anti-patterns.md'
+      - 'docs/memory/wins-ledger.md'
+      - 'docs/polyglot/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  pre-cycle-judge:
+    name: Deterministic Judge (PRE-v2.0)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Setup Rust (preferred judge runtime)
+        uses: dtolnay/rust-toolchain@stable
+        continue-on-error: true
+
+      - name: Build judge
+        id: build
+        run: |
+          if [ -f packages/eval/Cargo.toml ]; then
+            cd packages/eval && cargo build --release --quiet
+            echo "judge_cmd=cargo run --release --quiet --" >> $GITHUB_ENV
+            echo "built=true" >> $GITHUB_OUTPUT
+          elif [ -f packages/eval/go.mod ]; then
+            cd packages/eval && go build -o /tmp/judge ./cmd/eval
+            echo "judge_cmd=/tmp/judge" >> $GITHUB_ENV
+            echo "built=true" >> $GITHUB_OUTPUT
+          elif [ -f packages/eval/package.json ]; then
+            cd packages/eval && npm ci && npm run build
+            echo "judge_cmd=node dist/index.js" >> $GITHUB_ENV
+            echo "built=true" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::Judge not yet implemented. Using stub verdict (REJECT)."
+            echo "judge_cmd=stub" >> $GITHUB_ENV
+            echo "built=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run judge against PR
+        id: judge
+        run: |
+          BASE_SHA=${{ github.event.pull_request.base.sha }}
+          HEAD_SHA=${{ github.event.pull_request.head.sha }}
+          # Materializa base y candidate en dirs separados
+          mkdir -p /tmp/base /tmp/candidate
+          git worktree add /tmp/base $BASE_SHA 2>/dev/null || true
+          cp -r . /tmp/candidate
+          if [ "${{ steps.build.outputs.built }}" = "true" ]; then
+            cd packages/eval
+            ${{ env.judge_cmd }} \
+              --base /tmp/base \
+              --candidate /tmp/candidate \
+              --benchmark ./benchmark-blind/current \
+              --json > /tmp/verdict.json
+            echo "verdict=$(cat /tmp/verdict.json | jq -r .decision)" >> $GITHUB_OUTPUT
+          else
+            # Stub: rechaza hasta que el juez esté implementado
+            cat > /tmp/verdict.json << EOF
+          {
+            "decision": "REJECT",
+            "reason": "Judge not yet implemented (stub). Build packages/eval to enable PRE-v2.0 promotions.",
+            "S_base": 0, "S_candidate": 0, "deltaS": 0,
+            "sigma_base": 0, "sigma_candidate": 0,
+            "conditions": {
+              "improvementSignificant": false,
+              "noSevereRegression": true,
+              "statisticalSignificance": false
+            }
+          }
+          EOF
+            echo "verdict=REJECT" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Publish verdict as PR comment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let v = {};
+            try { v = JSON.parse(fs.readFileSync('/tmp/verdict.json','utf8')); } catch (e) {
+              v = { decision: 'ERROR', reason: 'Failed to parse verdict JSON' };
+            }
+            const lines = ['## PRE-v2.0 Verdict (Deterministic Judge)', ''];
+            lines.push(`**Decision:** \`${v.decision || 'UNKNOWN'}\``);
+            lines.push('');
+            if (v.S_base !== undefined) {
+              lines.push(`| Métrica | Valor |`);
+              lines.push(`| :--- | :--- |`);
+              lines.push(`| S_base | ${v.S_base?.toFixed(2)} |`);
+              lines.push(`| S_candidate | ${v.S_candidate?.toFixed(2)} |`);
+              lines.push(`| ΔS | ${v.deltaS?.toFixed(2)} (ε=5.0) |`);
+              lines.push(`| σ_base + σ_candidate | ${(v.sigma_base + v.sigma_candidate)?.toFixed(2)} < |ΔS|? |`);
+              lines.push('');
+              lines.push(`| Condición | Cumplida |`);
+              lines.push(`| :--- | :---: |`);
+              lines.push(`| ΔS ≥ 5.0 (mejora significativa) | ${v.conditions?.improvementSignificant ? 'YES' : 'NO'} |`);
+              lines.push(`| ∀i, ΔD_i ≥ -2.0 (sin regresión severa) | ${v.conditions?.noSevereRegression ? 'YES' : 'NO'} |`);
+              lines.push(`| (σ_c + σ_b) < |ΔS| (significancia estadística) | ${v.conditions?.statisticalSignificance ? 'YES' : 'NO'} |`);
+            }
+            if (v.reason) {
+              lines.push('', `**Reason:** ${v.reason}`);
+            }
+            lines.push('', '---');
+            lines.push('Ver `docs/governance/PRE-v2.0.md` para el protocolo completo.');
+            const body = lines.join('\n');
+            if (context.payload.pull_request) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body
+              });
+            }
+            core.summary.addRaw(body).write();
+
+      - name: Block merge if REJECT
+        if: steps.judge.outputs.verdict != 'PROMOTE'
+        run: |
+          echo "::error::PRE-v2.0 verdict is REJECT. PR cannot be merged."
+          exit 1

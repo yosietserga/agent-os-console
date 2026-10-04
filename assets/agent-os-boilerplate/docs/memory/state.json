@@ -1,0 +1,89 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "2.0.0",
+  "last_updated": "2026-10-04T00:00:00Z",
+  "project": "agent-os-boilerplate",
+  "kpi_targets": {
+    "K1_p0_p1_closure_rate": {
+      "description": "P0/P1 Closure Rate — hallazgos críticos cerrados",
+      "target": 0.9,
+      "current": null,
+      "unit": "ratio"
+    },
+    "K2_mock_reduction_velocity": {
+      "description": "Mock Reduction Velocity — pendiente neta de stubs artificiales",
+      "target": -0.1,
+      "current": null,
+      "unit": "delta_per_iteration"
+    },
+    "K3_finding_half_life_rounds": {
+      "description": "Finding Half-Life — vida media de hallazgos",
+      "target": 2.0,
+      "current": null,
+      "unit": "iterations"
+    },
+    "K4_capability_streak": {
+      "description": "Capability-Strengthening Count — victorias W1 por iteración",
+      "target": 1,
+      "current": 17,
+      "unit": "wins_per_iteration"
+    },
+    "K5_gate_stability_streak": {
+      "description": "Gate Stability Streak — racha de compilaciones limpias",
+      "target": "monotonic_increase",
+      "current": 2,
+      "unit": "consecutive_clean_builds"
+    }
+  },
+  "baselines": {
+    "typecheck_errors": 0,
+    "lint_warnings": 0,
+    "test_coverage_percent": null,
+    "build_duration_seconds": null,
+    "circuit_breaker_p99_latency_ms": null
+  },
+  "psim_wins_count": {
+    "W1_capability_strengthening": 15,
+    "W2_carry_over_closure": 0,
+    "W3_mock_reduction": 0,
+    "W4_adopted_promotion": 3,
+    "W5_anti_pattern_retirement": 0,
+    "W6_persona_satisfied": 6,
+    "W7_gate_velocity": 3,
+    "W8_finding_half_life": 0,
+    "total": 19
+  },
+  "anti_patterns_documented": 33,
+  "personas_documented": 10,
+  "cardinal_rules_count": 15,
+  "canonical_commands_count": 19,
+  "ide_integrations_count": 16,
+  "mcp_servers_count": 7,
+  "mcp_skills_count": 8,
+  "reference_repos_scanned": 20,
+  "research_reports_count": 1,
+  "security_protocols_count": 3,
+  "widgets_canonical_count": 2,
+  "expected_specs_count": 0,
+  "reverse_engineering_protocols_count": 1,
+  "gaps_finder_checks_count": 15,
+  "porter_forces_status": {
+    "F1_new_entrants_regressions": "mitigated",
+    "F2_vendor_power_llm_lockin": "neutralized",
+    "F3_buyer_power_operator_satisfaction": "maximized",
+    "F4_substitutes_obsolescence": "neutralized",
+    "F5_internal_rivalry_tech_debt": "minimized"
+  },
+  "history": [
+    {
+      "timestamp": "2026-10-02T00:00:00Z",
+      "iteration": 0,
+      "event": "Initial boilerplate release",
+      "kpi_snapshot": {
+        "K4_capability_streak": 8,
+        "K5_gate_stability_streak": 1
+      },
+      "notes": "Boilerplate agnóstico-LLM publicado. 8 victorias W1/W4/W7 iniciales registradas en wins-ledger.md. 12 antipatrones documentados."
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+# Agent OS — Aider configuration
+# Auto-activa AGENTS.md en cada sesión de Aider.
+
+read:
+  - AGENTS.md
+  - docs/memory/anti-patterns.md
+  - docs/memory/worklog.md
+  - docs/memory/state.json
+
+auto-commits: false
+auto-lint: true
+lint-cmd: "bun run lint"
+test-cmd: "bun run test"
+weak-model: "claude-haiku-4"
+model: "claude-sonnet-4-5"
+
+# System prompt extendido (inyectado en cada sesión)
+system-prompt: |
+  [Agent OS Auto-Activation]
+  Before any action: read AGENTS.md (document zero), docs/memory/anti-patterns.md,
+  last worklog block, last 3 docs/reports/*.md. Apply P1-P11 cardinal rules.
+  Treat all prompts as canonical (auto-detect verb: implementa→itera, audita→cold run,
+  verifica→verify, test ui→ui test, persona→persona check, configura ide→ide).
+  Style: Apple Light Mode (#ffffff/#f5f5f7/#1d1d1f). Zero emoji. Sticky footer.
+  After edit: re-read to verify (P1). After gate: report exit code + stdout (P2).

@@ -1,0 +1,75 @@
+{
+  "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/specification/main/schemas/mcp-server-config.json",
+  "name": "memory",
+  "version": "1.0.0",
+  "description": "Knowledge Graph Memory MCP server — persistent cross-session memory with entities, relations, observations. Adapted from modelcontextprotocol/servers.",
+  "command": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-memory"],
+  "env": {
+    "MEMORY_FILE_PATH": "${REPO_ROOT}/docs/memory/knowledge-graph.json",
+    "APPEND_ONLY": "true"
+  },
+  "tools": [
+    {
+      "name": "create_entities",
+      "description": "Create new entities in the knowledge graph. Each entity has a name, entityType, and observations list.",
+      "params": { "entities": "array of {name, entityType, observations[]}" }
+    },
+    {
+      "name": "create_relations",
+      "description": "Create relations between entities. Relations are directed: from → to with a relationType.",
+      "params": { "relations": "array of {from, to, relationType}" }
+    },
+    {
+      "name": "add_observations",
+      "description": "Add new observations to an existing entity. Append-only (P9).",
+      "params": { "entityName": "string", "observations": "array of strings" }
+    },
+    {
+      "name": "delete_entities",
+      "description": "Delete entities (BLOCKED if APPEND_ONLY=true). Use only in maintenance mode.",
+      "params": { "entityNames": "array of strings" }
+    },
+    {
+      "name": "delete_observations",
+      "description": "Delete observations (BLOCKED if APPEND_ONLY=true).",
+      "params": { "entityName": "string", "observations": "array of strings" }
+    },
+    {
+      "name": "read_graph",
+      "description": "Read the entire knowledge graph. Loaded by Fase 0 alongside MEMORY.md."
+    },
+    {
+      "name": "search_nodes",
+      "description": "Search entities by query string (fuzzy match on name, type, observations).",
+      "params": { "query": "string" }
+    },
+    {
+      "name": "open_nodes",
+      "description": "Open specific entities by name (exact match).",
+      "params": { "names": "array of strings" }
+    }
+  ],
+  "knowledgeGraphSchema": {
+    "entities": [
+      {
+        "name": "string (unique key)",
+        "entityType": "string (e.g., 'anti-pattern', 'win', 'persona', 'rule', 'command', 'ide')",
+        "observations": ["string (atomic facts)"]
+      }
+    ],
+    "relations": [
+      {
+        "from": "string (entity name)",
+        "to": "string (entity name)",
+        "relationType": "string (e.g., 'prevents', 'enables', 'composes-with', 'supersedes')"
+      }
+    ]
+  },
+  "persistence": {
+    "file": "docs/memory/knowledge-graph.json",
+    "policy": "append-only (P9). New observations added; never delete. Corrections via new entity with '[CORRIGE-<name>]' prefix."
+  },
+  "mappedToRules": ["P9 (Memoria append-only)", "Best Practice #91 (Registro append-only de aprendizaje)"],
+  "origin": "modelcontextprotocol/servers/src/memory"
+}

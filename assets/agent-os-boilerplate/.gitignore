@@ -1,0 +1,104 @@
+# ─────────────────────────────────────────────────────────────
+# Agent OS Boilerplate — .gitignore
+# Agnóstico al lenguaje; activa las secciones según tu stack.
+# ─────────────────────────────────────────────────────────────
+
+# ── Memoria empírica: NUNCA ignorar (es la fuente de verdad) ──
+# docs/memory/*.md  →  SIEMPRE commitear
+# docs/memory/state.json  →  SIEMPRE commitear
+# (No agregar patrones que ignoren docs/memory/)
+
+# ── Secrets ──
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+secrets/
+!**/.env.example
+
+# ── OS / Editor ──
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.history/
+
+# ── TypeScript / Node ──
+node_modules/
+dist/
+build/
+.next/
+.nuxt/
+out/
+coverage/
+*.tsbuildinfo
+.eslintcache
+.cache/
+.turbo/
+.pnpm-store/
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# ── Go ──
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+
+# ── Rust ──
+target/
+Cargo.lock
+
+# ── PHP ──
+vendor/
+composer.lock
+.phpunit.result.cache
+.phpstan-cache/
+
+# ── C++ ──
+cmake-build-*/
+build/
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dll
+*.dylib
+*.exe
+compile_commands.json
+
+# ── Logs & DBs locales ──
+*.log
+logs/
+*.sqlite
+*.sqlite3
+*.db
+data/
+
+# ── LLM / AI local artifacts ──
+models/
+*.gguf
+*.bin
+llm-cache/

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/specification/main/schemas/mcp-server-config.json",
+  "name": "lsp-bridge",
+  "version": "1.0.0",
+  "description": "Polyglot LSP MCP bridge — real type diagnostics instead of LLM guessing (Antipattern #8 prevention)",
+  "command": "npx",
+  "args": ["-y", "lsp-mcp-bridge"],
+  "env": {
+    "REPO_ROOT": "${REPO_ROOT}",
+    "TS_LSP": "typescript-language-server",
+    "PY_LSP": "basedpyright",
+    "GO_LSP": "gopls",
+    "RUST_LSP": "rust-analyzer",
+    "PHP_LSP": "intelephense",
+    "CPP_LSP": "clangd"
+  },
+  "tools": [
+    {
+      "name": "diagnostics",
+      "description": "Get LSP diagnostics (errors, warnings, hints) for a file. Replaces 'does this compile?' guessing.",
+      "params": { "filePath": "string (required)" }
+    },
+    {
+      "name": "definition",
+      "description": "Go-to-definition for a symbol at line:col. Returns target file + range.",
+      "params": { "filePath": "string", "line": "int", "col": "int" }
+    },
+    {
+      "name": "references",
+      "description": "Find all references of a symbol at line:col.",
+      "params": { "filePath": "string", "line": "int", "col": "int" }
+    },
+    {
+      "name": "hover",
+      "description": "Get type/docstring hover info for a symbol at line:col.",
+      "params": { "filePath": "string", "line": "int", "col": "int" }
+    },
+    {
+      "name": "workspace_symbols",
+      "description": "Search symbols across the workspace by name pattern.",
+      "params": { "query": "string" }
+    },
+    {
+      "name": "rename",
+      "description": "Safe rename of a symbol across the workspace (LSP rename, not regex).",
+      "params": { "filePath": "string", "line": "int", "col": "int", "newName": "string" }
+    }
+  ],
+  "languageDetection": {
+    ".ts": "TS_LSP", ".tsx": "TS_LSP", ".js": "TS_LSP", ".jsx": "TS_LSP",
+    ".py": "PY_LSP",
+    ".go": "GO_LSP",
+    ".rs": "RUST_LSP",
+    ".php": "PHP_LSP",
+    ".cpp": "CPP_LSP", ".cc": "CPP_LSP", ".h": "CPP_LSP", ".hpp": "CPP_LSP"
+  }
+}

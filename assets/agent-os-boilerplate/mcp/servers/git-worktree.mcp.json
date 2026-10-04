@@ -1,0 +1,53 @@
+{
+  "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/specification/main/schemas/mcp-server-config.json",
+  "name": "git-worktree",
+  "version": "1.0.0",
+  "description": "Git worktree MCP server for isolated parallel agent squads (Antipattern #80 prevention)",
+  "command": "npx",
+  "args": ["-y", "git-worktree-mcp"],
+  "env": {
+    "REPO_ROOT": "${REPO_ROOT}",
+    "WORKTREE_BASE_PATH": "${REPO_ROOT}/.worktrees",
+    "BRANCH_PREFIX": "agent",
+    "AUTO_CLEANUP_ON_MERGE": "true",
+    "REQUIRE_ISOLATION": "true"
+  },
+  "tools": [
+    {
+      "name": "create_worktree",
+      "description": "Create an isolated git worktree on a new branch for a specific agent/task. Returns the worktree path.",
+      "params": {
+        "agentId": "string (required)",
+        "taskId": "string (required)",
+        "baseBranch": "string (default: main)"
+      }
+    },
+    {
+      "name": "list_worktrees",
+      "description": "List all active worktrees and their branches."
+    },
+    {
+      "name": "merge_worktree",
+      "description": "Merge a worktree branch back to target branch. Ordered by blast radius (Best Practice #18).",
+      "params": {
+        "worktreePath": "string (required)",
+        "targetBranch": "string (default: main)",
+        "blastRadius": "enum: low|medium|high (required, used for merge ordering)"
+      }
+    },
+    {
+      "name": "remove_worktree",
+      "description": "Remove a worktree after successful merge. Refuses if uncommitted changes exist.",
+      "params": { "worktreePath": "string (required)", "force": "boolean (default: false)" }
+    },
+    {
+      "name": "diff_worktree",
+      "description": "Get diff of a worktree against its base branch."
+    }
+  ],
+  "invariants": [
+    "Agents MUST operate in their own worktree; never on the main worktree.",
+    "Merges are ordered low → medium → high blast radius.",
+    "Uncommitted changes block worktree removal unless force=true (audited)."
+  ]
+}

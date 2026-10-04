@@ -1,0 +1,19 @@
+# Normalizar fin de línea
+* text=auto eol=lf
+
+# Markdown siempre con LF
+*.md text eol=lf
+
+# Shell scripts con LF
+*.sh text eol=lf
+
+# Binarios
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.gguf binary
+*.bin binary

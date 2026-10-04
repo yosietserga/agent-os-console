@@ -1,0 +1,132 @@
+name: Memory Audit
+
+# ════════════════════════════════════════════════════════════════════════
+# Memory Audit — Anti-reincidencia de antipatrones documentados.
+# Carga docs/memory/anti-patterns.md y bloquea PRs que reintroducen
+# patrones catalogados como fallidos.
+# Implementa: Best Practice #93 (Penalización por Reincidencia).
+# ════════════════════════════════════════════════════════════════════════
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  audit-memory:
+    name: Audit anti-pattern reincidence
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Parse anti-patterns ledger
+        id: parse
+        run: |
+          python3 << 'EOF'
+          import re, json, sys
+          from pathlib import Path
+          ap_file = Path('docs/memory/anti-patterns.md')
+          if not ap_file.exists():
+              print('No anti-patterns.md found; skipping.')
+              print(json.dumps({'patterns': []}))
+              sys.exit(0)
+          content = ap_file.read_text(encoding='utf-8')
+          # Extrae entradas: ## [AP-XXX] Título ... (hasta la siguiente entrada o ---)
+          entries = re.findall(
+              r'##\s+\[(AP-\d+)\]\s+(.+?)(?=\n##\s+\[AP-|\n---|\Z)',
+              content, re.S
+          )
+          patterns = []
+          for ap_id, body in entries:
+              title = body.split('\n')[0].strip()
+              # Heurística: keywords del cuerpo para detectar reincidencia
+              keywords = []
+              for line in body.split('\n'):
+                  line = line.strip()
+                  if line.startswith('- **') and ':' in line:
+                      kw = line.split(':',1)[1].strip().strip('`').strip('.')
+                      if 3 < len(kw) < 80:
+                          keywords.append(kw)
+              patterns.append({
+                  'id': ap_id,
+                  'title': title,
+                  'keywords': keywords[:5]
+              })
+          with open('/tmp/patterns.json','w') as f:
+              json.dump({'patterns': patterns}, f, indent=2)
+          print(f"Parsed {len(patterns)} anti-patterns.")
+          EOF
+
+      - name: Scan diff for reincidences
+        id: scan
+        run: |
+          python3 << 'EOF'
+          import json, subprocess, sys
+          data = json.load(open('/tmp/patterns.json'))
+          patterns = data['patterns']
+          # Diff del PR contra base
+          diff = subprocess.run(
+              ['git','diff','origin/${{ github.base_ref }}...HEAD','--unified=0'],
+              capture_output=True, text=True
+          ).stdout
+          added_lines = [l[1:] for l in diff.split('\n') if l.startswith('+') and not l.startswith('+++')]
+          added_text = '\n'.join(added_lines).lower()
+          hits = []
+          for p in patterns:
+              for kw in p['keywords']:
+                  kwl = kw.lower()
+                  # Solo keywords suficientemente específicos (>10 chars)
+                  if len(kwl) > 10 and kwl in added_text:
+                      hits.append({'ap': p['id'], 'title': p['title'], 'keyword': kw})
+                      break
+          with open('/tmp/hits.json','w') as f:
+              json.dump({'hits': hits, 'total_added_lines': len(added_lines)}, f, indent=2)
+          print(f"Found {len(hits)} potential reincidences.")
+          EOF
+
+      - name: Comment on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let hits = [], total = 0;
+            try {
+              const d = JSON.parse(fs.readFileSync('/tmp/hits.json','utf8'));
+              hits = d.hits || [];
+              total = d.total_added_lines || 0;
+            } catch (e) {}
+            const lines = ['## Memory Audit Report (Best Practice #93)', ''];
+            lines.push(`Scanned **${total}** added lines against **docs/memory/anti-patterns.md**.`);
+            lines.push('');
+            if (hits.length === 0) {
+              lines.push('**Result:** NO_REINCIDENCE_DETECTED — PR cleared.');
+            } else {
+              lines.push(`**Result:** ${hits.length} potential anti-pattern reincidence(s) detected.`);
+              lines.push('');
+              lines.push('| Anti-Pattern | Title | Matched Keyword |');
+              lines.push('| :--- | :--- | :--- |');
+              for (const h of hits) {
+                lines.push(`| ${h.ap} | ${h.title} | \`${h.keyword}\` |`);
+              }
+              lines.push('');
+              lines.push('> ⚠️ Revisar manualmente. Si es un falso positivo, anotar en el PR.');
+              lines.push('> Si es reincidencia real: el PR debe ser RECHAZADO y registrado en worklog.md.');
+            }
+            const body = lines.join('\n');
+            if (context.payload.pull_request) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body
+              });
+            }
+            core.summary.addRaw(body).write();
+            if (hits.length > 0) {
+              core.setFailed('Anti-pattern reincidence detected; manual review required.');
+            }

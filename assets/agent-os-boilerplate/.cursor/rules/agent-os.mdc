@@ -1,0 +1,87 @@
+---
+description: Agent OS Boilerplate — auto-aplica AGENTS.md sin comandos canónicos
+globs: "*"
+alwaysApply: true
+---
+
+# Agent OS — Auto-Activation Layer (Cursor)
+
+> **PROPÓSITO:** Garantizar que TODO prompt del operador (incluso sin
+> "lee AGENTS.md, ejecuta:") sea tratado como canónico. Este archivo se
+> carga automáticamente en cada sesión de Cursor.
+
+## Comportamiento obligatorio del agente
+
+### 1. Fase 0 automática (antes de cualquier acción)
+ANTES de responder o ejecutar cualquier cosa, el agente DEBE:
+1. Leer `AGENTS.md` completo (Documento Cero, constitución inmutable).
+2. Leer `docs/memory/anti-patterns.md` (evitar reincidencias).
+3. Leer el último bloque de `docs/memory/worklog.md` (contexto del estado).
+4. Leer los últimos 3 reportes de `docs/reports/` (epoch desc).
+5. Declarar `DEV_OS` y `DEV_OS` (Regla P10) del `.env`.
+6. Declarar el alcance planificado antes de mutar.
+
+### 2. Las 11 Reglas Cardinales (P1-P11) siempre activas
+- **P1** Read-After-Edit: tras editar, releer para verificar diff.
+- **P2** Gate Honesty: nunca PASS sin comando ejecutado + exit code + stdout.
+- **P3** Closes-Finding Guard: no cerrar hallazgos solo en mocks.
+- **P4** Sync atómica: código + contrato + docs + memoria en mismo commit.
+- **P5** Estilo Apple Light Mode (#ffffff, #f5f5f7, #1d1d1f, #0071e3).
+- **P6** Layout 7 posiciones canónicas.
+- **P7** Zero-Placeholder, Zero-Emoji (SVG icons).
+- **P8** LLM-Agnóstico: no importar SDKs de proveedor en código de negocio.
+- **P9** Memoria append-only: solo anexar, nunca sobrescribir.
+- **P10** Entornos Dev/Deploy declarados (DEV_OS/DEPLOY_OS).
+- **P11** Onboarding Tour obligatorio en vistas complejas (>3 secciones).
+
+### 3. Interpretación de prompts no canónicos
+Si el operador envía un prompt SIN "lee AGENTS.md, ejecuta:":
+- NO asumas que es un prompt simple. Trátalo como canónico.
+- Detecta el verbo operativo implícito:
+  - "implementa / crea / agrega / arregla" → `itera`
+  - "audita / revisa / chequa" → `cold run`
+  - "verifica / compila / tests" → `verify`
+  - "test ui / prueba pantalla" → `ui test <ruta>`
+  - "persona / usuario / perfil" → `persona check <ruta>`
+  - "reporte / cierra / entrega" → `report`
+  - "configura el ide" → `ide`
+- Ejecuta Fase 0 automática antes de cualquier acción.
+
+### 4. Comandos canónicos equivalentes (atalajos del IDE)
+El agente puede usar herramientas nativas de Cursor, pero el resultado debe
+ser equivalente al comando canónico:
+- Edit file → tras editar, usar `read_file` para verificar (P1).
+- Run terminal → reportar exit code + stdout reales (P2).
+- Semantic search → antes de asumir estructura del código (P2 + BP #8).
+
+### 5. Estilo de respuesta
+- Pragmático, sin sobre-explicar.
+- Tras cada edición: `git diff` screenshot o snippet del cambio aplicado.
+- Tras cada puerta: tabla con PASS/FAIL/NOT_RUN + exit code.
+- Al cierre: generar reporte en `docs/reports/<epoch>-<title>.md`.
+- Anexar WIN-XXX a `docs/memory/wins-ledger.md` (al menos 1 W1 o W6).
+- Anexar bloque a `docs/memory/worklog.md` (handoff).
+
+### 6. Stack visual (P5, P6, P7)
+- Paleta: #ffffff / #f5f5f7 / #e5e5ea / #1d1d1f / #86868b / #0071e3
+- Layout 7 posiciones: header, featuredContent, column_left, main,
+  column_right, featuredFooter, footer
+- Cero emojis en UI. Iconos SVG.
+- Cero !important. Variables CSS.
+- Sticky footer: `min-h-screen flex flex-col` + `mt-auto` en footer.
+
+### 7. Memoria y reportes
+- `docs/memory/` es append-only (P9). Solo anexar entradas.
+- `docs/reports/<epoch>-<title>.md` es inmutable (P9 extendido).
+- Correcciones via nuevo reporte con `[CORRIGE-REPORT-<epoch>]`.
+- Al menos 1 victoria PSIM (W1-W8) por sesión.
+
+## Cuándo NO aplicar este wrapper
+- Si el operador explícitamente dice "no leas AGENTS.md" o "ignora las reglas".
+- Si el operador pide una tarea trivial de una línea (saludo, pregunta factual).
+- En esos casos, responder directo sin Fase 0.
+
+## Recordatorio final
+Este wrapper existe para erradicar la fatiga del operador. Si el operador
+tiene que re-explicar una regla, este wrapper falló. Reporta la falla en
+`docs/memory/anti-patterns.md` como AP-XXX para mejora continua.

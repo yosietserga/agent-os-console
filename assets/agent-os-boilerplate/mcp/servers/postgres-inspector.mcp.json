@@ -1,0 +1,54 @@
+{
+  "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/specification/main/schemas/mcp-server-config.json",
+  "name": "postgres-inspector",
+  "version": "1.0.0",
+  "description": "PostgreSQL MCP inspector — verify migrations, RLS, referential integrity without guessing",
+  "command": "npx",
+  "args": ["-y", "postgres-mcp-inspector"],
+  "env": {
+    "DATABASE_URL": "${DATABASE_URL}",
+    "READONLY": "true",
+    "ALLOW_DDL": "false",
+    "MAX_ROWS_RETURNED": "1000"
+  },
+  "tools": [
+    {
+      "name": "list_tables",
+      "description": "List all tables in the public schema with row counts."
+    },
+    {
+      "name": "describe_table",
+      "description": "Get columns, types, constraints, indexes for a table.",
+      "params": { "tableName": "string (required)" }
+    },
+    {
+      "name": "check_rls",
+      "description": "Verify Row Level Security is enabled and list policies for a table. Critical for Antipattern #7/#3 prevention.",
+      "params": { "tableName": "string (required)" }
+    },
+    {
+      "name": "check_foreign_keys",
+      "description": "List all foreign keys and verify referential integrity (orphans detection)."
+    },
+    {
+      "name": "run_query",
+      "description": "Execute a READ-ONLY SQL query (SELECT only; INSERT/UPDATE/DELETE blocked).",
+      "params": { "sql": "string (required)", "limit": "int (default: 100)" }
+    },
+    {
+      "name": "migration_status",
+      "description": "Show applied vs. pending migrations."
+    },
+    {
+      "name": "explain_query",
+      "description": "EXPLAIN ANALYZE a query to verify index usage and prevent N+1 (Antipattern #39).",
+      "params": { "sql": "string (required)" }
+    }
+  ],
+  "security": {
+    "readonlyMode": true,
+    "blockedStatements": ["INSERT", "UPDATE", "DELETE", "DROP", "ALTER", "TRUNCATE", "GRANT", "REVOKE"],
+    "queryTimeoutMs": 5000,
+    "maxRows": 1000
+  }
+}

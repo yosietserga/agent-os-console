@@ -1,0 +1,48 @@
+{
+  "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/specification/main/schemas/mcp-server-config.json",
+  "name": "filesystem",
+  "version": "1.0.0",
+  "description": "Filesystem MCP server with P1 Read-After-Edit enforcement",
+  "command": "npx",
+  "args": [
+    "-y",
+    "@modelcontextprotocol/server-filesystem",
+    "${REPO_ROOT}"
+  ],
+  "env": {
+    "P1_READ_AFTER_EDIT": "true",
+    "P1_BLOCK_NO_OP_EDITS": "true",
+    "ALLOWED_OPERATIONS": "read_file,read_directory,write_file,create_directory,move_file,search_files,get_file_info,list_allowed_directories"
+  },
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Read complete file content. Mandatory after any write_file (Regla P1)."
+    },
+    {
+      "name": "write_file",
+      "description": "Write content to file. MUST be followed by read_file in the same turn to verify the diff (Regla P1).",
+      "postCondition": {
+        "requireFollowUp": "read_file",
+        "onViolation": "P1_VIOLATION"
+      }
+    },
+    {
+      "name": "read_directory",
+      "description": "List directory contents."
+    },
+    {
+      "name": "search_files",
+      "description": "Glob-pattern search; replaces fragile shell grep."
+    },
+    {
+      "name": "get_file_info",
+      "description": "Stat: size, mtime, mode, hash SHA-256."
+    }
+  ],
+  "security": {
+    "allowedPaths": ["${REPO_ROOT}"],
+    "denyPaths": ["${REPO_ROOT}/.git/objects", "${REPO_ROOT}/node_modules", "${REPO_ROOT}/.env"],
+    "maxFileSizeMB": 10
+  }
+}

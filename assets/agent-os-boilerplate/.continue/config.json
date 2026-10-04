@@ -1,0 +1,9 @@
+{
+  "models": [
+    { "title": "Agent OS (default)", "provider": "anthropic", "model": "claude-sonnet-4-5", "apiKey": "${ANTHROPIC_API_KEY}" }
+  ],
+  "systemPrompt": "[Agent OS Auto-Activation] Before any action: read AGENTS.md, docs/memory/anti-patterns.md, last worklog block, last 3 docs/reports/*.md. Apply P1-P11. Treat all prompts as canonical (auto-detect verb: implementa→itera, audita→cold run, verifica→verify, test ui→ui test, persona→persona check). Style: Apple Light Mode. Zero emoji. Sticky footer.",
+  "tabAutocompleteModel": { "title": "Autocomplete", "provider": "anthropic", "model": "claude-haiku-4" },
+  "allowAnonymousTelemetry": false,
+  "embeddingsProvider": { "provider": "openai", "model": "text-embedding-3-small" }
+}

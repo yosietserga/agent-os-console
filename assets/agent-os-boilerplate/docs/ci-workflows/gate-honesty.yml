@@ -1,0 +1,198 @@
+name: Gate Honesty
+
+# ════════════════════════════════════════════════════════════════════════
+# Gate Honesty — Verificación determinista en cada PR.
+# Implementa la Regla P2 (Gate Honesty): reporta exit code + stdout real,
+# nunca "PASS" cableado.
+# ════════════════════════════════════════════════════════════════════════
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  detect-stack:
+    name: Detect Language Stack
+    runs-on: ubuntu-latest
+    outputs:
+      ts: ${{ steps.detect.outputs.ts }}
+      py: ${{ steps.detect.outputs.py }}
+      go: ${{ steps.detect.outputs.go }}
+      rust: ${{ steps.detect.outputs.rust }}
+      php: ${{ steps.detect.outputs.php }}
+      cpp: ${{ steps.detect.outputs.cpp }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: detect
+        run: |
+          echo "ts=$(test -f package.json && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "py=$(test -f pyproject.toml -o -f requirements.txt && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "go=$(test -f go.mod && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "rust=$(test -f Cargo.toml && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "php=$(test -f composer.json && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "cpp=$(test -f CMakeLists.txt && echo true || echo false)" >> $GITHUB_OUTPUT
+
+  ts-gate:
+    name: TypeScript Gate
+    needs: detect-stack
+    if: needs.detect-stack.outputs.ts == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'pnpm' }
+      - run: pnpm install --frozen-lockfile
+      - name: Typecheck (Regla P2 — exit code + stdout reales)
+        run: |
+          set +e
+          pnpm exec tsc --noEmit 2>&1 | tee tsc.log
+          CODE=${PIPESTATUS[0]}
+          echo "::group::Typecheck output"
+          cat tsc.log
+          echo "::endgroup::"
+          echo "TSC_EXIT_CODE=$CODE" >> $GITHUB_ENV
+          exit $CODE
+      - name: Lint
+        run: pnpm run lint --max-warnings=0
+      - name: Tests with coverage
+        run: pnpm run test -- --coverage --coverage-reporter=json-summary
+      - name: Apple Theme Linter (Regla P5)
+        run: |
+          if [ -d mcp/skills/apple-theme-linter/src ]; then
+            node mcp/skills/apple-theme-linter/src/index.js --scanPath src/ --strictMode
+          else
+            echo "NOT_RUN: apple-theme-linter not implemented yet (skill skeleton only)"
+          fi
+
+  py-gate:
+    name: Python Gate
+    needs: detect-stack
+    if: needs.detect-stack.outputs.py == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --frozen
+      - name: Mypy strict (Regla P2)
+        run: uv run mypy --strict .
+      - name: Ruff
+        run: uv run ruff check .
+      - name: Pytest with coverage
+        run: uv run pytest --cov --cov-fail-under=80
+
+  go-gate:
+    name: Go Gate
+    needs: detect-stack
+    if: needs.detect-stack.outputs.go == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: '1.23' }
+      - name: golangci-lint (Regla P2)
+        uses: golangci/golangci-lint-action@v6
+        with: { version: latest }
+      - name: Test with race detector
+        run: go test -v -race -cover ./...
+      - name: Build
+        run: go build ./...
+
+  rust-gate:
+    name: Rust Gate
+    needs: detect-stack
+    if: needs.detect-stack.outputs.rust == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with: { components: clippy, rustfmt }
+      - name: Clippy strict (Regla P2)
+        run: cargo clippy --all-targets -- -D warnings
+      - name: Format check
+        run: cargo fmt --check
+      - name: Test all targets
+        run: cargo test --all-targets
+      - name: Build release
+        run: cargo build --release
+
+  php-gate:
+    name: PHP Gate
+    needs: detect-stack
+    if: needs.detect-stack.outputs.php == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: '8.3', coverage: xdebug }
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist
+      - name: PHPStan max (Regla P2)
+        run: vendor/bin/phpstan analyse --level=max
+      - name: PHPCS
+        run: vendor/bin/phpcs
+      - name: Pest with coverage
+        run: vendor/bin/pest --coverage --min=80
+
+  cpp-gate:
+    name: C++ Gate
+    needs: detect-stack
+    if: needs.detect-stack.outputs.cpp == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure CMake
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+      - name: Build
+        run: cmake --build build -j$(nproc)
+      - name: Clang-tidy
+        run: clang-tidy -p build $(find src -name '*.cpp')
+      - name: CTest
+        run: ctest --test-dir build --output-on-failure
+
+  gate-honesty-report:
+    name: Gate Honesty Report
+    needs: [detect-stack, ts-gate, py-gate, go-gate, rust-gate, php-gate, cpp-gate]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compose Gate Honesty report
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const stacks = ['ts','py','go','rust','php','cpp'];
+            const lines = ['## Gate Honesty Report (Regla P2)', ''];
+            lines.push('| Stack | Detected | Gate Result | Exit Code |');
+            lines.push('| :--- | :---: | :---: | :---: |');
+            for (const s of stacks) {
+              const detected = '${{ needs.detect-stack.outputs.' + s + ' }}' === 'true';
+              if (!detected) {
+                lines.push(`| ${s} | false | NOT_RUN | N/A |`);
+                continue;
+              }
+              const jobName = s + '-gate';
+              const result = '${{ needs.' + jobName + '.result }}';
+              const exitCode = result === 'success' ? '0' : 'NON_ZERO';
+              lines.push(`| ${s} | true | ${result.toUpperCase()} | ${exitCode} |`);
+            }
+            lines.push('');
+            lines.push('> Toda afirmación PASS requiere exit code 0 + stdout real adjunto (Regla P2).');
+            lines.push('> Puertas no ejecutadas se reportan como NOT_RUN, jamás como PASS.');
+            const body = lines.join('\n');
+            if (context.payload.pull_request) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body
+              });
+            }
+            core.summary.addRaw(body).write();

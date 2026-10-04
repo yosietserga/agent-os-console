@@ -1,0 +1,37 @@
+{
+  "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/specification/main/schemas/mcp-server-config.json",
+  "name": "sequential-thinking",
+  "version": "1.0.0",
+  "description": "Sequential Thinking MCP server — forces structured cognitive steps before emitting actions. Adapted from modelcontextprotocol/servers.",
+  "command": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+  "env": {
+    "MAX_STEPS": "50",
+    "REQUIRE_PLAN_BEFORE_ACTION": "true"
+  },
+  "tools": [
+    {
+      "name": "think",
+      "description": "Record a single step in a structured reasoning process. Each call appends to the sequence; the model must show its work step by step before emitting any code action.",
+      "params": {
+        "thought": "string (required) — the current reasoning step",
+        "nextThoughtNeeded": "boolean (required) — whether another step is needed",
+        "thoughtNumber": "int (required) — 1-indexed sequence number",
+        "totalThoughts": "int (required) — estimated total steps",
+        "isRevision": "boolean (optional) — revising a previous thought",
+        "revisesThought": "int (optional) — which thoughtNumber is being revised",
+        "branchFromThought": "int (optional) — branching from this thought",
+        "branchId": "string (optional) — branch identifier",
+        "needsMoreThoughts": "boolean (optional) — underestimate of total"
+      }
+    }
+  ],
+  "whenToUse": [
+    "Before any code edit: think through the change impact",
+    "Before any architecture decision: enumerate tradeoffs",
+    "When stuck: restructure the problem",
+    "Before PR closure: verify all BP/AP checked"
+  ],
+  "origin": "modelcontextprotocol/servers/src/sequentialthinking",
+  "mappedToRules": ["P1 (Read-After-Edit requires thinking first)", "Best Practice #82 (Auditoría de Premisas en Fase 0)"]
+}
