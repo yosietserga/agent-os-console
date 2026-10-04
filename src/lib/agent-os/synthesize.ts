@@ -44,13 +44,32 @@ export interface SynthesizeOutcome {
 }
 
 export async function synthesize(): Promise<SynthesizeOutcome> {
+  // AP-034 (fix workflow): el epoch de referencia es el ÚLTIMO scan, no el
+  // último COMPLETED — si el scan de hoy falló 0/19, sintetizar sobre uno
+  // viejo sin declararlo era fabricación silenciosa. Ahora: fail-fast.
   const lastScan = await db.scanRun.findFirst({
-    where: { mode: "scan", status: "COMPLETED" },
+    where: { mode: "scan" },
     orderBy: { startedAt: "desc" },
   });
-  if (!lastScan) throw new Error("No hay scans completados. Ejecuta primero: mejorate scan");
+  if (!lastScan) throw new Error("No hay scans registrados. Ejecuta primero: mejorate scan");
+  if (lastScan.status !== "COMPLETED" || lastScan.reposScanned === 0) {
+    throw new Error(
+      `El último scan (epoch ${Math.floor(lastScan.startedAt.getTime() / 1000)}) terminó ${lastScan.status} con ${lastScan.reposScanned} repos. Sin datos frescos no hay síntesis honesta — repara el scan (GITHUB_TOKEN en .env) y re-ejecuta: mejorate`
+    );
+  }
 
-  const repos = await db.referenceRepo.findMany({ orderBy: { stars: "desc" } });
+  const scanStartMs = lastScan.startedAt.getTime();
+  const allRepos = await db.referenceRepo.findMany({ orderBy: { stars: "desc" } });
+  // Solo repos realmente refrescados por ese scan (lastScannedAt dentro del epoch)
+  const repos = allRepos.filter(
+    (r) => r.lastScannedAt !== null && r.lastScannedAt.getTime() >= scanStartMs
+  );
+  if (repos.length === 0) {
+    throw new Error(
+      `El scan ${lastScan.id.slice(-8)} (epoch ${Math.floor(scanStartMs / 1000)}) no dejó repos frescos — no hay base honesta para sintetizar`
+    );
+  }
+  const ageMin = Math.max(0, Math.round((Date.now() - scanStartMs) / 60000));
   const scanSummary = repos
     .map(
       (r) =>
@@ -64,32 +83,45 @@ export async function synthesize(): Promise<SynthesizeOutcome> {
       reposScanned: repos.length,
       totalStars: lastScan.totalStars,
       status: "RUNNING",
-      note: "Synthesize via L2 (Optimizador PRE-v2.0)",
+      note: `Synthesize via L2 (Optimizador PRE-v2.0) · base epoch ${Math.floor(scanStartMs / 1000)} · ${repos.length} frescos · edad ${ageMin} min`,
     },
   });
 
   const inference = await infer({
     systemPrompt: SYSTEM_PROMPT,
-    userContent: `SCAN (epoch ${lastScan.startedAt.getTime() / 1000}): ${repos.length} repos, ${lastScan.totalStars} estrellas.\n\n${scanSummary}`,
+    userContent: `SCAN (epoch ${Math.floor(scanStartMs / 1000)}, edad ${ageMin} min): ${repos.length} repos frescos de ${allRepos.length} en catálogo, ${lastScan.totalStars} estrellas.\n\n${scanSummary}`,
     tenant: "agent-os-console",
     purpose: "mejorate-synthesize",
   });
 
   let json = inference.outcome === "OK" ? extractJson(inference.content) : null;
 
-  // Fallback determinista (P2 honesto): proposals desde los patrones conocidos
+  // Fallback determinista (P2 honesto) — AP-034: proposals derivadas de los
+  // repos FRESCOS de este epoch. Antes reciclaba patrones de cualquier epoch
+  // anterior y el juez los masacraba como duplicados (los ΔS negativos del
+  // run del operador). Ahora toda evidencia es del scan vigente.
   if (!json || !Array.isArray(json.adoptions) || json.adoptions.length === 0) {
-    const existingPatterns = await db.extractedPattern.findMany({ take: 12 });
     json = {
-      patterns: existingPatterns.map((p) => ({
-        repo: p.repo, category: p.category, pattern: p.pattern, evidence: p.evidence,
-      })),
-      adoptions: existingPatterns.slice(0, 6).map((p) => ({
-        title: `Adoptar patrón: ${p.pattern.slice(0, 60)}`,
-        type: "SKILL",
-        origin: p.repo,
-        description: `${p.pattern}. Evidencia del scan: ${p.evidence}. La adopcion fortalece el pipeline de radiografia (fases 0-5), añade manejo de errores con fallback determinista y respeta los contratos canonicos del sistema (OpenAPI 3.1 + schema estricto).`,
-      })),
+      patterns: repos.slice(0, 8).map((r) => {
+        const dirs = JSON.parse(r.topDirs || "[]") as string[];
+        const files = JSON.parse(r.keyFiles || "[]") as { path: string }[];
+        return {
+          repo: r.repo,
+          category: r.category,
+          pattern: `Arquitectura observable de ${r.repo} (${r.language ?? "?"}): ${dirs.slice(0, 5).join(" / ") || "estructura no disponible"}`,
+          evidence: `Scan fresco epoch ${Math.floor(scanStartMs / 1000)} · ${r.stars}★ · archivos clave: ${files.slice(0, 3).map((f) => f.path).join(", ") || "—"}`,
+        };
+      }),
+      adoptions: repos.slice(0, 6).map((r) => {
+        const dirs = JSON.parse(r.topDirs || "[]") as string[];
+        const files = JSON.parse(r.keyFiles || "[]") as { path: string }[];
+        return {
+          title: `Adoptar patrón: ${r.repo} — ${r.category}`,
+          type: "SKILL",
+          origin: r.repo,
+          description: `Patrón del scan fresco de este epoch sobre ${r.repo} (${r.stars}★, ${r.language ?? "?"}). Estructura top-level: ${dirs.slice(0, 6).join(", ") || "no disponible"} · archivos clave: ${files.slice(0, 4).map((f) => f.path).join(", ") || "no disponibles"}. La adopcion fortalece el pipeline de radiografia (fases 0-5), añade manejo de errores con fallback determinista y respeta los contratos canonicos del sistema (OpenAPI 3.1 + schema estricto).`,
+        };
+      }),
     };
   }
 
@@ -136,6 +168,7 @@ export async function synthesize(): Promise<SynthesizeOutcome> {
   const mode = inference.outcome === "OK" && json.adoptions.length ? "L2" : "DETERMINIST";
   const output = [
     `[MEJORATE] synthesize ${mode === "L2" ? `vía L2 (${inference.model}, ${inference.latencyMs}ms)` : "fallback determinista (L2 no estructuró JSON)"}`,
+    `  Base: epoch ${Math.floor(scanStartMs / 1000)} · ${repos.length} repos frescos · edad ${ageMin} min`,
     `  Patrones extraídos: ${json.patterns?.length ?? 0}`,
     `  Adoptions propuestas: ${created.length}`,
     `  Evaluadas por Juez determinista: ${created.length}`,
