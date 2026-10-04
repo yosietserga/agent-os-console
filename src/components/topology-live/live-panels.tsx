@@ -27,7 +27,7 @@ import {
   TRANSFER_LABELS,
   formatBytes,
 } from "@/lib/topology/colors";
-import { CYCLE_STEPS, STEP_LABELS } from "@/lib/topology/agent-workflow";
+import { CYCLE_STEPS, LAYER_NAMES, STEP_LABELS } from "@/lib/topology/agent-workflow";
 import type { KpiDTO, LogEntryDTO, NodeStateDTO, TransferDTO } from "@/lib/topology-live/protocol";
 import { cn } from "@/lib/utils";
 
@@ -63,8 +63,10 @@ function PanelCard({
 // ── Legend ────────────────────────────────────────────────────────────
 
 export function TopologyLegend({ scenario }: { scenario: Scenario }) {
-  const layerCounts = [0, 0, 0, 0];
-  scenario.nodes.forEach((n) => layerCounts[n.layer]++);
+  const layerCounts: number[] = new Array(scenario.layers.length).fill(0);
+  scenario.nodes.forEach((n) => {
+    layerCounts[n.layer] = (layerCounts[n.layer] ?? 0) + 1;
+  });
 
   return (
     <div className="flex flex-col gap-3">
@@ -387,6 +389,11 @@ export function LiveEventLog({
 
 function labelForNode(id: string): string {
   const map: Record<string, string> = {
+    arranque: "Arranque en Frío",
+    refinar: "Refinar",
+    refactorizar: "Refactorizar",
+    remasterizar: "Remasterizar",
+    promptxml: "Prompt XML",
     operador: "Operador",
     consola: "Consola",
     api: "API",
@@ -438,7 +445,7 @@ export function LiveInspector({
   }
 
   const related = transfers.filter((t) => t.from === node.id || t.to === node.id).slice(0, 12);
-  const layerName = ["Operación", "Orquestación", "Ciclo Autónomo", "Inferencia & Memoria"][node.layer] ?? "";
+  const layerName = LAYER_NAMES[node.layer] ?? "";
 
   return (
     <section className="rounded-xl border border-cyan-500/15 bg-slate-950/60 p-4 backdrop-blur-md">
@@ -450,7 +457,7 @@ export function LiveInspector({
           <p className="mt-1 flex items-center gap-2 font-mono text-sm font-semibold text-slate-100">
             <span
               className="flex size-6 items-center justify-center rounded-full border text-[9px] font-bold"
-              style={{ borderColor: LAYER_COLORS[node.layer as 0 | 1 | 2 | 3], color: LAYER_COLORS[node.layer as 0 | 1 | 2 | 3] }}
+              style={{ borderColor: LAYER_COLORS[node.layer], color: LAYER_COLORS[node.layer] }}
             >
               {node.glyph}
             </span>

@@ -5,7 +5,7 @@
 import type { LinkKind, NodeStatus } from "./types";
 
 /** Layer accent colors keyed by layer id. */
-export const LAYER_COLORS = ["#a78bfa", "#22d3ee", "#34d399", "#fbbf24"] as const;
+export const LAYER_COLORS = ["#fb7185", "#a78bfa", "#22d3ee", "#34d399", "#fbbf24"] as const;
 
 export const STATUS_COLORS: Record<NodeStatus, string> = {
   healthy: "#34d399",

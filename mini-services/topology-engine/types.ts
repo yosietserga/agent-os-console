@@ -8,6 +8,11 @@ export type IterationStatus = "queued" | "running" | "done";
 export type EngineMode = "idle" | "single" | "continuous";
 
 export const CYCLE_STEPS = [
+  "arranque",
+  "refinar",
+  "refactorizar",
+  "remasterizar",
+  "promptxml",
   "detectar",
   "analizar",
   "investigar",
@@ -19,7 +24,22 @@ export const CYCLE_STEPS = [
 
 export type CycleStepId = (typeof CYCLE_STEPS)[number];
 
+export const PROMPT_STAGE_IDS = [
+  "crudo",
+  "refinado",
+  "refactorizado",
+  "remasterizado",
+  "xml",
+] as const;
+
+export type PromptStageId = (typeof PROMPT_STAGE_IDS)[number];
+
 export const ALL_NODES = [
+  "arranque",
+  "refinar",
+  "refactorizar",
+  "remasterizar",
+  "promptxml",
   "operador",
   "consola",
   "api",
@@ -72,6 +92,15 @@ export interface StepStateDTO {
   detail?: string;
 }
 
+/** One stage of the per-iteration prompt pipeline (crudo → XML). */
+export interface PromptStageDTO {
+  id: PromptStageId;
+  chars: number;
+  preview: string;
+  ok: boolean;
+  latencyMs?: number;
+}
+
 export interface IterationDTO {
   id: string;
   seq: number;
@@ -85,6 +114,8 @@ export interface IterationDTO {
   verdict: "AGREE" | "DISAGREE" | "MIXED" | null;
   summary: string | null;
   taskLabel: string;
+  promptStages?: PromptStageDTO[] | null;
+  coldStart?: string | null;
 }
 
 export interface FindingCardDTO {

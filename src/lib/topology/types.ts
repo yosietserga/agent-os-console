@@ -2,7 +2,7 @@
 // Ported from yosietserga/living-topology-visualizer and extended with
 // live agentic-workflow fields (active nodes, activations, iterations).
 
-export type LayerId = 0 | 1 | 2 | 3;
+export type LayerId = 0 | 1 | 2 | 3 | 4;
 
 export type NodeStatus = "healthy" | "degraded" | "down";
 

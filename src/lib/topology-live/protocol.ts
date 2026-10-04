@@ -1,7 +1,7 @@
 // Socket protocol contract between the topology-engine mini-service (:3003)
 // and the frontend. This file is client-safe (pure types + tiny helpers).
 
-import type { CycleStepId } from "@/lib/topology/agent-workflow";
+import type { CycleStepId, PromptStageId } from "@/lib/topology/agent-workflow";
 
 export type TransferKind = "inference" | "data" | "control" | "report";
 
@@ -46,6 +46,16 @@ export interface StepStateDTO {
   detail?: string;
 }
 
+/** One stage of the per-iteration prompt pipeline (crudo → XML). */
+export interface PromptStageDTO {
+  id: PromptStageId;
+  chars: number;
+  preview: string;
+  ok: boolean;
+  /** Real L2 latency for the transformation (absent for the raw prompt). */
+  latencyMs?: number;
+}
+
 export interface IterationDTO {
   id: string;
   seq: number;
@@ -59,6 +69,11 @@ export interface IterationDTO {
   verdict: "AGREE" | "DISAGREE" | "MIXED" | null;
   summary: string | null;
   taskLabel: string;
+  /** Prompt pipeline (crudo → refinado → refactorizado → remasterizado → xml),
+   *  filled progressively as the contextualization stages complete. */
+  promptStages?: PromptStageDTO[] | null;
+  /** The cold-start assumption declared by the arranque stage. */
+  coldStart?: string | null;
 }
 
 export interface FindingCardDTO {
@@ -145,6 +160,11 @@ export const EMPTY_KPI: KpiDTO = {
   iterationsCompleted: 0,
   stepsTotal: 0,
   stepsPerStage: {
+    arranque: 0,
+    refinar: 0,
+    refactorizar: 0,
+    remasterizar: 0,
+    promptxml: 0,
     detectar: 0,
     analizar: 0,
     investigar: 0,

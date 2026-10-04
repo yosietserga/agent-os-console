@@ -67,7 +67,7 @@ const TOUR_STEPS_STATIC = [
   {
     target: "sentinela",
     title: "Ciclo Autónomo de Calidad",
-    body: "El comando vigila (18º canónico) detecta fallas automáticamente y abre ciclos de 7 etapas: detectar → analizar → investigar → corregir → verificar → criterios posteriores → reportar. Ninguna falla muere en el log sin procesar.",
+    body: "El comando vigila (18º canónico) arranca en frío — cero conocimiento mutuo — refina el prompt crudo a XML y ejecuta el ciclo de 7 etapas: detectar → analizar → investigar → corregir → verificar → criterios → reportar. Ninguna falla muere en el log sin procesar.",
   },
   {
     target: "psim",
@@ -242,11 +242,12 @@ export default function AgentOSPage() {
                   Mira el workflow agéntico respirar
                 </h2>
                 <p className="max-w-3xl text-xs leading-relaxed text-slate-400">
-                  Pasos, flujos y nodos activos e inactivos del ciclo autónomo de calidad en
-                  tiempo real. Cada partícula es una transferencia de contexto real entre
-                  órganos — incluidas las transferencias de inferencia L2 con chars medidos de
-                  prompt y respuesta. Ejecuta una iteración y observa cómo se activan y
-                  desactivan los nodos etapa por etapa.
+                  Pasos, flujos y nodos activos e inactivos de la iteración completa en tiempo
+                  real: arranque en frío (cero conocimiento mutuo), ingeniería de prompt
+                  (refinar → refactorizar → remasterizar → XML) y ciclo autónomo de calidad.
+                  Cada partícula es una transferencia de contexto real — incluidas las
+                  transferencias de inferencia L2 con chars medidos. Ejecuta una iteración y
+                  observa cómo se activan y desactivan los nodos etapa por etapa.
                 </p>
               </div>
               <TopologyLiveView />
@@ -264,10 +265,11 @@ export default function AgentOSPage() {
                   El ciclo autónomo en un tablero kanban
                 </h2>
                 <p className="max-w-3xl text-xs leading-relaxed text-slate-400">
-                  Cada iteración es una tarjeta que avanza por las 7 etapas del ciclo en vivo.
-                  Los KPIs superiores agregan nodos activos, transferencias de contexto,
-                  inferencias L2 y veredictos; abajo, los hallazgos reales de la base de
-                  datos fluyen por su ciclo de vida.
+                  Cada iteración es una tarjeta que avanza por las 12 etapas en vivo: arranque
+                  en frío (cero conocimiento mutuo), refinar → refactorizar → remasterizar →
+                  prompt XML, y el ciclo de calidad completo. Los KPIs superiores agregan nodos
+                  activos, transferencias de contexto, inferencias L2 y veredictos; abajo, los
+                  hallazgos reales de la base de datos fluyen por su ciclo de vida.
                 </p>
               </div>
               <KanbanLiveTab />
@@ -484,7 +486,7 @@ export default function AgentOSPage() {
             Windows dev / Ubuntu deploy (P10)
           </p>
           <p className="font-mono text-[10px] text-[#86868b]">
-            18 comandos · ciclo autónomo de calidad · living topology · 15 reglas + W-CTA · LLM-agnóstico
+            18 comandos · arranque en frío + prompt XML · ciclo autónomo · living topology · 15 reglas + W-CTA · LLM-agnóstico
           </p>
         </div>
       </footer>

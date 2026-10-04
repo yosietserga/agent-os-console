@@ -61,7 +61,7 @@ interface Particle {
   arrived: boolean;
 }
 
-const LAYER_LABELS = ["Layer 0", "Layer 1", "Layer 2", "Layer 3"];
+const layerLabelOf = (i: number) => `Layer ${i}`;
 
 function nodeRadius(n: LiveNode): number {
   return 14 + Math.min(11, Math.log10(n.liveRps + 10) * 4.2);
@@ -85,6 +85,7 @@ const AgentCanvas = forwardRef<AgentCanvasHandle, AgentCanvasProps>(
     const stateRef = useRef<{
       width: number;
       height: number;
+      view: ViewMode;
       nodes: LiveNode[];
       links: LiveLink[];
       raf: number | null;
@@ -101,6 +102,7 @@ const AgentCanvas = forwardRef<AgentCanvasHandle, AgentCanvasProps>(
     }>({
       width: 800,
       height: 600,
+      view: "orbit",
       nodes: [],
       links: [],
       raf: null,
@@ -137,9 +139,11 @@ const AgentCanvas = forwardRef<AgentCanvasHandle, AgentCanvasProps>(
       if (view === "orbit") {
         const cx = width / 2;
         const cy = height / 2;
-        const baseR = Math.min(width, height) * 0.12;
-        const ringGap = Math.min(width, height) * 0.1;
-        [0, 1, 2, 3].forEach((layer) => {
+        const minDim = Math.min(width, height);
+        const baseR = minDim * 0.1;
+        const ringGap =
+          layers.length > 1 ? (minDim * 0.46 - baseR) / (layers.length - 1) : 0;
+        layers.forEach((_, layer) => {
           const r = baseR + layer * ringGap;
           guides
             .append("circle")
@@ -163,11 +167,12 @@ const AgentCanvas = forwardRef<AgentCanvasHandle, AgentCanvasProps>(
             .text(layers[layer].name.toUpperCase());
         });
       } else {
-        const padX = width * 0.1;
-        const colWidth = (width - padX * 2) / 3;
-        [0, 1, 2, 3].forEach((layer) => {
+        const padX = width * 0.09;
+        const colWidth = (width - padX * 2) / Math.max(1, layers.length - 1);
+        const bandShrink = layers.length > 4 ? 0.12 : 0.18;
+        layers.forEach((_, layer) => {
           const x = padX + layer * colWidth;
-          const bandH = height * 0.7 * (1 - layer * 0.18);
+          const bandH = height * 0.7 * (1 - layer * bandShrink);
           const yTop = height / 2 - bandH / 2;
           guides
             .append("rect")
@@ -189,7 +194,7 @@ const AgentCanvas = forwardRef<AgentCanvasHandle, AgentCanvasProps>(
             .attr("font-size", 11)
             .attr("font-family", "var(--font-geist-mono), monospace")
             .attr("opacity", 0.78)
-            .text(`${LAYER_LABELS[layer]} · ${layers[layer].name.toUpperCase()}`);
+            .text(`${layerLabelOf(layer)} · ${layers[layer].name.toUpperCase()}`);
         });
       }
     }
@@ -331,37 +336,46 @@ const AgentCanvas = forwardRef<AgentCanvasHandle, AgentCanvasProps>(
       view: ViewMode,
       nodes: LiveNode[]
     ) {
-      const byLayer: Record<number, LiveNode[]> = { 0: [], 1: [], 2: [], 3: [] };
-      nodes.forEach((n) => byLayer[n.layer].push(n));
+      const maxLayer = nodes.reduce((m, n) => Math.max(m, n.layer), 0);
+      const byLayer: Record<number, LiveNode[]> = {};
+      for (let i = 0; i <= maxLayer; i++) byLayer[i] = [];
+      nodes.forEach((n) => {
+        (byLayer[n.layer] ?? (byLayer[n.layer] = [])).push(n);
+      });
 
       if (view === "orbit") {
         const cx = width / 2;
         const cy = height / 2;
-        const baseR = Math.min(width, height) * 0.12;
-        const ringGap = Math.min(width, height) * 0.1;
-        ([0, 1, 2, 3] as const).forEach((layer) => {
+        const minDim = Math.min(width, height);
+        const baseR = minDim * 0.1;
+        const ringGap = maxLayer > 0 ? (minDim * 0.46 - baseR) / maxLayer : 0;
+        for (let layer = 0; layer <= maxLayer; layer++) {
           const arr = byLayer[layer];
           const r = baseR + layer * ringGap;
+          // Half-step angular offset: keeps the top of every ring free so the
+          // layer labels drawn at (cx, cy - r - 8) never overlap a node.
+          const offset = arr.length > 0 ? Math.PI / arr.length : 0;
           arr.forEach((n, i) => {
-            const angle = (i / arr.length) * Math.PI * 2 - Math.PI / 2;
+            const angle = (i / arr.length) * Math.PI * 2 - Math.PI / 2 + offset;
             n.targetX = cx + r * Math.cos(angle);
             n.targetY = cy + r * Math.sin(angle);
           });
-        });
+        }
       } else {
-        const padX = width * 0.1;
-        const colWidth = (width - padX * 2) / 3;
-        ([0, 1, 2, 3] as const).forEach((layer) => {
+        const padX = width * 0.09;
+        const colWidth = (width - padX * 2) / Math.max(1, maxLayer);
+        const bandShrink = maxLayer > 3 ? 0.12 : 0.18;
+        for (let layer = 0; layer <= maxLayer; layer++) {
           const arr = byLayer[layer];
           const x = padX + layer * colWidth;
-          const bandH = height * 0.7 * (1 - layer * 0.18);
+          const bandH = height * 0.7 * (1 - layer * bandShrink);
           const spacing = arr.length > 1 ? bandH / (arr.length - 1) : 0;
           const startY = height / 2 - ((arr.length - 1) * spacing) / 2;
           arr.forEach((n, i) => {
             n.targetX = x;
             n.targetY = arr.length === 1 ? height / 2 : startY + i * spacing;
           });
-        });
+        }
       }
     }
 
@@ -875,7 +889,10 @@ const AgentCanvas = forwardRef<AgentCanvasHandle, AgentCanvasProps>(
           s.nodes.reduce((a, n) => a + n.liveErrorRate * n.liveRps, 0) /
           (totalRps || 1);
 
-        const layers = ([0, 1, 2, 3] as const).map((layer) => {
+        const layerIds = Array.from(new Set(s.nodes.map((n) => n.layer))).sort(
+          (a, b) => a - b
+        );
+        const layers = layerIds.map((layer) => {
           const ln = s.nodes.filter((n) => n.layer === layer);
           const lrps = ln.reduce((a, n) => a + n.liveRps, 0);
           const llat =

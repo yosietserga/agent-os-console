@@ -102,7 +102,7 @@ export function TopologyLiveView() {
         <div className="flex flex-wrap items-center gap-2">
           <span className="mr-1 flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-400/80">
             <Waypoints className="h-4 w-4" aria-hidden="true" />
-            Ciclo autónomo
+            Workflow agéntico
           </span>
           <ControlButton
             onClick={() => live.runIterations(1)}
@@ -281,9 +281,11 @@ export function TopologyLiveView() {
             )}
           </div>
           <p className="mt-2 px-1 text-[10px] leading-relaxed text-slate-500">
-            Cada nodo es un órgano real del Agent OS. Las partículas son transferencias de
-            contexto reales (violeta = inferencia LLM con chars medidos, cian = datos de la BD,
-            verde = reportes). Los anillos se iluminan al activarse cada etapa del ciclo.
+            Anillo rose (capa Contextualización): arranque en frío — se asume que el operador
+            no sabe nada del tema ni la IA sabe nada del tema — y el prompt crudo se refina,
+            refactoriza, remasteriza y convierte a XML con inferencias L2 reales. Ese prompt
+            maestro XML gobierna el ciclo. Violeta = inferencia LLM con chars medidos, cian =
+            datos de la BD, verde = reportes. Los anillos se iluminan al activarse cada etapa.
           </p>
         </div>
 

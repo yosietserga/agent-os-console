@@ -27,8 +27,11 @@ import {
 
 import {
   CYCLE_STEPS,
+  PROMPT_STAGE_IDS,
+  PROMPT_STAGE_LABELS,
   STEP_LABELS,
   type CycleStepId,
+  type PromptStageId,
 } from "@/lib/topology/agent-workflow";
 import {
   TRANSFER_COLORS,
@@ -39,6 +42,7 @@ import type {
   EngineMode,
   FindingCardDTO,
   IterationDTO,
+  PromptStageDTO,
   TransferKind,
 } from "@/lib/topology-live/protocol";
 import type { TopologyLive } from "@/lib/topology-live/use-topology-live";
@@ -182,10 +186,10 @@ function KpiCard({
   );
 }
 
-/** 7 step pips: emerald done, cyan pulsing running, rose fail, slate pending. */
+/** 12 step pips: emerald done, cyan pulsing running, rose fail, slate pending. */
 function StepPips({ steps }: { steps: IterationDTO["steps"] }) {
   return (
-    <div className="flex items-center gap-1.5" aria-hidden="true">
+    <div className="flex flex-wrap items-center gap-1" aria-hidden="true">
       {CYCLE_STEPS.map((stepId) => {
         const st = steps?.[stepId];
         const status = st?.status;
@@ -355,6 +359,180 @@ function FindingCardItem({ finding }: { finding: FindingCardDTO }) {
         {finding?.sourceRef ?? "—"}
       </p>
     </motion.div>
+  );
+}
+
+// ── Prompt pipeline (crudo → XML) ─────────────────────────────────────────
+
+function PromptStageCard({
+  stageId,
+  stage,
+  active,
+}: {
+  stageId: PromptStageId;
+  stage: PromptStageDTO | undefined;
+  active: boolean;
+}) {
+  const label = PROMPT_STAGE_LABELS[stageId];
+  const isXml = stageId === "xml";
+  const isRaw = stageId === "crudo";
+  return (
+    <div
+      className={`relative min-w-0 overflow-hidden rounded-lg border p-2.5 transition-colors duration-500 ${
+        stage
+          ? active
+            ? "border-rose-400/50 bg-rose-400/5"
+            : "border-slate-700/60 bg-slate-900/70"
+          : "border-slate-800/60 bg-slate-950/40"
+      }`}
+    >
+      {stage && active ? (
+        <span
+          key={`${stageId}-${stage.chars}`}
+          className="topo-flash pointer-events-none absolute inset-0 rounded-lg"
+          aria-hidden="true"
+        />
+      ) : null}
+      <div className="flex items-center justify-between gap-1.5">
+        <span
+          className={`truncate font-mono text-[9px] font-semibold uppercase tracking-[0.14em] ${
+            stage
+              ? active
+                ? "text-rose-300"
+                : "text-slate-300"
+              : "text-slate-600"
+          }`}
+        >
+          {label}
+        </span>
+        {stage ? (
+          <span className="shrink-0 font-mono text-[9px] tabular-nums text-slate-500">
+            {formatNumber(stage.chars)} ch
+          </span>
+        ) : null}
+      </div>
+      {stage ? (
+        <>
+          <p
+            className={`mt-1.5 line-clamp-3 min-h-8 text-[9.5px] leading-snug text-slate-400 ${
+              isXml ? "font-mono text-[9px]" : ""
+            }`}
+            title={stage.preview}
+          >
+            {stage.preview || "—"}
+          </p>
+          <div className="mt-1.5 font-mono text-[8.5px]">
+            {isRaw ? (
+              <span className="text-slate-500">entrada cruda del operador</span>
+            ) : stage.ok ? (
+              <span className="text-violet-300/90">
+                L2 real · {nn(stage.latencyMs)}ms · {formatNumber(nn(stage.chars))} chars
+              </span>
+            ) : (
+              <span className="text-amber-400/90">fallback determinista (L2 falló)</span>
+            )}
+          </div>
+        </>
+      ) : (
+        <p className="mt-1.5 min-h-8 font-mono text-[9.5px] leading-snug text-slate-700">
+          — en espera
+        </p>
+      )}
+    </div>
+  );
+}
+
+function PromptPipelineSection({
+  iterations,
+}: {
+  iterations: IterationDTO[];
+}) {
+  const promptIteration = useMemo(() => {
+    for (const it of iterations) {
+      if (it && Array.isArray(it.promptStages) && it.promptStages.length > 0) return it;
+    }
+    return null;
+  }, [iterations]);
+
+  const stages = promptIteration?.promptStages ?? [];
+  const running = promptIteration?.status === "running";
+  const lastFilled = stages.length > 0 ? stages[stages.length - 1] : null;
+  const rawChars = stages.find((s) => s?.id === "crudo")?.chars ?? 0;
+  const xmlChars = stages.find((s) => s?.id === "xml")?.chars ?? 0;
+  const l2Stages = stages.filter((s) => s && s.id !== "crudo");
+  const l2Ok = l2Stages.filter((s) => s.ok).length;
+
+  return (
+    <section
+      aria-label="Canalización del prompt — de crudo a XML"
+      className="flex flex-col gap-2.5"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5">
+          <PulseDot
+            colorClass="bg-rose-400"
+            sizeClass="h-1.5 w-1.5"
+            title="Ingeniería de prompt en vivo"
+          />
+          <h3
+            aria-label="Canalización del Prompt — de Crudo a XML"
+            className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300"
+          >
+            Canalización del Prompt <span className="text-slate-600">—</span>{" "}
+            <span className="text-rose-300">Crudo → XML</span>
+          </h3>
+        </div>
+        {promptIteration ? (
+          <span className="font-mono text-[9px] uppercase tracking-wider text-slate-500">
+            iteración #{nn(promptIteration.seq)} ·{" "}
+            {running ? (
+              <span className="text-rose-300">transformando en vivo</span>
+            ) : (
+              "última completada"
+            )}
+            {rawChars > 0 && xmlChars > 0 ? (
+              <span className="text-slate-600">
+                {" "}· {formatNumber(rawChars)} → {formatNumber(xmlChars)} chars
+              </span>
+            ) : null}
+          </span>
+        ) : null}
+      </div>
+
+      {promptIteration?.coldStart ? (
+        <p
+          className="rounded-lg border border-rose-400/20 bg-rose-400/5 px-2.5 py-1.5 font-mono text-[9.5px] leading-snug text-rose-200/80"
+          title={promptIteration.coldStart}
+        >
+          {promptIteration.coldStart}
+        </p>
+      ) : (
+        <p className="text-[10px] leading-snug text-slate-600">
+          Cada iteración arranca en frío — se asume que el operador no sabe nada del tema
+          ni la IA sabe nada del tema — y el prompt crudo se refina, refactoriza,
+          remasteriza con las mejores prácticas de prompting y se convierte a formato XML
+          mediante 4 inferencias L2 reales antes de ejecutar el ciclo.
+        </p>
+      )}
+
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+        {PROMPT_STAGE_IDS.map((stageId) => (
+          <PromptStageCard
+            key={stageId}
+            stageId={stageId}
+            stage={stages.find((s) => s?.id === stageId)}
+            active={Boolean(running && lastFilled && lastFilled.id === stageId)}
+          />
+        ))}
+      </div>
+
+      {l2Stages.length > 0 ? (
+        <p className="text-[10px] leading-snug text-slate-600">
+          {l2Ok}/{l2Stages.length} transformaciones por inferencia L2 real (chars medidos) ·
+          el prompt XML maestro gobierna la investigación del ciclo.
+        </p>
+      ) : null}
+    </section>
   );
 }
 
@@ -539,7 +717,7 @@ export function KanbanKpiBoard({ live }: { live: TopologyLive }) {
             value={stepsTotal}
             flashKey={stepsTotal}
             sub={
-              <span className="flex items-center gap-1" aria-hidden="true">
+              <span className="flex flex-wrap items-center gap-1" aria-hidden="true">
                 {CYCLE_STEPS.map((stepId) => {
                   const n = nn(k?.stepsPerStage?.[stepId]);
                   return (
@@ -642,6 +820,9 @@ export function KanbanKpiBoard({ live }: { live: TopologyLive }) {
         </div>
       </section>
 
+      {/* ── Section 1.5: Canalización del Prompt (crudo → XML) ────────── */}
+      <PromptPipelineSection iterations={iterations} />
+
       {/* ── Section 2: Kanban de iteraciones ─────────────────────────────── */}
       <section
         aria-label="Kanban de iteraciones — ciclo autónomo en vivo"
@@ -724,7 +905,7 @@ export function KanbanKpiBoard({ live }: { live: TopologyLive }) {
               ) : null}
             </BoardColumn>
 
-            {/* Columns 2-8: the 7 stages */}
+            {/* Columns 2-13: the 12 pipeline stages (contextualización + ciclo) */}
             {CYCLE_STEPS.map((stepId) => {
               const cards = runningByStage.get(stepId) ?? [];
               return (
@@ -742,7 +923,7 @@ export function KanbanKpiBoard({ live }: { live: TopologyLive }) {
               );
             })}
 
-            {/* Column 9: Completadas */}
+            {/* Column 14: Completadas */}
             <BoardColumn label="Completadas" count={completed.length}>
               {completed.map((it) => (
                 <IterationCard key={it.id} iteration={it} />
