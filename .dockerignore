@@ -1,0 +1,16 @@
+# Contexto de build Docker — solo lo necesario para compilar y correr
+.git
+node_modules
+**/node_modules
+.next
+/data
+/secrets
+db
+deploy/.env
+*.log
+/tool-results
+/download
+/upload
+tests
+examples
+.DS_Store

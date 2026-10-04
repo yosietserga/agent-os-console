@@ -1,0 +1,24 @@
+# ════════════════════════════════════════════════════════════════════════
+# Gateway público del VPS — réplica exacta del gateway del entorno de
+# desarrollo (Caddyfile :81 del sandbox):
+#
+#   ?XTransformPort=<puerto>  →  127.0.0.1:<puerto>   (mini-servicios)
+#   resto (incluido "/" y /api/*)  →  127.0.0.1:3000  (Agent OS Console)
+#
+# SITE_ADDR (desde deploy/.env):
+#   - dominio (ej: agentos.midominio.com) → HTTPS automático + redirect 80→443
+#   - :80 (default)  → HTTP directo sobre la IP del VPS
+# ════════════════════════════════════════════════════════════════════════
+
+{$SITE_ADDR::80} {
+	encode zstd gzip
+
+	@transform query XTransformPort=*
+	handle @transform {
+		reverse_proxy 127.0.0.1:{query.XTransformPort}
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:3000
+	}
+}

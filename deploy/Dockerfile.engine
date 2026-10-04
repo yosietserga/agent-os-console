@@ -1,0 +1,24 @@
+# ════════════════════════════════════════════════════════════════════════
+# topology-engine — mini-servicio socket.io :3003 (bun)
+# Requiere bun en runtime (usa bun:sqlite para lectura read-only de la DB).
+# Contexto: raíz del repo.
+# ════════════════════════════════════════════════════════════════════════
+FROM oven/bun:1-debian
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates openssl \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /engine
+
+COPY mini-services/topology-engine/package.json mini-services/topology-engine/bun.lock ./
+RUN bun install --frozen-lockfile
+
+COPY mini-services/topology-engine/ .
+
+# Ruta de la DB read-only (montada por compose desde data/db del host)
+ENV AGENT_OS_DB_PATH=/data/custom.db
+
+EXPOSE 3003
+
+CMD ["bun", "index.ts"]

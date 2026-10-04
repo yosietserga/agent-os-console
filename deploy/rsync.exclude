@@ -1,0 +1,15 @@
+# ── Exclusiones de rsync para deploy.sh ─────────────────────────────────
+# Lo que NO viaja al VPS (se regenera allí o vive como volumen/secreto).
+.git
+node_modules
+mini-services/topology-engine/node_modules
+.next
+db
+data
+secrets
+deploy/.env
+.z-ai-config
+*.log
+tool-results
+download
+upload

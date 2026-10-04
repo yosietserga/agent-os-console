@@ -212,7 +212,7 @@ async function main() {
   console.log("[SEED] Memoria user/feedback/project/reference/worklog");
 
   // Repos de referencia (datos del scan real)
-  const scanResults = JSON.parse(await Bun.file("/home/z/my-project/mejorate-scan-results.json").text());
+  const scanResults = JSON.parse(await Bun.file("mejorate-scan-results.json").text());
   await db.referenceRepo.createMany({
     data: scanResults.map((r: any) => ({
       repo: r.repo, category: r.category, role: r.role, description: r.desc,

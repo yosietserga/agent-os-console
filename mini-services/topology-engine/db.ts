@@ -3,7 +3,7 @@
 
 import { Database } from "bun:sqlite";
 
-const DB_PATH = "/home/z/my-project/db/custom.db";
+const DB_PATH = process.env.AGENT_OS_DB_PATH || "/home/z/my-project/db/custom.db";
 
 let db: Database | null = null;
 

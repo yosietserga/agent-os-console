@@ -82,7 +82,7 @@ async function main() {
     });
     process.stdout.write(`  Stars: ${stars} · ${lang} · ${sizeKb}KB · ${topDirs.length} dirs top-level\n`);
   }
-  await Bun.write("/home/z/my-project/mejorate-scan-results.json", JSON.stringify(results, null, 2));
+  await Bun.write("mejorate-scan-results.json", JSON.stringify(results, null, 2));
   process.stdout.write(`\n[MEJORATE] Scan completado: ${results.length} repos → mejorate-scan-results.json\n`);
   const totalStars = results.reduce((a, r) => a + (r.stars || 0), 0);
   process.stdout.write(`[MEJORATE] Stars totales del catálogo: ${totalStars.toLocaleString()}\n`);

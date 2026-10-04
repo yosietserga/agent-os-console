@@ -1,0 +1,79 @@
+name: agent-os
+
+# ════════════════════════════════════════════════════════════════════════
+# Agent OS Console — stack de producción en VPS
+#
+#   app    : Next.js 16 standalone (:3000, solo 127.0.0.1)
+#   engine : topology-engine socket.io  (:3003, solo 127.0.0.1)
+#   caddy  : gateway público 80/443 — réplica exacta del gateway del
+#            entorno de desarrollo: query ?XTransformPort=<puerto> enruta
+#            a ese mini-servicio; sin query → app:3000. TLS automático
+#            (Let's Encrypt) cuando SITE_ADDR es un dominio.
+#
+# La configuración vive en deploy/.env (SITE_ADDR, GITHUB_TOKEN).
+# Ver deploy/README.md para el runbook completo.
+# ════════════════════════════════════════════════════════════════════════
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: agent-os-app
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: file:/app/db/custom.db
+      # gaps-finder compara la DB contra la copia upstream del boilerplate
+      AGENT_OS_REF_PATH: /app/.next/standalone/assets/agent-os-boilerplate
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+    volumes:
+      - ../data/db:/app/db
+      - ../secrets/.z-ai-config:/etc/.z-ai-config:ro
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/agent-os/overview').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  engine:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.engine
+    image: agent-os-engine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3003:3003"
+    environment:
+      AGENT_OS_DB_PATH: /data/custom.db
+    volumes:
+      # misma DB que app, montada read-only (el visualizador nunca escribe)
+      - ../data/db:/data:ro
+      - ../secrets/.z-ai-config:/etc/.z-ai-config:ro
+    depends_on:
+      app:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    # host network: caddy alcanza 127.0.0.1:3000/3003 igual que el gateway
+    # del entorno de desarrollo, y los puertos de app/engine quedan
+    # SIN exponer públicamente.
+    network_mode: host
+    environment:
+      SITE_ADDR: ${SITE_ADDR:-:80}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:
