@@ -1,7 +1,7 @@
 # Agent OS Console — Documentación Técnica
 
 > **Repo**: `yosietserga/agent-os-console` (privado) · **Base de visualización**: [`yosietserga/living-topology-visualizer`](https://github.com/yosietserga/living-topology-visualizer) (público)
-> **Versión documentada**: v2.0.0 · 19 comandos canónicos · 15 reglas cardinales + W-CTA
+> **Versión documentada**: v2.1.0 · 19 comandos canónicos · 15 reglas cardinales + W-CTA · Instanciador Zero-Shot (Protocolo 11)
 
 Sistema de control agéntico con **topología viva**: cada iteración ejecuta un ciclo real de calidad con inferencia L2, y todo el flujo (pasos, nodos, contextos, iteraciones) es observable en tiempo real.
 
@@ -24,6 +24,7 @@ Este proyecto documenta en **dos formatos complementarios**, cada uno explotando
 6. [**Gobernanza y L2**](06-gobernanza-l2.md) — Juez PRE-v2.0 (ΔS), circuit breaker, ledger de costos, PSIM K1-K5/W1-W8
 7. [**Mejorate**](07-mejorate.md) — Scan GitHub → síntesis L2 → juez, compuerta de honestidad AP-034
 8. [**Verificación del Bucle Agéntico**](08-verificacion-bucle.md) — Matriz PRE/POST de los 12 comportamientos esperados vs implementación (v2.0.0: comando `bucle`)
+9. [**Instanciador Zero-Shot**](09-instanciador-zero-shot.md) — Protocolo 11: prompt crudo → scaffold completo de condicionamiento conductual en ZIP (v2.1.0)
 
 ## Vista rápida del sistema
 

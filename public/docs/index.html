@@ -118,6 +118,17 @@
   .note{border-left:4px solid var(--accent);background:#f5faff;border-radius:0 12px 12px 0;padding:12px 16px;margin:16px 0;font-size:13.5px;max-width:82ch}
   .warn{border-left-color:var(--rose);background:#fff5f6}
 
+  /* v2.1.0 — instanciador */
+  .callout{border-left:4px solid var(--violet);background:#faf7ff;border-radius:0 12px 12px 0;padding:12px 16px;margin:16px 0;font-size:13.5px;max-width:86ch}
+  .callout.warn{border-left-color:var(--rose);background:#fff5f6}
+  .callout.info{border-left-color:var(--cyan);background:#f2fbff}
+  .fold{border:1px solid var(--line);border-radius:12px;padding:10px 16px;margin:14px 0;background:#fff}
+  .fold summary{cursor:pointer;font-weight:600;font-size:13.5px;color:var(--ink)}
+  .fold pre{margin-top:10px;background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-family:var(--mono);font-size:11.5px;color:var(--ink2);overflow:auto}
+  .cmds{display:flex;flex-direction:column;gap:6px;margin:12px 0}
+  .cmds .cmd{justify-content:space-between;width:100%;padding:8px 12px}
+  .cmds .cmd span{color:var(--ink3);font-size:11px}
+
   footer{border-top:1px solid var(--line);margin-top:30px;padding-top:22px;font-size:12.5px;color:var(--ink3);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
   footer a{color:var(--ink2)}
 </style>
@@ -128,7 +139,7 @@
 
 <nav id="side">
   <div class="brand"><span class="dot"></span><h1>Agent OS · Docs</h1></div>
-  <div class="sub">v1.9.0 · interactive</div>
+  <div class="sub">v2.1.0 · interactive</div>
   <div class="sep">Sistema</div>
   <a class="nl" href="#arquitectura"><span class="n">01</span>Arquitectura</a>
   <a class="nl" href="#topologia"><span class="n">02</span>Topología Viva</a>
@@ -138,6 +149,8 @@
   <a class="nl" href="#ciclo"><span class="n">05</span>Ciclo de Calidad</a>
   <a class="nl" href="#gobernanza"><span class="n">06</span>Gobernanza &amp; L2</a>
   <a class="nl" href="#mejorate"><span class="n">07</span>Mejorate</a>
+  <div class="sep">v2.1.0</div>
+  <a class="nl" href="#instanciador"><span class="n">09</span>Instanciador Zero-Shot</a>
   <div class="live">
     <b>Ver en vivo</b><br>
     <a href="/">→ Topología viva (ruta /)</a><br>
@@ -440,6 +453,110 @@ flowchart TB
 
   <div class="note">🔑 <b>Cuotas GitHub:</b> anónimo = 60 req/h por IP compartida (cada run consume ~38 → 403 masivo). Con <code>GITHUB_TOKEN</code> en <code>.env</code>: <b>5.000 req/h</b> — verificado 19/19 · 1.204.735★ · base epoch fresca.</div>
 </section>
+<section id="instanciador">
+  <h2 class="sec"><span class="chip" style="background:var(--orange)">09</span>Instanciador Zero-Shot — Protocolo 11</h2>
+  <p class="lead">La consola convertida en <b>generador de scaffolds de condicionamiento conductual</b>: el operador describe la app en un input tipo chatbot y el sistema genera <code>AGENTS.md</code> + todos los archivos derivados e interconectados (catálogos, personas, prompts de dominio, memoria P9, 16 puentes IDE) que garantizan que el LLM que se use siga el workflow agéntico diseñado, ajustado al tópico del proyecto. Entrega: <b>ZIP con MANIFEST sha256</b>. No genera la app — genera su sistema nervioso.</p>
+
+  <div class="kpis">
+    <div class="kpi"><b>114</b><span>archivos por scaffold</span></div>
+    <div class="kpi"><b>17</b><span>generados vía L2</span></div>
+    <div class="kpi"><b>23</b><span>fuentes web reales</span></div>
+    <div class="kpi"><b>16</b><span>puentes IDE auto-activados</span></div>
+    <div class="kpi"><b>8</b><span>checks de auto-crítica</span></div>
+  </div>
+
+  <div class="mbox"><div class="cap">El bucle agéntico del pipeline — investigar → planear → pre-report → generar → verificar → pro-report → empaquetar</div><pre class="mermaid">
+flowchart TD
+    OP["Operador: prompt crudo<br/>(cero conocimiento asumido)"] --> A["POST /api/agent-os/bootstrap"]
+    A --> R[("BootstrapRun<br/>PENDING")]
+    A -.->|background| P["runBootstrapPipeline"]
+    P --> F1["FASE 1 · RESEARCHING<br/>pre-spec L2 + web_search ×5<br/>hasta 25 fuentes reales"]
+    F1 --> F2["FASE 2 · PLANNING<br/>roles de expertos · goals G1-Gn<br/>prompt XML · pre-report"]
+    F2 --> F3["FASE 3 · GENERATING<br/>3 catálogos + 10 personas + 3 prompts<br/>+ README + AGENTS.md ensamblado<br/>+ 16 puentes IDE + estáticos + memoria P9"]
+    F3 --> F4["FASE 4 · VERIFYING<br/>8 checks deterministas · pro-report"]
+    F4 --> F5["FASE 5 · PACKAGING"] --> OK[("COMPLETED<br/>progress 100")]
+    OK --> Z["GET /download<br/>ZIP + MANIFEST.json"]
+    F1 -.->|"fallo L2"| D1["queries del prompt<br/>(degradación declarada P2)"]
+    F3 -.->|"fallo L2"| D2["archivo degradado honesto<br/>el resto continúa"]
+    P -.->|excepción| E[("ERROR registrado<br/>visible en el UI")]
+  </pre></div>
+
+  <div class="mbox"><div class="cap">Secuencia end-to-end — polling en vivo del progreso (1.8s) y descarga</div><pre class="mermaid">
+sequenceDiagram
+    actor OP as Operador
+    participant UI as Tab Instanciador
+    participant API as API bootstrap
+    participant L2 as L2 Control Plane
+    participant WS as web_search
+    OP->>UI: "crea una app para procesar archivos y combinarlos en un pdf"
+    UI->>API: POST { prompt }
+    API-->>UI: { runId } (pipeline en background)
+    API->>WS: 5 queries de investigación
+    API->>L2: spec (roles, goals, XML, contexto)
+    loop 7 llamadas L2
+        API->>L2: catálogo / personas / prompts / README
+        L2-->>API: markdown ===FILE:...===
+    end
+    API->>API: ensamblar AGENTS.md + 16 bridges + auto-crítica
+    loop polling cada 1.8s
+        UI->>API: GET estado
+        API-->>UI: fase · progreso · archivos en vivo
+    end
+    OP->>UI: Descargar scaffold (.zip)
+    UI-->>OP: agent-os-&lt;slug&gt;.zip + MANIFEST sha256
+  </pre></div>
+
+  <div class="mbox"><div class="cap">Origen de los 114 archivos (run real: Fusionador de Documentos)</div><pre class="mermaid">
+pie showData
+    title Origen de los archivos del scaffold
+    "Estáticos universales (gobernanza/L2/MCP/eval)" : 65
+    "Puentes IDE (template + proyecto)" : 16
+    "Memoria y reportes (template P9)" : 13
+    "Generados vía L2" : 17
+    "Otros (.gitkeep, índices)" : 3
+  </pre></div>
+
+  <div class="callout info"><b>Inyección en la constitución (jamás reescritura):</b> <code>assembleAgentsMd()</code> conserva AGENTS.md íntegro e inserta (1) la línea <i>PROYECTO INSTANCIADO</i> en el encabezado y (2) la sección <i>Contexto del Proyecto Instanciado</i> — misión, glosario, goals, roles, tabla de personas, catálogos, seguridad y reglas de ejecución del bucle. Los 16 puentes IDE reciben el mismo bloque: a partir de ese momento todo prompt del operador pasa automáticamente por el workflow (Protocolo 11, Fase 3 · Zero-Prompt Workflow).</div>
+
+  <details class="fold"><summary>Ejemplo real — sección de contexto inyectada (Fusionador de Documentos)</summary>
+    <pre style="white-space:pre-wrap;font-size:12px">## Contexto del Proyecto Instanciado (Protocolo 11)
+
+### Misión
+Proporcionar una herramienta profesional y segura que permita a los usuarios
+combinar múltiples archivos de diferentes formatos en un único documento PDF…
+
+### Goals del Proyecto
+1. Procesar al menos 10 formatos de archivo diferentes
+2. Combinar documentos en menos de 30 segundos para archivos de hasta 100MB
+3. Mantener la calidad original de los documentos después de la fusión
+4. Implementar cifrado de datos durante el procesamiento
+5. Cumplir con regulaciones de privacidad de datos
+
+### Personas del Dominio
+| analyst → Analista de Documentos | operator → Operador de Procesamiento |
+| executive → Gestor de Documentos Corporativos | apprentice → Usuario Novato |
+
+### Reglas de Ejecución
+1. Investigar exhaustivamente antes de asumir cualquier requerimiento técnico
+2. Verificar la implementación tras cada cambio en el sistema
+3. Memoria append-only (P9) · 4. Auto-crítica regular (P13) · 5. Iterar hasta los goals</pre>
+  </details>
+
+  <details class="fold"><summary>API del instanciador (4 endpoints)</summary>
+    <div class="cmds">
+      <div class="cmd">POST /api/agent-os/bootstrap <span>{ prompt } → { runId }</span></div>
+      <div class="cmd">GET /api/agent-os/bootstrap <span>historial (últimos 10)</span></div>
+      <div class="cmd">GET /api/agent-os/bootstrap/[id] <span>estado + spec + research + árbol · ?path= preview</span></div>
+      <div class="cmd">GET /api/agent-os/bootstrap/[id]/download <span>ZIP (solo COMPLETED, 409 si no)</span></div>
+    </div>
+  </details>
+
+  <div class="callout warn"><b>Comportamiento ante fallos (P2 verificado en vivo):</b> L2 caído → catálogo/persona con encabezado <i>VERSIÓN DEGRADADA</i> y nota en el pro-report; web_search sin resultados → síntesis sin citar fuentes; excepción del pipeline → <code>status=ERROR</code> visible en el UI; descarga anticipada → HTTP 409. Nada muere en el log sin procesar.</div>
+
+  <p class="lead" style="margin-top:10px">Versión Markdown completa y diffable: <code>docs/09-instanciador-zero-shot.md</code> en el repo.</p>
+</section>
+
+
 
 <footer>
   <div><b>Agent OS v1.9.0</b> · Documentación interactiva · generada del código real · <a href="/">ver la topología viva</a></div>

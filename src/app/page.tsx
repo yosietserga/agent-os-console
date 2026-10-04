@@ -13,11 +13,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Cpu, GitBranch, Layers, Database, Sparkles, Clock, TerminalSquare,
   BookOpen, Scale, Network, ScanLine, ShieldCheck, ChevronRight, Radar,
-  KanbanSquare, Waypoints, Infinity as InfinityIcon,
+  KanbanSquare, Waypoints, Infinity as InfinityIcon, Rocket,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CommandConsole } from "@/components/agent-os/command-console";
+import { BootstrapInstancer } from "@/components/agent-os/bootstrap-instancer";
 import { PsimPanel } from "@/components/agent-os/psim-panel";
 import { MejoratePanel } from "@/components/agent-os/mejorate-panel";
 import { MemoryPanel } from "@/components/agent-os/memory-panel";
@@ -94,7 +95,7 @@ export default function AgentOSPage() {
   const [epoch, setEpoch] = useState(0);
   const [mejorateState, setMejorateState] = useState<CtaState>("ready");
   const [activeTab, setActiveTab] = useState("mejorate");
-  const [rootTab, setRootTab] = useState("topologia");
+  const [rootTab, setRootTab] = useState("instanciador");
 
   const load = useCallback(async () => {
     try {
@@ -193,7 +194,7 @@ export default function AgentOSPage() {
             </span>
           </div>
           <span className="rounded-full border border-[#e5e5ea] bg-[#f5f5f7] px-2 py-0.5 font-mono text-[10px] font-semibold text-[#1d1d1f]">
-            v2.0.0
+            v2.1.0
           </span>
           <div className="ml-auto flex items-center gap-4">
             <span className="hidden items-center gap-1.5 font-mono text-[11px] text-[#86868b] md:flex" aria-label="Epoch Unix en vivo">
@@ -222,6 +223,7 @@ export default function AgentOSPage() {
             className="os-scroll h-auto w-full justify-start gap-1 overflow-x-auto rounded-full border border-[#e5e5ea] bg-white p-1"
           >
             {[
+              { value: "instanciador", icon: Rocket, label: "Instanciador" },
               { value: "topologia", icon: Waypoints, label: "Topología Viva" },
               { value: "kanban", icon: KanbanSquare, label: "Kanban KPI" },
               { value: "consola", icon: TerminalSquare, label: "Consola Agent OS" },
@@ -238,6 +240,11 @@ export default function AgentOSPage() {
           </TabsList>
 
           {/* ══ VISTA 1: Topología Viva (dark command center) ═════════ */}
+          {/* VISTA 0: Instanciador Zero-Shot (Protocolo 11) */}
+          <TabsContent value="instanciador" className="mt-4">
+            <BootstrapInstancer />
+          </TabsContent>
+
           <TabsContent value="topologia" className="mt-4">
             <div className="rounded-2xl bg-slate-950 p-3 sm:p-5">
               <div className="mb-4 flex flex-col gap-1 px-1">
@@ -491,12 +498,12 @@ export default function AgentOSPage() {
       <footer className="mt-auto border-t border-[#e5e5ea] bg-white/90 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
         <div className="mx-auto flex max-w-[1440px] flex-col items-center justify-between gap-2 px-4 py-4 text-center sm:flex-row sm:px-6 sm:text-left">
           <p className="text-[11px] text-[#86868b]">
-            <span className="font-semibold text-[#1d1d1f]">Agent OS v1.9.0</span> · Operador:{" "}
+            <span className="font-semibold text-[#1d1d1f]">Agent OS v2.1.0</span> · Operador:{" "}
             <span className="font-medium text-[#1d1d1f]">Yosiet Serga</span> · Venezuela ·
             Windows dev / Ubuntu deploy (P10)
           </p>
           <p className="font-mono text-[10px] text-[#86868b]">
-            18 comandos · arranque en frío + prompt XML · ciclo autónomo · living topology · 15 reglas + W-CTA · LLM-agnóstico ·{" "}
+            instanciador zero-shot (P11) · 18 comandos · arranque en frío + prompt XML · ciclo autónomo · living topology · 15 reglas + W-CTA · LLM-agnóstico ·{" "}
             <a
               href="/docs/index.html"
               target="_blank"

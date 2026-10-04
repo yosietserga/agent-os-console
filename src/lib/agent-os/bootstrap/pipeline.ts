@@ -583,8 +583,9 @@ ${r.results.map((x) => `- **${x.title}** — ${x.url}\n  ${x.snippet}`).join("\n
     const bridgesOk = BRIDGE_FILES.filter((b) => (fileMap.get(b)?.content ?? "").includes(spec.projectName)).length;
     checks.push({ name: `Puentes IDE (${BRIDGE_FILES.length})`, pass: bridgesOk === BRIDGE_FILES.length, detail: `${bridgesOk}/${BRIDGE_FILES.length} inyectados` });
 
-    const emptyFiles = allFiles.filter((f) => f.bytes === 0).length;
-    checks.push({ name: "Cero archivos vacíos", pass: emptyFiles === 0, detail: `${emptyFiles} vacíos` });
+    // .gitkeep son marcadores de directorio legítimamente vacíos (no cuentan)
+    const emptyFiles = allFiles.filter((f) => f.bytes === 0 && !f.path.endsWith(".gitkeep")).length;
+    checks.push({ name: "Cero archivos vacíos (excluye .gitkeep)", pass: emptyFiles === 0, detail: `${emptyFiles} vacíos` });
 
     const llmFiles = allFiles.filter((f) => f.origin === "llm").length;
     checks.push({ name: "Archivos LLM generados", pass: llmFiles >= 10, detail: `${llmFiles} archivos vía L2` });

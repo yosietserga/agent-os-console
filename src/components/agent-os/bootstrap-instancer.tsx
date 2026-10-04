@@ -212,15 +212,14 @@ export function BootstrapInstancer() {
     if (!run) return [] as Array<{ group: string; files: BootstrapRunDTO["files"] }>;
     const map = new Map<string, BootstrapRunDTO["files"]>();
     for (const f of run.files) {
-      const parts = f.path.split("/");
-      const group = parts.length === 1 || parts[0].startsWith(".") || parts[0] === "AGENTS.md" || parts[0] === "README.md"
-        ? (parts[0] === "AGENTS.md" || parts[0] === "README.md" || parts[0] === "LICENSE" || parts[0] === "MANIFEST.json" || !parts[0].includes(".") ? parts[0] : "raíz")
-        : parts[0];
+      const group = f.path.includes("/") ? f.path.split("/")[0] : "· raíz";
       if (!map.has(group)) map.set(group, []);
       map.get(group)!.push(f);
     }
+    const order = (g: string) =>
+      g === "· raíz" ? 0 : g === "docs" ? 1 : g === "mcp" ? 2 : g === "scripts" ? 3 : g === "packages" ? 4 : 5;
     return [...map.entries()]
-      .sort((a, b) => a[0].localeCompare(b[0]))
+      .sort((a, b) => order(a[0]) - order(b[0]) || a[0].localeCompare(b[0]))
       .map(([group, files]) => ({ group, files: files.slice().sort((a, b) => a.path.localeCompare(b.path)) }));
   }, [run]);
 
@@ -630,7 +629,7 @@ export function BootstrapInstancer() {
               </h3>
               <div className="os-scroll mt-3 max-h-[520px] space-y-3 overflow-y-auto pr-1">
                 {groupedFiles.map((g) => (
-                  <details key={g.group} open={g.group === "AGENTS.md" || g.group === "docs"}>
+                  <details key={g.group} open={g.group === "· raíz" || g.group === "docs"}>
                     <summary className="flex cursor-pointer list-none items-center gap-2 rounded-lg bg-[#fafafc] px-2.5 py-1.5">
                       <FolderClosed className="size-3.5 text-[#86868b]" aria-hidden="true" />
                       <span className="font-mono text-[11px] font-semibold text-[#1d1d1f]">{g.group}</span>
