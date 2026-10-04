@@ -245,3 +245,21 @@ Work Log:
 
 Stage Summary:
 - mejorate ya no fabrica: la compuerta P2 aborta antes de L2 cuando el scan no trae ni un repo fresco (exit 1 + causa raíz + remedio), la síntesis queda atada al epoch real con edad divulgada y solo repos frescos, el circuit breaker evita quemar llamadas sin cuota, y el autocheck CA-2 mide el scan real en vez de validar hardcoded. Pendiente único del operador: añadir su PAT al .env como GITHUB_TOKEN=<pat> (cuota 5.000/h) para que el scan cubra los 19 repos de forma estable. Costo de la corrección: 3 archivos (github.ts, commands.ts, synthesize.ts), 0 cambios de schema, 0 regresiones.
+
+---
+Task ID: 12
+Agent: Z.ai Code (principal)
+Task: El operador entregó su PAT de GitHub (cuenta yosietserga) y pidió: usar su cuenta para leer el código real, escribir documentación técnica rica en diagramas en Markdown y HTML aprovechando las ventajas de cada formato, y sincronizar el repo.
+
+Work Log:
+- PAT instalado en .env como GITHUB_TOKEN (gitignored, verificado 404 en el repo remoto tras el push) y remote origin actualizado. Auth verificada: cuota core 5000/5000.
+- Re-ejecución de mejorate con token: scan 19/19 repos reales (1.204.735★, cuota 4958/5000), synthesize vía L2 atado al epoch (19 frescos, edad 0 min), juez rechazó 5/5 proposals por regresiones reales D1/D2 — AP-034 verificado de punta a punta con token. ScanRuns del run quedaron en la BD (incluidos en el commit).
+- Código real leído para documentar: prisma/schema.prisma (16 modelos), src/lib/topology/agent-workflow.ts (5 capas, 22 nodos, 43 enlaces, CYCLE_STEPS 12), l2.ts (sanitización P12, sandwich capa 3, breaker, ledger), sentinel.ts (7 etapas, clasificador, fuentes), pre-judge.ts (D1-D6 pesos, condición de promoción), commands.ts (60+ cases del switch), mini-services/topology-engine (engine.ts PROMPT_SYS 4 transformaciones, index.ts socket.io :3003), package.json, page.tsx footer.
+- docs/ (8 archivos Markdown, ~740 líneas): README índice + 01-arquitectura (componentes, XTransformPort, flujo comando, stack, carpetas) + 02-topologia-viva (5 capas, canalización crudo→XML, 12 pasos, tipos de transferencia, protocolo topo:*) + 03-comandos (18 comandos con aliases, dispatcher stateDiagram, APs de parsing) + 04-modelo-datos (erDiagram completo de los 16 modelos) + 05-ciclo-calidad (fuentes, 7 etapas, lifecycle hallazgos, AUTO_ON_ERROR) + 06-gobernanza-l2 (3 roles, D1-D6, breaker, PSIM K1-K5) + 07-mejorate (sequenceDiagram del pipeline con gate AP-034 antes/después). Ventajas MD explotadas: Mermaid nativo de GitHub, versionable, diffable.
+- public/docs/index.html (505 líneas, servido en /docs/index.html): versión interactiva — sidebar sticky con scrollspy (IntersectionObserver), 8 diagramas Mermaid render client-side (CDN con fallback elegante a texto si no carga), 20 botones copiar-comando al portapapeles, secciones colapsables details/summary, 8 tarjetas KPI, 5 tarjetas de capa con colores del sistema, barra de progreso de lectura, paleta Apple Light del sistema (P5). Ventajas HTML explotadas: interactividad, navegación, copiado 1-clic, enlace directo a la topología viva.
+- page.tsx: enlace "docs técnicas ↗" en el footer (target _blank, color #0071e3).
+- Verificación E2E (agent-browser + VLM): /docs/index.html HTTP 200 (36.5KB) · 7 secciones, 7 nav links, 8/8 mermaid renderizados (0 fallidos), 20 botones copy, details open funcional, click de botón copy ejecutado, 0 errores de consola, overflow-x 0 · VLM confirmó sidebar SISTEMA/WORKFLOW, título, 8 KPIs, badges de capas y sección "Ver en vivo" · footer de la app con link OK · lint exit 0.
+- Sync repo: commit 21bfab6 (docs: 11 archivos, 1.333 inserciones — 8 MD + HTML + page.tsx + db) → push a yosietserga/agent-os-console main (e44bb26..21bfab6) · verificado vía API: commit en GitHub, .env ausente (404).
+
+Stage Summary:
+- Documentación técnica completa en los dos formatos pedidos, cada uno explotando sus ventajas: Markdown versionable con Mermaid nativo de GitHub (docs/, 8 archivos) y HTML interactiva con navegación scrollspy, diagramas client-side y copiado de comandos (public/docs/index.html, enlazada desde el footer de la app y desde el sidebar). El PAT quedó instalado y verificado (mejorate 19/19 estable), protegido (gitignored + 404 en remoto). Repo sincronizado: github.com/yosietserga/agent-os-console @ 21bfab6.
