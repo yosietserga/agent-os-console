@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent OS — Documentación Técnica Interactiva</title>
+<meta name="description" content="Documentación técnica interactiva del Agent OS Console: arquitectura, topología viva, comandos canónicos, modelo de datos, ciclo autónomo de calidad, gobernanza PRE-v2.0 y mejorate.">
+<style>
+  :root{
+    --bg:#ffffff;--bg2:#f5f5f7;--ink:#1d1d1f;--ink2:#6e6e73;--ink3:#86868b;
+    --line:#e5e5ea;--accent:#0071e3;--rose:#fb7185;--violet:#a78bfa;--cyan:#22d3ee;
+    --green:#34d399;--amber:#fbbf24;--code-bg:#f5f5f7;--mono:'SF Mono',ui-monospace,'Cascadia Code',Menlo,Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth;scroll-padding-top:24px}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.65}
+  ::selection{background:#b3d7ff}
+
+  /* progress bar */
+  #progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--rose),var(--violet),var(--cyan),var(--green));width:0;z-index:99;transition:width .15s}
+
+  .layout{display:grid;grid-template-columns:280px 1fr;max-width:1440px;margin:0 auto;min-height:100vh}
+  @media(max-width:960px){.layout{grid-template-columns:1fr}nav#side{position:static!important;height:auto!important;border-right:none;border-bottom:1px solid var(--line)}}
+
+  /* sidebar */
+  nav#side{border-right:1px solid var(--line);padding:28px 20px;position:sticky;top:0;height:100vh;overflow-y:auto;background:rgba(255,255,255,.92);backdrop-filter:blur(20px)}
+  nav#side .brand{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  nav#side .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px rgba(52,211,153,.18);animation:pulse 2.4s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(52,211,153,.25)}50%{box-shadow:0 0 0 7px rgba(52,211,153,.06)}}
+  nav#side h1{font-size:17px;font-weight:700;letter-spacing:-.02em}
+  nav#side .sub{font-size:11px;color:var(--ink3);margin-bottom:22px;font-family:var(--mono)}
+  nav#side a.nl{display:flex;gap:10px;align-items:baseline;padding:7px 10px;border-radius:8px;color:var(--ink2);text-decoration:none;font-size:13.5px;font-weight:500;transition:all .18s}
+  nav#side a.nl:hover{background:var(--bg2);color:var(--ink)}
+  nav#side a.nl.active{background:var(--ink);color:#fff}
+  nav#side a.nl .n{font-family:var(--mono);font-size:10.5px;color:var(--ink3);min-width:18px}
+  nav#side a.nl.active .n{color:#c7c7cc}
+  nav#side .live{margin-top:22px;padding:12px;border-radius:12px;background:var(--bg2);font-size:12px}
+  nav#side .live a{color:var(--accent);text-decoration:none;font-weight:600}
+  nav#side .live a:hover{text-decoration:underline}
+  nav#side .sep{margin:18px 0 8px;font-size:10px;letter-spacing:.14em;color:var(--ink3);text-transform:uppercase;font-weight:700}
+
+  /* main */
+  main{padding:44px 52px 90px;max-width:1020px}
+  @media(max-width:640px){main{padding:28px 18px 70px}}
+  section{margin-bottom:64px}
+  h2.sec{font-size:29px;font-weight:800;letter-spacing:-.025em;margin-bottom:6px;display:flex;align-items:center;gap:12px}
+  h2.sec .chip{font-family:var(--mono);font-size:11px;font-weight:600;color:#fff;padding:3px 9px;border-radius:99px;letter-spacing:.04em}
+  p.lead{color:var(--ink2);font-size:15.5px;margin-bottom:22px;max-width:74ch}
+  h3{font-size:18.5px;font-weight:700;letter-spacing:-.015em;margin:30px 0 10px}
+  p{margin-bottom:12px;max-width:82ch}
+  ul,ol{margin:0 0 14px 22px;max-width:78ch}
+  li{margin-bottom:6px}
+  strong{font-weight:650}
+  code{font-family:var(--mono);font-size:.86em;background:var(--code-bg);border:1px solid var(--line);border-radius:5px;padding:1.5px 6px}
+  pre{background:var(--code-bg);border:1px solid var(--line);border-radius:12px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.6;margin:14px 0}
+  pre code{background:none;border:none;padding:0;font-size:inherit}
+  a{color:var(--accent)}
+
+  /* hero */
+  .hero{padding:26px 0 10px}
+  .hero .kicker{font-family:var(--mono);font-size:11.5px;color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+  .hero h2{font-size:40px;font-weight:800;letter-spacing:-.03em;line-height:1.12;margin-bottom:14px}
+  @media(max-width:640px){.hero h2{font-size:30px}}
+  .hero p{font-size:16.5px;color:var(--ink2);max-width:70ch}
+  .hero .badges{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+  .badge{font-family:var(--mono);font-size:11px;font-weight:600;padding:4px 11px;border-radius:99px;border:1px solid var(--line);color:var(--ink2);background:var(--bg)}
+  .badge.b0{border-color:var(--rose);color:#e11d48}.badge.b1{border-color:var(--violet);color:#7c3aed}
+  .badge.b2{border-color:var(--cyan);color:#0891b2}.badge.b3{border-color:var(--green);color:#059669}
+  .badge.b4{border-color:var(--amber);color:#b45309}
+  .hero .truths{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:22px}
+  .truth{border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:13px;background:linear-gradient(180deg,#fff, #fbfbfd)}
+  .truth b{display:block;font-size:13.5px;margin-bottom:3px}
+
+  /* kpi cards */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0}
+  .kpi{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:#fff}
+  .kpi .v{font-size:24px;font-weight:800;letter-spacing:-.03em;font-family:var(--mono)}
+  .kpi .l{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;font-weight:600}
+
+  /* tables */
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin:14px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  th{background:var(--bg2);text-align:left;padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink2);font-weight:700}
+  td{padding:10px 14px;border-top:1px solid var(--line);vertical-align:top}
+  tr:hover td{background:#fafafc}
+  .tablewrap{overflow-x:auto;border-radius:12px}
+
+  /* copy chips */
+  .cmd{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:3px 6px 3px 10px;margin:2px 2px}
+  .cmd button{border:none;background:var(--ink);color:#fff;border-radius:5px;font-size:10px;padding:2.5px 8px;cursor:pointer;font-family:inherit;transition:background .15s}
+  .cmd button:hover{background:var(--accent)}
+  .cmd button.done{background:var(--green)}
+
+  /* collapsible */
+  details{border:1px solid var(--line);border-radius:12px;margin:12px 0;background:#fff;overflow:hidden}
+  details summary{cursor:pointer;padding:13px 18px;font-weight:600;font-size:14px;list-style:none;display:flex;align-items:center;gap:10px;user-select:none}
+  details summary::-webkit-details-marker{display:none}
+  details summary::before{content:'▸';color:var(--ink3);transition:transform .2s;font-size:12px}
+  details[open] summary::before{transform:rotate(90deg)}
+  details summary:hover{background:var(--bg2)}
+  details .body{padding:2px 18px 16px;border-top:1px solid var(--line);font-size:14px}
+
+  /* mermaid */
+  .mbox{border:1px solid var(--line);border-radius:14px;padding:18px;margin:16px 0;background:#fff;overflow-x:auto;text-align:center}
+  .mbox .cap{font-size:11px;color:var(--ink3);font-family:var(--mono);margin-bottom:8px;text-transform:uppercase;letter-spacing:.1em}
+  .mermaid{display:flex;justify-content:center}
+  .mfallback{display:none;text-align:left;font-family:var(--mono);font-size:11.5px;white-space:pre-wrap;color:var(--ink2)}
+  .mbox.failed .mermaid{display:none}
+  .mbox.failed .mfallback{display:block}
+
+  /* layer cards */
+  .layers{display:grid;gap:10px;margin:16px 0}
+  .layer{display:grid;grid-template-columns:150px 1fr;gap:14px;border:1px solid var(--line);border-left:4px solid;border-radius:12px;padding:13px 16px;background:#fff}
+  @media(max-width:640px){.layer{grid-template-columns:1fr}}
+  .layer .name{font-weight:700;font-size:13.5px}
+  .layer .nodes{font-family:var(--mono);font-size:11px;color:var(--ink2);line-height:2}
+  .layer .desc{font-size:13px;color:var(--ink2)}
+
+  .note{border-left:4px solid var(--accent);background:#f5faff;border-radius:0 12px 12px 0;padding:12px 16px;margin:16px 0;font-size:13.5px;max-width:82ch}
+  .warn{border-left-color:var(--rose);background:#fff5f6}
+
+  footer{border-top:1px solid var(--line);margin-top:30px;padding-top:22px;font-size:12.5px;color:var(--ink3);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  footer a{color:var(--ink2)}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div class="layout">
+
+<nav id="side">
+  <div class="brand"><span class="dot"></span><h1>Agent OS · Docs</h1></div>
+  <div class="sub">v1.9.0 · interactive</div>
+  <div class="sep">Sistema</div>
+  <a class="nl" href="#arquitectura"><span class="n">01</span>Arquitectura</a>
+  <a class="nl" href="#topologia"><span class="n">02</span>Topología Viva</a>
+  <a class="nl" href="#comandos"><span class="n">03</span>Comandos Canónicos</a>
+  <a class="nl" href="#datos"><span class="n">04</span>Modelo de Datos</a>
+  <div class="sep">Workflow</div>
+  <a class="nl" href="#ciclo"><span class="n">05</span>Ciclo de Calidad</a>
+  <a class="nl" href="#gobernanza"><span class="n">06</span>Gobernanza &amp; L2</a>
+  <a class="nl" href="#mejorate"><span class="n">07</span>Mejorate</a>
+  <div class="live">
+    <b>Ver en vivo</b><br>
+    <a href="/">→ Topología viva (ruta /)</a><br>
+    <span style="color:var(--ink3)">Kanban KPI · Consola</span>
+  </div>
+</nav>
+
+<main>
+
+<div class="hero">
+  <div class="kicker">yosietserga/agent-os-console · base: living-topology-visualizer</div>
+  <h2>Documentación técnica interactiva del Agent OS</h2>
+  <p>Sistema de control agéntico con <strong>topología viva</strong>: cada iteración ejecuta un ciclo real de calidad con inferencia L2, observable en tiempo real — pasos, flujos, nodos activos/inactivos, iteraciones y el contexto transferido en cada inferencia.</p>
+  <div class="badges">
+    <span class="badge b0">Capa 0 · Contextualización</span>
+    <span class="badge b1">Operación</span>
+    <span class="badge b2">Orquestación</span>
+    <span class="badge b3">Ciclo Autónomo</span>
+    <span class="badge b4">Inferencia &amp; Memoria</span>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><div class="v">22</div><div class="l">Nodos</div></div>
+    <div class="kpi"><div class="v">5</div><div class="l">Capas</div></div>
+    <div class="kpi"><div class="v">43</div><div class="l">Enlaces</div></div>
+    <div class="kpi"><div class="v">12</div><div class="l">Pasos / iteración</div></div>
+    <div class="kpi"><div class="v">18</div><div class="l">Comandos</div></div>
+    <div class="kpi"><div class="v">16</div><div class="l">Modelos DB</div></div>
+    <div class="kpi"><div class="v">6</div><div class="l">Inferencias L2 / ciclo</div></div>
+    <div class="kpi"><div class="v">19</div><div class="l">Repos mejorate</div></div>
+  </div>
+  <div class="truths">
+    <div class="truth"><b>P2 · Gate Honesty</b>Toda salida reporta lo ejecutado real, nunca lo simulado.</div>
+    <div class="truth"><b>LLM redacta · criterios deciden</b>El juez PRE-v2.0 es software determinista sin LLM.</div>
+    <div class="truth"><b>AP-031 erradicado</b>Ninguna falla muere en el log: el sentinela la procesa.</div>
+    <div class="truth"><b>Arranque en frío</b>Se asume cero conocimiento mutuo: ni el operador ni la IA saben nada del tema.</div>
+  </div>
+  <p style="margin-top:14px;font-size:13px;color:var(--ink3)">Este HTML explota lo que el formato permite: navegación con scrollspy, secciones colapsables, diagramas con render interactivo y comandos copiables con un clic. La versión <a href="#datos">Markdown versionable</a> vive en <code>docs/</code> del repo.</p>
+</div>
+
+<!-- ═══════════ 01 ARQUITECTURA ═══════════ -->
+<section id="arquitectura">
+  <h2 class="sec"><span class="chip" style="background:var(--violet)">01</span>Arquitectura del Sistema</h2>
+  <p class="lead">Next.js 16 con una única ruta visible (<code>/</code>) y un mini-service de streaming dedicado. Regla del entorno: un solo puerto expuesto (:3000 vía gateway); el mini-service se alcanza con <code>?XTransformPort=3003</code>.</p>
+
+  <div class="mbox"><div class="cap">Vista de componentes</div><pre class="mermaid">
+graph TB
+  UI["Consola / · 3 vistas"] -->|REST /api/agent-os| API["Next.js API :3000"]
+  API --> LIB["lib/agent-os<br/>dispatcher · l2 · sentinel"]
+  LIB --> DB[("SQLite · Prisma")]
+  LIB --> ZAI["z-ai sdk · GLM-4.6"]
+  LIB --> GH["GitHub API"]
+  UI -.->|"io('/?XTransformPort=3003')"| ENG["topology-engine :3003"]
+  ENG -->|readonly| DB
+  ENG -->|inferencias reales| ZAI
+  ENG -->|topo:* eventos| UI
+  </pre><pre class="mfallback">UI → REST → API → lib → {SQLite, z-ai, GitHub} · UI ⇄ socket.io ⇄ topology-engine(:3003) → {SQLite ro, z-ai}</pre></div>
+
+  <h3>Decisiones estructurales</h3>
+  <details><summary>⚖️ Ruta única + gateway con XTransformPort</summary><div class="body">
+    <p>Solo <code>/</code> existe; las 3 vistas (Topología Viva · Kanban KPI · Consola) son tabs internos. REST siempre con rutas relativas; WebSocket siempre <code>io("/?XTransformPort=3003")</code> con path <code>/</code>.</p>
+  </div></details>
+  <details><summary>🔬 El mini-service es readonly + inferencia</summary><div class="body">
+    <p><code>topology-engine</code> lee la BD con <code>bun:sqlite</code> readonly (CommandLog, Finding, CycleRun, MemoryEntry, CostLedgerEntry) y ejecuta inferencias L2 reales. <strong>Nunca escribe</strong> — la observabilidad no muta lo observado.</p>
+  </div></details>
+  <details><summary>🔌 LLM-agnóstico por diseño (P8)</summary><div class="body">
+    <p>Ningún controlador de negocio importa SDKs de proveedores: toda inferencia pasa por el L2 Control Plane (sanitización P12 → sandwich capa 3 → ledger inmutable de costos).</p>
+  </div></details>
+  <details><summary>📁 Estructura de carpetas</summary><div class="body"><pre><code>src/app/            page.tsx (ruta única) · api/agent-os/* (6 routes)
+src/components/     topology-live/ (canvas·panels·kanban) · agent-os/ (10 paneles)
+src/lib/            agent-os/ (núcleo) · topology/ (escenario 22 nodos)
+mini-services/      topology-engine/ (:3003 · engine·inference·db)
+prisma/ · db/       schema · custom.db (SQLite)
+scripts/            seed · sync · audits · mejorate-scan</code></pre></div></details>
+
+  <div class="note">⏱️ <b>Presupuesto de gateway (AP-032):</b> todo comando responde en &lt;25s. Los pipelines largos corren en background con polling del frontend.</div>
+</section>
+
+<!-- ═══════════ 02 TOPOLOGÍA ═══════════ -->
+<section id="topologia">
+  <h2 class="sec"><span class="chip" style="background:var(--rose)">02</span>Topología Viva</h2>
+  <p class="lead">El motor del repo <a href="https://github.com/yosietserga/living-topology-visualizer" rel="noopener">living-topology-visualizer</a> del operador, portado al Agent OS: cada nodo es un órgano real y <strong>cada partícula es una transferencia de contexto real</strong>.</p>
+
+  <h3>Las 5 capas · 22 nodos</h3>
+  <div class="layers">
+    <div class="layer" style="border-left-color:var(--rose)"><div><div class="name">0 · Contextualización</div><div class="nodes" style="color:#e11d48">FR · REF · RFA · RMS · XML</div></div><div class="desc">Arranque en frío (cero conocimiento mutuo) + pipeline de ingeniería de prompt: refinar → refactorizar → remasterizar → XML.</div></div>
+    <div class="layer" style="border-left-color:var(--violet)"><div><div class="name">1 · Operación</div><div class="nodes" style="color:#7c3aed">OP · UI · API</div></div><div class="desc">Operador humano, consola web y gateway de API.</div></div>
+    <div class="layer" style="border-left-color:var(--cyan)"><div><div class="name">2 · Orquestación</div><div class="nodes" style="color:#0891b2">DSP · SENT · JZ</div></div><div class="desc">Dispatcher de comandos, sentinela del ciclo y juez PRE-v2.0.</div></div>
+    <div class="layer" style="border-left-color:var(--green)"><div><div class="name">3 · Ciclo Autónomo</div><div class="nodes" style="color:#059669">DT · AN · INV · FIX · VER · CRI · REP</div></div><div class="desc">Las 7 etapas: detectar → analizar → investigar → corregir → verificar → criterios → reportar.</div></div>
+    <div class="layer" style="border-left-color:var(--amber)"><div><div class="name">4 · Inferencia &amp; Memoria</div><div class="nodes" style="color:#b45309">L2 · MEM · BD · DOC</div></div><div class="desc">L2 Control Plane (GLM-4.6), memoria empírica P9, SQLite y reportes époch.</div></div>
+  </div>
+
+  <div class="mbox"><div class="cap">Canalización del prompt — cada flecha es una inferencia L2 real</div><pre class="mermaid">
+flowchart LR
+  C["Prompt Crudo<br/>~110 chars"] -->|L2| R["Refinado<br/>sin ambigüedad"] -->|L2| F["Refactorizado<br/>ROL·CONTEXTO·TAREA<br/>RESTRICCIONES·FORMATO"] -->|L2| M["Remasterizado<br/>pasos · razonamiento<br/>criterios · guardas"] -->|L2| X["Prompt XML<br/>&lt;rol&gt;&lt;contexto&gt;&lt;tarea&gt;..."]
+  X ==>|gobierna la investigación| INV["INV · etapa 3 del ciclo"]
+  </pre><pre class="mfallback">crudo →(L2)→ refinado →(L2)→ refactorizado →(L2)→ remasterizado →(L2)→ XML ⇒ gobierna INV</pre></div>
+
+  <div class="note">🧊 <b>Regla de la capa 0:</b> el workflow arranca asumiendo que <strong>el operador no sabe nada del tema y la IA tampoco</strong>. El vacío se declara explícitamente en el nodo FR antes de operar. Si una inferencia falla, <code>deterministicXml()</code> ensambla el XML localmente y la etapa se marca como no-L2 (honesto, P2).</div>
+
+  <h3>Tipos de transferencia (partículas)</h3>
+  <div class="tablewrap"><table>
+    <tr><th>Tipo</th><th>Color</th><th>Qué viaja</th><th>Ejemplo medido</th></tr>
+    <tr><td><code>inference</code></td><td>🟣 violeta</td><td>Payload L2 (chars in/out + latencia)</td><td><code>refinar → l2glm</code> · 872→278 chars · 788ms</td></tr>
+    <tr><td><code>data</code></td><td>🔵 cian</td><td>Lecturas/escrituras BD</td><td><code>detectar → bd</code></td></tr>
+    <tr><td><code>control</code></td><td>⚪ gris</td><td>Señales de orquestación</td><td><code>sentinela → detectar</code></td></tr>
+    <tr><td><code>report</code></td><td>🟢 verde</td><td>Reportes y memoria</td><td><code>reportar → reportes</code></td></tr>
+  </table></div>
+
+  <details><summary>📡 Protocolo socket.io completo (topo:*)</summary><div class="body"><pre><code>Server → topo:snapshot  { nodes, layers, links, iterations, kpis, findings, engine }
+Server → topo:node      { id, status }                    // activación/desactivación con pulso
+Server → topo:transfer  { id, kind, charsIn?, charsOut?, latencyMs? }
+Server → topo:step      { iterationId, step, status }
+Server → topo:iteration { iteration }                     // incluye promptStages[5] + coldStart
+Server → topo:kpi       { kpi }                           // 12 contadores + veredictos
+Server → topo:findings  { findings } · topo:log { level, message }
+Cliente → topo:control  { action: run|x3|continuous|pause|resume|stop, paceMs? }</code></pre>
+  <p style="margin-top:10px">Controles: Lento/Normal/Rápido · Órbita/Embudo · foco de nodo con clic (ESC sale).</p></div></details>
+
+  <div class="kpis">
+    <div class="kpi"><div class="v">39</div><div class="l">Transferencias / iteración</div></div>
+    <div class="kpi"><div class="v">9.5 KB</div><div class="l">Contexto / iteración</div></div>
+    <div class="kpi"><div class="v">~30s</div><div class="l">Duración / iteración</div></div>
+    <div class="kpi"><div class="v">14</div><div class="l">Columnas kanban</div></div>
+  </div>
+</section>
+
+<!-- ═══════════ 03 COMANDOS ═══════════ -->
+<section id="comandos">
+  <h2 class="sec"><span class="chip" style="background:var(--cyan)">03</span>Comandos Canónicos</h2>
+  <p class="lead">Sintaxis universal — <b>clic en un comando para copiarlo</b> y pegarlo en la Consola Canónica (vista en vivo):</p>
+  <p><span class="cmd">lee AGENTS.md, ejecuta: <b>&lt;comando&gt;</b> <button onclick="cp(this)">copiar plantilla</button></span></p>
+
+  <div class="tablewrap"><table>
+    <tr><th>#</th><th>Comando</th><th>Qué hace (real)</th></tr>
+    <tr><td>1</td><td><span class="cmd">help<button onclick="cp(this,'help')">copy</button></span></td><td>Lista canónica completa</td></tr>
+    <tr><td>2</td><td><span class="cmd">start<button onclick="cp(this,'start')">copy</button></span></td><td>Estado del sistema + próximos pasos</td></tr>
+    <tr><td>3</td><td><span class="cmd">cold run<button onclick="cp(this,'cold run')">copy</button></span></td><td>Arranque desde cero conocimiento mutuo</td></tr>
+    <tr><td>4</td><td><span class="cmd">mejorate<button onclick="cp(this,'mejorate')">copy</button></span></td><td>Scan GitHub 19 repos → síntesis L2 → juez</td></tr>
+    <tr><td>5</td><td><span class="cmd">audit memory<button onclick="cp(this,'audit memory')">copy</button></span></td><td>Auditoría de la memoria empírica P9</td></tr>
+    <tr><td>6</td><td><span class="cmd">sil trend<button onclick="cp(this,'sil trend')">copy</button></span></td><td>Tendencia de mejora del sistema</td></tr>
+    <tr><td>7</td><td><span class="cmd">pre cycle<button onclick="cp(this,'pre cycle')">copy</button></span></td><td>Ciclo de gobernanza Optimizador → Juez</td></tr>
+    <tr><td>8</td><td><span class="cmd">report<button onclick="cp(this,'report')">copy</button></span></td><td>Reporte époch inmutable (AGREE/DISAGREE)</td></tr>
+    <tr><td>9</td><td><span class="cmd">ui test<button onclick="cp(this,'ui test')">copy</button></span></td><td>Verificación de layout y posiciones canónicas</td></tr>
+    <tr><td>10</td><td><span class="cmd">persona check<button onclick="cp(this,'persona check')">copy</button></span></td><td>8 personas × caso de uso</td></tr>
+    <tr><td>11</td><td><span class="cmd">ide detect<button onclick="cp(this,'ide detect')">copy</button></span></td><td>Auto-Activation Layer del entorno</td></tr>
+    <tr><td>12</td><td><span class="cmd">rayos-x &lt;url&gt;<button onclick="cp(this,'rayos-x ')">copy</button></span></td><td>Ingeniería inversa 5 fases (background)</td></tr>
+    <tr><td>13</td><td><span class="cmd">itera 3<button onclick="cp(this,'itera 3')">copy</button></span></td><td>N iteraciones del ciclo autónomo</td></tr>
+    <tr><td>14</td><td><span class="cmd">verify<button onclick="cp(this,'verify')">copy</button></span></td><td>Re-verificación con gate honesty</td></tr>
+    <tr><td>15</td><td><span class="cmd">investiga &lt;tema&gt;<button onclick="cp(this,'investiga ')">copy</button></span></td><td>web_search real + síntesis L2 → memoria</td></tr>
+    <tr><td>16</td><td><span class="cmd">critica<button onclick="cp(this,'critica')">copy</button></span></td><td>Auto-crítica Modo A (3 debilidades reales)</td></tr>
+    <tr><td>17</td><td><span class="cmd">expected-check<button onclick="cp(this,'expected-check')">copy</button></span></td><td>Expectativa vs real — CA-2 mide el último scan real</td></tr>
+    <tr><td>18</td><td><span class="cmd">vigila<button onclick="cp(this,'vigila')">copy</button></span></td><td>Ciclo Autónomo de Calidad (sentinela)</td></tr>
+  </table></div>
+
+  <div class="mbox"><div class="cap">Ciclo de vida de un comando en el dispatcher</div><pre class="mermaid">
+stateDiagram-v2
+  [*] --> Parse
+  Parse --> Execute: strip prefijo canónico + IDE
+  Execute --> LogOK: CommandLog (OK, output, durationMs)
+  Execute --> LogERROR: excepción del sistema
+  LogOK --> Refresh: paneles si refresh=true
+  LogERROR --> Sentinel: sentinelScan(AUTO_ON_ERROR) background
+  Sentinel --> [*]: Finding + ciclo 7 etapas
+  </pre><pre class="mfallback">input → parse → execute → CommandLog → (ERROR ⇒ sentinela background) → respuesta</pre></div>
+</section>
+
+<!-- ═══════════ 04 DATOS ═══════════ -->
+<section id="datos">
+  <h2 class="sec"><span class="chip" style="background:var(--green)">04</span>Modelo de Datos</h2>
+  <p class="lead">SQLite vía Prisma (<code>db/custom.db</code>) — 16 modelos, ledgers append-only (P9). Despliega cada grupo:</p>
+
+  <details open><summary>🏛️ Constitución y memoria (CardinalRule · CommandDef · MemoryEntry)</summary><div class="body">
+    <p>Las 15 reglas P1-P15 + W-CTA y los 18 comandos con metodología (semilla del boilerplate upstream). La memoria empírica es append-only: APs (anti-patrones con severidad), WINs (clases W1-W8), WORKLOG y REFERENCE.</p>
+  </div></details>
+  <details><summary>📡 Observabilidad (CommandLog · CostLedgerEntry · Finding · CycleRun · Report · RadiografiaRun)</summary><div class="body">
+    <p>Las 4 fuentes de evidencia del sentinela + ledger de costos de cada inferencia (tokens · USD · latencia · outcome) + reportes époch inmutables. <code>Finding.sourceRef</code> es único → deduplicación natural.</p>
+  </div></details>
+  <details><summary>🧬 Mejorate (ReferenceRepo · ScanRun · ExtractedPattern · AdoptionProposal)</summary><div class="body">
+    <p>Catálogo de 19 repos (1.2M★) con <code>lastScannedAt</code> — <strong>la columna que ata la síntesis al epoch</strong>: solo repos escaneados dentro del scan vigente son base honesta (AP-034). Las proposals guardan d1-d6, ΔS y veredicto del juez.</p>
+  </div></details>
+  <details><summary>⚖️ Gobernanza (AdoptionProposal · PsimState · L2Model)</summary><div class="body">
+    <p>Snapshot PSIM con K1-K5 (metas: closure ≥0.90, half-life ≤2 iter…) y balance W1-W8; modelos L2 con estado de circuit breaker (CLOSED/OPEN/HALF_OPEN).</p>
+  </div></details>
+
+  <div class="mbox"><div class="cap">Relaciones núcleo (ER simplificado — el completo en docs/04-modelo-datos.md)</div><pre class="mermaid">
+erDiagram
+  ScanRun ||--o{ ExtractedPattern : produce
+  Finding ||--o| CycleRun : "abre ciclo 7 etapas"
+  ReferenceRepo {
+    string repo UK
+    int stars
+    datetime lastScannedAt
+  }
+  AdoptionProposal {
+    float d1
+    float d6
+    float deltaS
+    string verdict
+  }
+  CycleRun {
+    string trigger
+    string stages
+    int reportEpoch
+  }
+  CostLedgerEntry {
+    int promptTokens
+    float costUsd
+    string outcome
+  }
+  </pre><pre class="mfallback">ScanRun 1—N ExtractedPattern · Finding 1—1 CycleRun · (ReferenceRepo, AdoptionProposal, CostLedger…)</pre></div>
+</section>
+
+<!-- ═══════════ 05 CICLO ═══════════ -->
+<section id="ciclo">
+  <h2 class="sec"><span class="chip" style="background:var(--rose)">05</span>Ciclo Autónomo de Calidad</h2>
+  <p class="lead"><b>AP-031 erradicado</b>: antes la falla quedaba en el log y el operador humano era el detector. Ahora el sentinela garantiza que ninguna falla muere sin procesar.</p>
+
+  <div class="mbox"><div class="cap">Las 7 etapas — cada una con evidencia honesta (P2)</div><pre class="mermaid">
+flowchart LR
+  F1["1 DETECTAR<br/>4 fuentes"] --> F2["2 ANALIZAR<br/>causa raíz"] --> F3["3 INVESTIGAR<br/>memoria + L2<br/>gobernado por XML"] --> F4["4 CORREGIR<br/>3 roles"] --> F5["5 VERIFICAR<br/>exit real"] --> F6["6 CRITERIOS<br/>gaps·audit·expected"] --> F7["7 REPORTAR<br/>époch inmutable"]
+  </pre><pre class="mfallback">detectar → analizar → investigar → corregir → verificar → criterios → reportar</pre></div>
+
+  <h3>Fuentes de evidencia y disparadores</h3>
+  <div class="tablewrap"><table>
+    <tr><th>Fuente</th><th>Condición</th><th>Severidad típica</th></tr>
+    <tr><td><code>CommandLog</code></td><td>status = ERROR · 504/502 · &gt;25s</td><td>HIGH/MEDIUM</td></tr>
+    <tr><td><code>RadiografiaRun</code></td><td>status = FAILED</td><td>MEDIUM</td></tr>
+    <tr><td><code>CostLedgerEntry</code></td><td>outcome = ERROR</td><td>MEDIUM</td></tr>
+    <tr><td>Presupuesto gateway</td><td>durationMs &gt; 25.000 (AP-032)</td><td>HIGH</td></tr>
+  </table></div>
+  <p>Disparadores: <code>MANUAL</code> (vigila) · <code>SENTINEL_SCAN</code> · <code>AUTO_ON_ERROR</code> (al fallar cualquier comando, excluyendo al propio vigila — anti-recursión). Inputs inválidos del operador → <b>NO_DEFECT</b> sin ciclo: el sistema respondió correctamente.</p>
+
+  <div class="mbox"><div class="cap">AUTO_ON_ERROR verificado en vivo (caso real: mejorate sin cuota)</div><pre class="mermaid">
+sequenceDiagram
+  participant OP as Operador
+  participant DSP as Dispatcher
+  participant SEN as Sentinela background
+  OP->>DSP: mejorate (sin cuota GitHub)
+  DSP-->>OP: exit 1 · 151ms · causa raíz + remedio
+  DSP->>SEN: sentinelScan(AUTO_ON_ERROR)
+  SEN->>SEN: Finding MEDIUM → ciclo 7 etapas COMPLETED → RESOLVED
+  </pre><pre class="mfallback">operador → dispatcher (exit 1 · 151ms) → sentinela background → Finding → ciclo 7 etapas → RESOLVED</pre></div>
+</section>
+
+<!-- ═══════════ 06 GOBERNANZA ═══════════ -->
+<section id="gobernanza">
+  <h2 class="sec"><span class="chip" style="background:var(--amber)">06</span>Gobernanza PRE-v2.0 &amp; L2</h2>
+  <p class="lead">Tres roles inviolables: el <b>Ejecutor</b> implementa, el <b>Optimizador</b> (LLM) propone, el <b>Juez</b> (software determinista, sin LLM) decide.</p>
+
+  <div class="note">📐 <b>Puntuación constitucional:</b> <code>S = 100 × Σ(wi·Di)</code> · <b>Promoción inviolable:</b> <code>ΔS ≥ 5.0 ∧ ∀i ΔDi ≥ -2.0 ∧ (σcand + σbase) &lt; |ΔS|</code></div>
+
+  <div class="tablewrap"><table>
+    <tr><th>Dimensión</th><th>Peso</th><th>Mide</th></tr>
+    <tr><td>D1 Compilación/Tipado</td><td>0.20</td><td>Concreción ejecutable: schema, TS, prisma, API, DOM</td></tr>
+    <tr><td>D2 Contratos</td><td>0.15</td><td>OpenAPI 3.1, endpoints, payloads, canónico</td></tr>
+    <tr><td>D3 Pipeline</td><td>0.20</td><td>Fases, etapas, ciclos, iteración</td></tr>
+    <tr><td>D4 Casos ocultos</td><td>0.20</td><td>Fallbacks, retries, backoff+jitter, WCAG, anti-inyección</td></tr>
+    <tr><td>D5 Tokens</td><td>0.10</td><td>Densidad léxica (penaliza &gt;170 palabras)</td></tr>
+    <tr><td>D6 Arquitectura</td><td>0.15</td><td>P1-P15, Apple tokens, L2, PSIM, ledgers</td></tr>
+  </table></div>
+
+  <h3>L2 Control Plane — toda inferencia pasa por aquí</h3>
+  <div class="mbox"><div class="cap">Pipeline de inferencia (P8 + P12)</div><pre class="mermaid">
+flowchart LR
+  IN["userContent"] --> SAN["Sanitización capa 2<br/>anti-inyección · cap 24k"] --> SW["Sandwich capa 3<br/>system + user + recordatorio"] --> SDK["z-ai sdk<br/>GLM-4.6"] --> LED["Ledger inmutable<br/>tokens · USD · latencia"] --> OUT["L2InferenceResult"]
+  </pre><pre class="mfallback">userContent → sanitización P12 → sandwich capa 3 → GLM-4.6 → ledger → resultado</pre></div>
+  <p>Circuit breaker §3.3: <code>OPEN ⟺ samples ≥ 10 ∧ failRate ≥ 0.4</code> · backoff con jitter <code>min(3000, 200+rand×prev×3)</code>. Sin segundo proveedor real en el sandbox, el fallo se registra como ERROR honesto (P2) — no se simula.</p>
+
+  <details><summary>📊 PSIM — KPIs del sistema (K1-K5)</summary><div class="body"><ul>
+    <li><b>K1</b> P0/P1 Closure Rate ≥ 0.90</li><li><b>K2</b> Mock Reduction Velocity (pendiente negativa)</li>
+    <li><b>K3</b> Finding Half-Life ≤ 2 iteraciones</li><li><b>K4</b> Capability-Strengthening ≥ 1/iteración</li>
+    <li><b>K5</b> Gate Stability Streak (racha monótona)</li>
+  </ul></div></details>
+</section>
+
+<!-- ═══════════ 07 MEJORATE ═══════════ -->
+<section id="mejorate">
+  <h2 class="sec"><span class="chip" style="background:var(--violet)">07</span>Mejorate — Auto-Improvement</h2>
+  <p class="lead">Scan read-only de 19 repos de referencia (1.2M★) → extracción de patrones con L2 → adoptions evaluadas por el juez determinista. <b>Copia y ejecuta:</b> <span class="cmd">lee AGENTS.md, ejecuta: mejorate<button onclick="cp(this,'mejorate')">copiar</button></span></p>
+
+  <div class="mbox"><div class="cap">AP-034 — la compuerta de honestidad (antes vs ahora)</div><pre class="mermaid">
+flowchart TB
+  subgraph ANTES["ANTES: fabricación silenciosa"]
+    A1["scan 0/19 (403×19)"] --> A2["synthesize igual"] --> A3["epoch viejo + datos rancios"] --> A4["5 patrones 'extraídos' · exit 0"]
+  end
+  subgraph AHORA["AHORA: P2 Gate Honesty"]
+    B1["pre-flight /rate_limit"] --> B2{"¿0 repos frescos?"}
+    B2 -->|Sí| B3["ABORT antes de L2 · exit 1 · 0 tokens"]
+    B2 -->|No| B4["solo repos del epoch · edad divulgada"]
+  end
+  </pre><pre class="mfallback">ANTES: 0/19 → synthesize sobre epoch viejo → exit 0 fabricado · AHORA: pre-flight → gate → abort honesto o síntesis fresca</pre></div>
+
+  <h3>Las 4 correcciones de raíz</h3>
+  <ol>
+    <li><b>Token en call-time</b> — la constante a nivel de módulo congelaba el valor al importar.</li>
+    <li><b>Circuit breaker de cuota</b> — sin token y remaining=0, omite llamadas destinadas a 403.</li>
+    <li><b>Binding al epoch real</b> — el epoch es el último scan (no el último COMPLETED); solo repos con <code>lastScannedAt</code> dentro del epoch; edad divulgada.</li>
+    <li><b>Fallback honesto</b> — las proposals derivan de los repos frescos del epoch (antes reciclaba patrones viejos → ΔS negativos del juez por duplicados).</li>
+  </ol>
+
+  <div class="note">🔑 <b>Cuotas GitHub:</b> anónimo = 60 req/h por IP compartida (cada run consume ~38 → 403 masivo). Con <code>GITHUB_TOKEN</code> en <code>.env</code>: <b>5.000 req/h</b> — verificado 19/19 · 1.204.735★ · base epoch fresca.</div>
+</section>
+
+<footer>
+  <div><b>Agent OS v1.9.0</b> · Documentación interactiva · generada del código real · <a href="/">ver la topología viva</a></div>
+  <div>Markdown versionable: <code>docs/*.md</code> en el repo · <span id="ts"></span></div>
+</footer>
+
+</main>
+</div>
+
+<script>
+/* timestamp */
+document.getElementById('ts').textContent = new Date().toISOString().slice(0,16).replace('T',' · ');
+
+/* copy-to-clipboard (ventaja HTML: interactivo) */
+function cp(btn, cmd){
+  const full = 'lee AGENTS.md, ejecuta: ' + (cmd || '');
+  navigator.clipboard.writeText(full).then(()=>{
+    const old = btn.textContent; btn.textContent='✓ copiado'; btn.classList.add('done');
+    setTimeout(()=>{btn.textContent=old; btn.classList.remove('done')},1400);
+  });
+}
+
+/* progress bar */
+addEventListener('scroll',()=>{
+  const h = document.documentElement;
+  document.getElementById('progress').style.width = (h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+},{passive:true});
+
+/* scrollspy */
+const links=[...document.querySelectorAll('nav#side a.nl')];
+const secs=links.map(a=>document.querySelector(a.getAttribute('href')));
+const io=new IntersectionObserver(es=>{
+  es.forEach(e=>{ if(e.isIntersecting){
+    links.forEach(l=>l.classList.toggle('active', l.getAttribute('href')==='#'+e.target.id));
+  }});
+},{rootMargin:'-25% 0px -65% 0px'});
+secs.forEach(s=>s&&io.observe(s));
+
+/* mermaid render con fallback elegante */
+(function(){
+  function fail(box){ box.classList.add('failed'); }
+  function boot(){
+    if(!window.mermaid){ document.querySelectorAll('.mbox').forEach(fail); return; }
+    window.mermaid.initialize({startOnLoad:false, theme:'neutral', securityLevel:'loose',
+      themeVariables:{fontFamily:'-apple-system,sans-serif',fontSize:'13px'}});
+    document.querySelectorAll('.mbox pre.mermaid').forEach((pre,i)=>{
+      const src=pre.textContent; const box=pre.closest('.mbox');
+      try{
+        window.mermaid.render('mmd-'+i, src).then(({svg})=>{
+          const d=document.createElement('div'); d.className='mermaid'; d.innerHTML=svg;
+          pre.replaceWith(d);
+        }).catch(()=>fail(box));
+      }catch(e){ fail(box); }
+    });
+  }
+  const s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+  s.onload=boot; s.onerror=()=>document.querySelectorAll('.mbox').forEach(fail);
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

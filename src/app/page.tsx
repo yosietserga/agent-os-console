@@ -486,7 +486,15 @@ export default function AgentOSPage() {
             Windows dev / Ubuntu deploy (P10)
           </p>
           <p className="font-mono text-[10px] text-[#86868b]">
-            18 comandos · arranque en frío + prompt XML · ciclo autónomo · living topology · 15 reglas + W-CTA · LLM-agnóstico
+            18 comandos · arranque en frío + prompt XML · ciclo autónomo · living topology · 15 reglas + W-CTA · LLM-agnóstico ·{" "}
+            <a
+              href="/docs/index.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-[#0071e3] underline decoration-[#0071e3]/30 underline-offset-2 hover:decoration-[#0071e3]"
+            >
+              docs técnicas ↗
+            </a>
           </p>
         </div>
       </footer>
