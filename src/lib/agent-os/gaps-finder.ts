@@ -170,7 +170,11 @@ export async function runGapsFinder(): Promise<GapsFinderResult> {
     }
   }
 
-  // CHECK 4 — Victorias PSIM: DB vs wins-ledger.md vs state.json (+1 local documentada)
+  // CHECK 4 — Victorias PSIM: DB vs wins-ledger.md vs state.json
+  // v2.0.0: append-friendly — la memoria P9 del console crece por diseño
+  // (pre cycle promoted → WIN; bucle iteración completada → WIN). El check
+  // verifica que NINGUNA victoria upstream se pierda (DB ≥ upstream); las
+  // victorias locales adicionales son el bucle funcionando, no un gap.
   {
     const mdWins = winsMd ? (winsMd.match(/^## \[WIN-\d+\]/gm) ?? []).length : null;
     const stateWins = upstreamState.psim_wins_count?.total;
@@ -178,10 +182,10 @@ export async function runGapsFinder(): Promise<GapsFinderResult> {
       push(4, "victorias-psim", "medium", "wins-ledger.md no accesible en upstream");
     } else if (dbWins === mdWins) {
       push(4, "victorias-psim", "OK", `DB ${dbWins} = ledger upstream ${mdWins} (state.json ${stateWins})`);
-    } else if (dbWins === mdWins + 1) {
-      push(4, "victorias-psim", "OK", `DB ${dbWins} = upstream ${mdWins} + 1 victoria local de sesión documentada (WIN-018, CORRIGE-001)`);
+    } else if (dbWins > mdWins) {
+      push(4, "victorias-psim", "OK", `DB ${dbWins} = upstream ${mdWins} + ${dbWins - mdWins} victoria(s) local(es) de sesión (P9 append-only: pre cycle / bucle — cero pérdidas upstream)`);
     } else {
-      push(4, "victorias-psim", "high", `DB ${dbWins} ≠ upstream ${mdWins} (state.json ${stateWins ?? "—"}) — diferencia no documentada`);
+      push(4, "victorias-psim", "high", `DB ${dbWins} < upstream ${mdWins} (state.json ${stateWins ?? "—"}) — ${mdWins - dbWins} victoria(s) upstream perdida(s)`);
     }
   }
 

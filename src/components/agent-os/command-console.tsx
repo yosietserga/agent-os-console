@@ -28,7 +28,7 @@ interface CommandConsoleProps {
   onMejorate?: () => void;
 }
 
-const QUICK = ["mejorate", "verify", "cold run", "sil trend", "pre cycle", "report", "help"];
+const QUICK = ["bucle estado", "mejorate", "verify", "cold run", "sil trend", "pre cycle", "report", "help"];
 
 export function CommandConsole({ commands, onExecuted, onMejorate }: CommandConsoleProps) {
   const [input, setInput] = useState("");

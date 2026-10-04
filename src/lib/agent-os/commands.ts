@@ -11,6 +11,7 @@ import { startRadiografia } from "./radiografia";
 import { runGapsFinder } from "./gaps-finder";
 import { breakerVerdict, BREAKER, infer, webSearch } from "./l2";
 import { sentinelScan, getSentinelOverview } from "./sentinel";
+import { getBucleOverview, startBucle, continueBucle, LOOP_STAGES } from "./workflow-loop";
 import type { CommandResultDTO } from "./types";
 
 const EPOCH = () => Math.floor(Date.now() / 1000);
@@ -134,7 +135,7 @@ async function coldRun(): Promise<string> {
   const lines = [
     "[COLD RUN] Auditoría de premisas — modo read-only, cero mutaciones:",
     `  Constitución: ${rules.length}/16 reglas cardinales cargadas (${rules.filter((r) => r.severity === "RED").length} RED, ${rules.filter((r) => r.severity === "YELLOW").length} YELLOW)`,
-    `  Comandos canónicos: ${commands} registrados (constitución v1.9.0: 18 canónicos)`,
+    `  Comandos canónicos: ${commands} registrados (constitución v${psim?.version ?? "—"})`,
     `  Memoria empírica: ${aps} anti-patrones · ${wins} victorias (append-only P9: OK)`,
     `  Catálogo radiografía: ${repos.length} repos · ${patterns} patrones extraídos`,
     `  PRE-v2.0: ${pCounts["PROPOSED"] ?? 0} proposed · ${pCounts["EVALUATED"] ?? 0} evaluated · ${pCounts["PROMOTED"] ?? 0} promoted · ${pCounts["REJECTED"] ?? 0} rejected`,
@@ -499,7 +500,7 @@ async function helpCmd(): Promise<string> {
     "[HELP] Sintaxis universal: lee AGENTS.md, ejecuta: <comando> [parámetros]",
     ...cmds.map((c) => `  ${c.name.padEnd(16)} ${c.description}`),
     "",
-    "  Ejemplos: mejororate · rayos-x https://ejemplo.com · gaps-finder · pre cycle",
+    "  Ejemplos: mejororate · rayos-x https://ejemplo.com · gaps-finder · pre cycle · bucle <prompt inicial>",
   ].join("\n");
 }
 
@@ -526,8 +527,8 @@ async function ideCmd(target: string): Promise<string> {
     "  Regla instalada: TODO prompt del operador se trata como comando canónico.",
     "  Verbos implícitos mapeados: implementa→itera · audita→cold run · verifica→verify ·",
     "  test ui→ui test · persona→persona check · mejora→mejorate · investiga→investiga ·",
-    "  sincroniza→gaps-finder · radiografía→rayos-x · vigila/ciclo→vigila.",
-    "  La constitución AGENTS.md v1.9.0 está activa: 15 reglas cardinales + W-CTA · 18 comandos canónicos.",
+    "  sincroniza→gaps-finder · radiografía→rayos-x · vigila/ciclo→vigila · buclea/itera infinito→bucle.",
+    "  La constitución AGENTS.md v2.0.0 está activa: 15 reglas cardinales + W-CTA · 19 comandos canónicos.",
   ].join("\n");
 }
 
@@ -777,6 +778,70 @@ export async function executeCommand(input: string): Promise<CommandResultDTO> {
         ].join("\n");
         refresh = true;
         data = { action: "sentinel", cycleIds: summary.cycleIds };
+        break;
+      }
+      case "bucle":
+      case "buclea":
+      case "workflow":
+      case "loop": {
+        // 19º comando canónico (v2.0.0): Bucle Agéntico Goal-Driven.
+        // Orquesta en background: metas (del prompt) → investiga → plan →
+        // reporte-pre → ejecuta → reporte-pro → critica → aprende → evalúa →
+        // handoff → siguiente iteración … hasta lograr los goals.
+        const args = parsed.args.trim();
+        if (!args || /^(estado|status)$/i.test(args)) {
+          const ov = await getBucleOverview();
+          if (!ov.run) {
+            output = [
+              "[BUCLE] No hay runs del bucle todavía. Uso:",
+              "  bucle <prompt inicial>   — deriva goals del prompt y arranca el bucle infinito",
+              "  bucle estado             — estado del run (goals, tareas, etapas, handoff)",
+              "  bucle continúa           — reanuda el último run PAUSED",
+              "",
+              "  El bucle asume cero conocimiento (ni operador ni LLM saben nada), investiga,",
+              "  planifica pasos y tareas, emite reportes pre/pro, se auto-critica (P13),",
+              "  auto-aprende (P9) y re-itera hasta lograr los goals del prompt.",
+            ].join("\n");
+            break;
+          }
+          const r = ov.run;
+          output = [
+            `[BUCLE] ${r.topic} — ${r.status} · iteración ${r.iteration}/${r.maxIterations} · goals ${ov.counts.goalsAchieved}/${ov.counts.goalsTotal} ACHIEVED · tareas ${ov.counts.tasksDone}/${ov.counts.tasksTotal} DONE`,
+            `  Etapa actual: ${r.currentStage ?? "—"} ${r.stageDetail ? `— ${r.stageDetail}` : ""}`,
+            ...ov.goals.map((g) => `  ${g.code} [${g.status}] ${g.title.slice(0, 64)}`),
+            ...(r.handoff ? [`  Handoff: ${r.handoff.siguiente.slice(0, 110)}`] : []),
+            r.status === "PAUSED" ? "  Reanuda con: bucle continúa (el bucle es infinito hasta lograr los goals)" : "",
+          ].filter(Boolean).join("\n");
+        } else if (/^(contin|sigue|reanuda|resume)/i.test(args)) {
+          const run = await continueBucle();
+          if (!run) {
+            output = "[BUCLE] No hay runs PAUSED para reanudar. Arranca uno: bucle <prompt>";
+            status = "ERROR";
+          } else {
+            output = [
+              `[BUCLE] Run ${run.topic} REANUDADO (bucle infinito entre invocaciones):`,
+              `  Iteración ${run.iteration} → hasta ${run.maxIterations} en esta invocación`,
+              `  Progreso en vivo en el panel Bucle (polling 2.5s) — 10 etapas por iteración: ${LOOP_STAGES.join(" → ")}`,
+            ].join("\n");
+            refresh = true;
+            data = { action: "bucle", runId: run.id };
+          }
+        } else {
+          // bucle <prompt inicial> — los goals se definen y generan desde el prompt
+          const maxMatch = args.match(/\s+--max\s+(\d+)$/);
+          const prompt = maxMatch ? args.slice(0, maxMatch.index) : args;
+          const max = maxMatch ? Math.min(parseInt(maxMatch[1], 10), 5) : 3;
+          const run = await startBucle(prompt, max);
+          output = [
+            `[BUCLE] Bucle agéntico goal-driven ${run.resumed ? "REANUDADO" : "ARRANCADO"} — run ${run.id.slice(-8)}`,
+            `  Tema (del prompt): "${run.topic}" — binding de artefactos: Plan/Handoff/reportes pre-pro <tema>`,
+            `  Hasta ${run.maxIterations} iteraciones en esta invocación (luego: bucle continúa — infinito hasta lograr los goals)`,
+            "  10 etapas por iteración: metas → investiga → plan → reporte-pre → ejecuta → reporte-pro → critica → aprende → evalúa → handoff",
+            "  Progreso en vivo en el panel Bucle (polling 2.5s). P2: cada etapa registra evidencia real; L2 caído → fallback declarado.",
+          ].join("\n");
+          refresh = true;
+          data = { action: "bucle", runId: run.id };
+        }
         break;
       }
       case "radiografia":

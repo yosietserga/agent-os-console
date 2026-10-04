@@ -13,7 +13,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Cpu, GitBranch, Layers, Database, Sparkles, Clock, TerminalSquare,
   BookOpen, Scale, Network, ScanLine, ShieldCheck, ChevronRight, Radar,
-  KanbanSquare, Waypoints,
+  KanbanSquare, Waypoints, Infinity as InfinityIcon,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,6 +25,7 @@ import { GovernancePanel } from "@/components/agent-os/governance-panel";
 import { L2Panel } from "@/components/agent-os/l2-panel";
 import { RadiografiaPanel } from "@/components/agent-os/radiografia-panel";
 import { SentinelPanel } from "@/components/agent-os/sentinel-panel";
+import { BuclePanel } from "@/components/agent-os/bucle-panel";
 import { ConstitutionPanel } from "@/components/agent-os/constitution-panel";
 import { ReposGallery } from "@/components/agent-os/repos-gallery";
 import { OnboardingTour, TourRestartButton } from "@/components/agent-os/onboarding-tour";
@@ -43,6 +44,11 @@ const TOUR_STEPS_STATIC = [
     target: "console",
     title: "Consola Canónica",
     body: "Invoca los comandos operativos canónicos con la sintaxis universal: lee AGENTS.md, ejecuta: <comando>. El dispatcher ejecuta acciones reales contra la base de datos, GitHub API y el Control Plane L2.",
+  },
+  {
+    target: "bucle",
+    title: "Bucle Agéntico Goal-Driven",
+    body: "El comando bucle (19º canónico) convierte tu prompt inicial en un bucle infinito: deriva los goals del prompt (cero conocimiento), investiga, genera el plan de pasos y tareas, emite reportes PRE/PRO, ejecuta, auto-critica (P13), auto-aprende (P9), evalúa los goals y re-itera con handoff hasta lograrlos.",
   },
   {
     target: "mejorate",
@@ -171,7 +177,7 @@ export default function AgentOSPage() {
       {/* Tour del console: solo se monta cuando la Consola está visible,
           porque sus targets [data-tour] viven dentro de ese tab. */}
       {rootTab === "consola" && (
-        <OnboardingTour steps={tourSteps} storageKey="agent-os-tour" version={3} />
+        <OnboardingTour steps={tourSteps} storageKey="agent-os-tour" version={4} />
       )}
 
       {/* ══ POSICIÓN 1: header ══════════════════════════════════════════ */}
@@ -187,7 +193,7 @@ export default function AgentOSPage() {
             </span>
           </div>
           <span className="rounded-full border border-[#e5e5ea] bg-[#f5f5f7] px-2 py-0.5 font-mono text-[10px] font-semibold text-[#1d1d1f]">
-            v1.9.0
+            v2.0.0
           </span>
           <div className="ml-auto flex items-center gap-4">
             <span className="hidden items-center gap-1.5 font-mono text-[11px] text-[#86868b] md:flex" aria-label="Epoch Unix en vivo">
@@ -391,6 +397,7 @@ export default function AgentOSPage() {
                       className="os-scroll h-auto w-full justify-start gap-1 overflow-x-auto rounded-full border border-[#e5e5ea] bg-white p-1"
                     >
                       {[
+                        { value: "bucle", icon: InfinityIcon, label: "Bucle" },
                         { value: "mejorate", icon: Sparkles, label: "Mejorate" },
                         { value: "memoria", icon: BookOpen, label: "Memoria" },
                         { value: "gobernanza", icon: Scale, label: "Gobernanza" },
@@ -409,6 +416,9 @@ export default function AgentOSPage() {
                         </TabsTrigger>
                       ))}
                     </TabsList>
+                    <TabsContent value="bucle" className="mt-4">
+                      <BuclePanel />
+                    </TabsContent>
                     <TabsContent value="mejorate" className="mt-4">
                       <MejoratePanel
                         repos={overview.repos}

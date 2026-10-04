@@ -129,15 +129,42 @@ erDiagram
         string stages "JSON [{name,status,durationMs,evidence}]"
         int reportEpoch
     }
+    WorkflowRun {
+        string prompt "prompt inicial del operador (inmutable)"
+        string topic "tema extraído del prompt — binding de artefactos"
+        string status "RUNNING|COMPLETED|PAUSED|FAILED"
+        int iteration
+        int maxIterations
+        string stages "JSON etapas de la iteración corriente"
+        string handoff "JSON {resumen,aprendido,pendientes,siguiente}"
+    }
+    Goal {
+        string runId FK
+        string code "G1, G2..."
+        string acceptance "criterio verificable"
+        string status "PENDING|IN_PROGRESS|ACHIEVED|BLOCKED"
+        string evidence "evidencia del logro"
+    }
+    TaskStep {
+        string runId FK
+        string goalCode "G1..."
+        int iteration
+        int order
+        string kind "INVESTIGATE|ANALYZE|VERIFY|PROPOSE|REPORT"
+        string status "PENDING|RUNNING|DONE|FAILED|OUT_OF_SCOPE"
+        string output "evidencia por tarea"
+    }
 
     ScanRun ||--o{ ExtractedPattern : "produce"
     Finding ||--o| CycleRun : "abre ciclo"
+    WorkflowRun ||--o{ Goal : "deriva del prompt"
+    WorkflowRun ||--o{ TaskStep : "plan por iteración"
 ```
 
 ## Grupos funcionales
 
 ### Constitución (`CardinalRule`, `CommandDef`)
-Semilla del boilerplate upstream (`scripts/seed-agent-os.ts` + `sync-v1.9.0.ts`). 15 reglas P1-P15 + W-CTA y los 18 comandos con metodología.
+Semilla del boilerplate upstream (`scripts/seed-agent-os.ts` + syncs v1.8.0/v1.9.0/v2.0.0). 15 reglas P1-P15 + W-CTA y los 19 comandos con metodología.
 
 ### Memoria empírica P9 (`MemoryEntry`)
 Append-only: APs (anti-patrones con severidad), WINs (clases W1-W8), WORKLOG, REFERENCE (research). `@@index([type, createdAt])` para consultas por tipo.
@@ -150,6 +177,9 @@ Las 6 dimensiones D1-D6 con pesos del [juez PRE-v2.0](06-gobernanza-l2.md) persi
 
 ### Observabilidad (`CommandLog`, `CostLedgerEntry`, `Finding`, `CycleRun`, `Report`, `RadiografiaRun`)
 Las cuatro fuentes de evidencia del sentinela + el ledger de costos de cada inferencia L2 (tokens, USD, latencia, outcome) + reportes époch inmutables.
+
+### Bucle Agéntico Goal-Driven (`WorkflowRun`, `Goal`, `TaskStep`) — v2.0.0
+El orquestador del [comando `bucle`](08-verificacion-bucle.md): `WorkflowRun` guarda el prompt inicial inmutable + el tema (binding de artefactos) + el handoff entre iteraciones; `Goal` los objetivos derivados del prompt con criterio de aceptación y evidencia; `TaskStep` el plan de pasos y tareas por iteración con output por tarea. PAUSED = reanudable con `bucle continúa` (bucle infinito entre invocaciones).
 
 ## Convenciones
 

@@ -235,3 +235,62 @@ model CycleRun {
   startedAt   DateTime  @default(now())
   finishedAt  DateTime?
 }
+
+// ── Bucle Agéntico Goal-Driven (comando bucle, v2.0.0) ───────────────────
+// Orquestador del bucle infinito: goals definidos y generados desde el
+// prompt inicial → investiga (cero conocimiento) → plan de pasos y tareas
+// → reporte PRE → ejecución → reporte PRO → auto-crítica (P13) →
+// auto-aprendizaje (P9) → evaluación de goals → handoff → siguiente
+// iteración hasta lograr los goals. Artefactos vinculados al tema del
+// prompt (binding: el tema proviene del prompt, no del LLM).
+
+model WorkflowRun {
+  id            String    @id @default(cuid())
+  prompt        String // prompt inicial del operador (crudo, inmutable)
+  topic         String // tema extraído del prompt — binding de artefactos
+  status        String    @default("RUNNING") // RUNNING | COMPLETED | PAUSED | FAILED
+  iteration     Int       @default(0)
+  maxIterations Int       @default(3)
+  currentStage  String? // etapa en curso de la iteración corriente
+  stageDetail   String? // última línea de evidencia de la etapa
+  stages        String    @default("[]") // JSON etapas de la iteración corriente [{name,status,durationMs,evidence}]
+  handoff       String? // JSON: contexto entregado a la siguiente iteración
+  goalsAchieved Int       @default(0)
+  startedAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  finishedAt    DateTime?
+  goals         Goal[]
+  tasks         TaskStep[]
+}
+
+model Goal {
+  id         String      @id @default(cuid())
+  runId      String
+  run        WorkflowRun @relation(fields: [runId], references: [id])
+  code       String // G1, G2, ...
+  title      String
+  acceptance String // criterio de aceptación verificable
+  status     String      @default("PENDING") // PENDING | IN_PROGRESS | ACHIEVED | BLOCKED
+  evidence   String? // evidencia del logro (tarea/reporte que la produce)
+  iteration  Int         @default(0) // última iteración que lo evaluó
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@index([runId, status])
+}
+
+model TaskStep {
+  id        String      @id @default(cuid())
+  runId     String
+  run       WorkflowRun @relation(fields: [runId], references: [id])
+  goalCode  String? // G1... (tarea al servicio de ese goal)
+  iteration Int
+  order     Int
+  title     String
+  kind      String // INVESTIGATE | ANALYZE | VERIFY | PROPOSE | REPORT | OUT_OF_SCOPE
+  status    String      @default("PENDING") // PENDING | RUNNING | DONE | FAILED | SKIPPED | OUT_OF_SCOPE
+  output    String? // evidencia/resultado crudo
+  createdAt DateTime    @default(now())
+
+  @@index([runId, iteration, order])
+}

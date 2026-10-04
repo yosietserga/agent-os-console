@@ -12,7 +12,7 @@ lee AGENTS.md, ejecuta: <comando> [parámetros]
 - Prefijo de entorno **solo con coma**: `en este ide, cold run` (sin coma, `ide detect` es comando propio — AP-033).
 - Todo comando no reconocido → `Comando desconocido` + status ERROR (y el sentinela lo clasifica como NO_DEFECT si es input del operador).
 
-## Los 18 comandos (v1.9.0)
+## Los 19 comandos (v2.0.0)
 
 | # | Comando | Aliases | Qué hace (real) |
 |:--|:--|:--|:--|
@@ -34,6 +34,7 @@ lee AGENTS.md, ejecuta: <comando> [parámetros]
 | 16 | `critica` | `auto-critica` | Auto-crítica vía L2 (Modo A: 3 debilidades reales) |
 | 17 | `expected-check` | `expectativas` | Compara expectativa vs real (P15) — **CA-2 mide el último scan real de la DB** (AP-034) |
 | 18 | `vigila` | `sentinel`, `ciclo`, `cicla` | **Ciclo Autónomo de Calidad**: scan de fuentes + hallazgos + ciclos en background ([doc 05](05-ciclo-calidad.md)) |
+| 19 | `bucle <prompt>` | `workflow`, `loop`, `buclea` | **Bucle Agéntico Goal-Driven**: goals desde el prompt → investiga → plan → reportes pre/pro → crítica → aprendizaje → evaluación → handoff → re-itera infinitamente ([doc 08](08-verificacion-bucle.md)); `bucle estado` / `bucle continúa` |
 
 Soporte: `gaps-finder` (`gaps`, `sincroniza`), `l2-status` (`l2`).
 
@@ -53,7 +54,7 @@ stateDiagram-v2
     Sentinel --> [*]: Finding + ciclo 7 etapas (AP-031)
 ```
 
-**Inventario de casos del switch** (grep real sobre `commands.ts`): 60+ casos cubriendo los 18 comandos y todos sus aliases.
+**Inventario de casos del switch** (grep real sobre `commands.ts`): 60+ casos cubriendo los 19 comandos y todos sus aliases.
 
 ## Antipatrones de parsing erradicados
 
