@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Agent OS — Living Topology Visualizer & Ciclo Autónomo de Calidad",
   description:
-    "Mira el workflow agéntico respirar: topología viva con nodos activos/inactivos, flujos y transferencias de contexto en tiempo real (incluidas las transferencias de inferencia L2), iteraciones del ciclo autónomo de calidad en un kanban KPI, y la consola Agent OS con constitución AGENTS.md v1.9.0, memoria empírica y gobernanza PRE-v2.0.",
+    "Mira el workflow agéntico respirar: topología viva con nodos activos/inactivos, flujos y transferencias de contexto en tiempo real (incluidas las transferencias de inferencia L2), iteraciones del ciclo autónomo de calidad en un kanban KPI, y la consola Agent OS v2.1.0 con Instanciador Zero-Shot (Protocolo 11), constitución AGENTS.md, memoria empírica y gobernanza PRE-v2.0.",
   keywords: [
     "Agent OS", "AGENTS.md", "Living Topology Visualizer", "topología viva",
     "kanban KPI", "transferencias de contexto", "Control Plane L2", "PRE-v2.0", "PSIM",
