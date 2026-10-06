@@ -7,8 +7,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![LLM Agnostic](https://img.shields.io/badge/LLM-Agnostic-blue)](#stack-agnóstico)
 [![Polyglot](https://img.shields.io/badge/Polyglot-TS%7CPHP%7CPy%7CGo%7CRust%7CC%2B%2B-green)](#matriz-polyglot)
-[![Version](https://img.shields.io/badge/version-2.0.0-purple)](#changelog)
-[![Constitución Agéntica](https://img.shields.io/badge/v2.0.0-constituci%C3%B3n%20ag%C3%A9ntica-blue)](#changelog)
+[![Version](https://img.shields.io/badge/version-2.1.0-purple)](#changelog)
+[![Constitución Agéntica](https://img.shields.io/badge/v2.1.0-constituci%C3%B3n%20ag%C3%A9ntica-blue)](#changelog)
 
 ---
 

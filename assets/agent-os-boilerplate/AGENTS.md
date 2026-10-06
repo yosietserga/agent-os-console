@@ -8,7 +8,7 @@
 > Ningún archivo puede crearse, modificarse o eliminarse sin haber procesado este
 > documento **Y** la memoria empírica en `docs/memory/`.
 >
-> **Versión:** 1.0.0 — Actualizada 2026-10-02
+> **Versión:** 2.1.0 — Actualizada 2026-10-06
 > **Stacks compatibles:** TypeScript, JavaScript, PHP, Python, Go, Rust, C++
 > **Proveedores LLM compatibles:** Claude, OpenAI/GPT, Gemini, DeepSeek, Qwen, Llama, Mistral, vLLM local
 
@@ -208,6 +208,26 @@ veredicto MATCH / BETTER / WORSE / FAIL.
 - **Origen:** Directriz del operador: "es frustrante tener un resultado
   esperado en mi mente y no obtenerlo; quiero que el LLM primero genere las
   expectativas y luego compare si se obtuvo eso o algo mejor o peor".
+
+### 🔴 Regla P16: Estándar Enterprise de Paneles Administrativos (CRUD Completo)
+Todo admin panel, account panel, users panel o módulo con navegación sidebar DEBE
+cumplir el estándar completo de **§11** ANTES de declararse DONE: scroll vertical
+y horizontal sin errores con beauty scroll panels; dashboard por módulo; soft delete
+(papelera) + hard delete; listado con paginación, filtros, búsqueda y dots menu (⋯);
+forms create/edit como **pageviews completos con URL propia** (PROHIBIDO modal box)
+en doble modalidad wizard/avanzado; datos relacionados consultables dentro del form;
+batch processes (export, toggle status, soft/hard delete, quick edit); y página de
+detalles completa con tabs y URL propia.
+
+- **Verificación:** headless browser (P14) + expected-first (P15) con la anatomía
+  §11.2 como criterios de aceptación numerados.
+- **Omisiones:** se declaran como gaps con severidad, NUNCA como "mejoras futuras".
+- **Antipatrón relacionado:** AP-034 CRUD Incompleto en Paneles Administrativos.
+- **Origen:** Directriz del operador ("autoaplica agents.md") con el estándar
+  completo de paneles: scroll sin errores y beauty scrolls, dashboard del módulo,
+  papelera + borrado permanente, dots menu, pageviews con URL convencionada,
+  wizard guiado + avanzado, datos cruzados consultables, preview, batch processes
+  y detalles con tabs enterprise-grade.
 
 ### 🟡 Regla W-CTA: Glowing CTA Button en Estados Listos
 **When a primary action button (Combinar, Procesar, Generar, Publicar) becomes
@@ -575,7 +595,87 @@ Para usar este boilerplate en un nuevo proyecto:
 
 ---
 
-## 11. Changelog
+## 11. Estándar de Paneles Administrativos Enterprise (Admin · Account · Users)
+
+**Ámbito:** TODA construcción de admin panel, account panel, users panel o cualquier
+módulo con navegación sidebar (dashboards, CRUDs, settings, perfiles). El estándar es
+obligatorio (Regla P16) y su verificación es headless (P14) con expectativas previas
+(P15). Ningún módulo se declara DONE con omisiones silenciosas: lo que falta es un gap
+declarado con severidad.
+
+### 11.1 Scroll y Beauty Scroll Panels
+- Scroll vertical Y horizontal verificados sin errores en desktop y móvil: sin
+  contenido cortado, sin scroll fantasma/doble, sin `overflow-x` del body, sin
+  columnas atrapadas en su celda.
+- Listas y paneles largos usan scroll panels estilizados: scrollbar fino, thumb
+  redondeado con contraste visible, track sutil, hover/focus evidentes, `max-height`
+  + `overflow-y-auto` cuando la lista supera ~20 ítems. Nunca scrollbars nativos
+  crudos en superficies enterprise.
+- El sidebar nunca secuestra el scroll del contenido ni viceversa: contenedores
+  independientes con `overscroll-behavior: contain`.
+
+### 11.2 Anatomía Obligatoria de Todo Módulo CRUD
+Todo módulo (usuarios, productos, órdenes, facturas, inventario…) se entrega con:
+
+1. **Dashboard del módulo**: KPIs propios, actividad reciente, accesos rápidos y
+   estado de la papelera. Es la portada del módulo, no un lujo.
+2. **Listado de registros**: paginación (server-side cuando el volumen lo exige),
+   filtros combinables + búsqueda, ordenamiento por columnas, **draggable + sortable**
+   cuando el orden importe (con persistencia del nuevo orden), selección multiselect
+   con select-all, botones directos para la acción primaria y **dots menu (⋯)** por
+   fila con: Editar, Toggle status, Ver detalles, Eliminar (soft delete). Toggle
+   status NUNCA exige pasar por editar.
+3. **Soft delete + Hard delete**: todo registro tiene borrado lógico (envía a
+   papelera, restaurable) y borrado permanente (confirmación explícita, destructiva
+   y auditada). La papelera del módulo lista, filtra, restaura y purga.
+4. **Forms Create y Edit como pageviews completos**: cada uno con su URL propia
+   convencionada (ver 11.4). **PROHIBIDO crear/editar en modal box** — sin estado
+   compartible, sin historial, sin deep-linking, sin demostración.
+5. **Doble modalidad en Create**: **Wizard guiado** (paso a paso, validación por
+   paso, progreso visible, resumen final) y **Avanzado** (todos los campos a la
+   vista). El cambio de modalidad jamás pierde los datos ya capturados.
+6. **Datos relacionados y cruzados en el form**: los pageviews de create/edit
+   muestran la información relacionada (ej. órdenes de este usuario, historial,
+   referencias cruzadas) en paneles laterales consultables con búsqueda y filtro
+   dinámico.
+7. **Preview siempre que aplique**: tarjeta, perfil, documento, correo o página se
+   pre-visualizan en vivo desde el form antes de guardar.
+8. **Batch processes**: export (CSV/JSON/PDF), toggle status masivo, soft delete
+   masivo, hard delete masivo (confirmación destructiva) y quick edit inline —
+   todos operando sobre la selección con contador de N seleccionados.
+9. **Ver detalles como página completa**: URL propia convencionada, TODA la
+   información del registro y sus relaciones organizadas por **tabs**, nivel
+   corporate/enterprise, visual appealing, con killer features (timeline de
+   actividad, auditoría de cambios, export del detalle, acciones rápidas).
+
+### 11.3 UX Transversal (Auto-Magic)
+- **One-click**: toda acción alcanzable en un clic desde su contexto; sin diálogos
+  innecesarios ni confirmaciones para acciones reversibles.
+- **Drag & drop** donde aporte: reordenar, asignar, mover entre paneles, subir archivos.
+- **Toggle buttons** para estados binarios; **multiselect con delete/select-all**
+  para acciones en masa.
+- **Auto-mágico**: búsqueda con debounce, autosave de borradores, valores sugeridos
+  por contexto, estados vacíos con CTA, acciones automáticas detectadas del flujo.
+- Toasts de confirmación con **undo** para soft delete.
+
+### 11.4 Convención de Rutas Canónicas (Resourceful)
+`/<panel>` · `/<panel>/<módulo>` (listado + dashboard) · `/<panel>/<módulo>/nuevo` ·
+`/<panel>/<módulo>/<id>` (detalles con tabs) · `/<panel>/<módulo>/<id>/editar` ·
+`/<panel>/<módulo>/papelera` — adaptando el prefijo al panel (`/admin`, `/account`,
+`/users`). El patrón resourceful es canónico en cualquier stack (Next.js App Router,
+Laravel, Django, Rails).
+
+### 11.5 Verificación del Estándar
+- **P14 headless**: scroll sin errores, rutas alcanzables, tabs navegables, batch
+  operable, cero errores de consola — en desktop Y móvil.
+- **P15 expected-first**: las expectativas del módulo se escriben ANTES y detallan
+  la anatomía 11.2 como criterios de aceptación numerados.
+- `cold run` + `ui test <ruta>` recorren la anatomía por módulo; las omisiones
+  producen hallazgos con severidad, jamás "mejoras futuras" silenciosas.
+
+---
+
+## 12. Changelog
 
 | Fecha | Versión | Cambios |
 | :--- | :--- | :--- |
@@ -590,6 +690,7 @@ Para usar este boilerplate en un nuevo proyecto:
 | 2026-10-02 | 1.8.0 | **PRE-v2.0 proposal `add-gaps-finder-mandatorio` promoted.** Añade: comando canónico `gaps-finder` (17º) — script `scripts/gaps-finder.sh` (320 líneas) que ejecuta 15 checks de sincronización entre AGENTS.md, README.md, state.json, catálogos, scripts/, mcp/, docs/personas/, worklog, PR template, y changelog. Detecta desincronizaciones con severidad (critical/high/medium/low). **MANDATORIO en §8.2 antes de cerrar sesión** (BP #128). Bloquea commit si hay gaps critical/high. Corrige gap detectado por el operador: README diagrama DISPATCH mostraba "11 rutas" cuando ya hay 16 comandos + alias rayos-x. Tras ejecutar gaps-finder y corregir: diagrama actualizado a 16 rutas + alias, todos los counts sincronizados. BP #128 (gaps-finder mandatorio). WIN-017 (W1+W7 — detección automática de desincronización). |
 | 2026-10-02 | 1.9.0 | **PRE-v2.0 proposal `add-sentinel-autonomous-quality-loop` promoted.** Añade: comando canónico `vigila` (18º), con contrato en la tabla §0 — Ciclo Autónomo de Calidad: el sistema audita los registros de ejecución y detecta fallas automáticamente (comandos con ERROR, radiografías FAILED, ledger L2 ERROR, presupuesto de gateway >25s), clasifica cada falla real con taxonomía determinista normalizada (NO_DEFECT para inputs inválidos del operador; BUDGET; EXTERNAL; INTERNAL) y abre un pipeline de 7 fases (detectar → analizar → investigar en la memoria empírica → corregir → verificar con Gate Honesty P2 y exit code real → criterios posteriores: gaps-finder + audit memory + expected-check P15 → reportar reporte epoch inmutable con auto-crítica P13 y anexo append-only al worklog P9) sin intervención del operador. `scripts/vigila.sh` implementa el ciclo para entornos file-based. AP-031 (ciclo de calidad pasivo — fallas que mueren en el log sin análisis ni reporte; el fallo raíz reportado por el operador), AP-032 (presupuesto de gateway — respuestas >30s cortadas con HTML 504 que el frontend parsea como JSON), AP-033 (regex de prefijo IDE sin coma que consumía `ide detect`/`ide all`). BP #129 (ciclo autónomo post-error). Killer Feature #110 (sentinel quality loop). WIN-019 (W1+W8 PSIM — cierre automático de hallazgos). Origen: directriz del operador: "el workflow agéntico debe automáticamente buscar fallas, analizarlas, investigar cómo corregirlas de la mejor manera, corregir, confirmar y verificar, aplicar los criterios posteriores y generar los reportes". |
 | 2026-10-04 | 2.0.0 | **PRE-v2.0 proposal `add-goal-driven-workflow-loop` promoted.** Añade: comando canónico `bucle <prompt>` (19º), con contrato en la tabla §0 y protocolo §8.4 — Bucle Agéntico Goal-Driven: el sistema asume cero conocimiento (ni el operador ni el LLM/SLM saben nada), deriva goals con criterios de aceptación verificables SOLO del prompt inicial, investiga (web real), genera el plan de pasos y tareas, emite reportes PRE y PRO por iteración, ejecuta, auto-critica (P13), auto-aprende (P9), evalúa goals contra su criterio y re-itera con handoff hasta lograr TODOS los goals (PAUSED reanudable con `bucle continúa` — bucle infinito entre invocaciones). Artefactos vinculados al tema del prompt (el contenido proviene del prompt, no del modelo). Modelos de datos: WorkflowRun/Goal/TaskStep. gaps-finder check 4 evoluciona a append-friendly (DB ≥ upstream: la memoria P9 crece por diseño; cero pérdidas upstream). Origen: directriz del operador con capturas de referencia (agente IDE creando `Plan And Steps <Topic>` / `Handoff <Topic>` / `Audits <Topic>` / `Cold Run <Topic>`): «que asuma que ni yo ni la llm/slm saben nada, que investigue, genere los planes de pasos y tareas, genere los reportes pre, haga las tareas, genere los reportes pro, auto critique, auto aprenda, auto evolucione, mejore, siguiente iteración para pasar por el mismo bucle workflow infinitamente hasta lograr los goals definidos y generados desde el prompt inicial». |
+| 2026-10-06 | 2.1.0 | **PRE-v2.0 proposal `add-enterprise-admin-panels-standard` promoted.** Añade: **Regla P16** (Estándar Enterprise de Paneles Administrativos) + **sección §11 completa** — todo admin/account/users panel con navegación sidebar debe garantizar scroll vertical y horizontal sin errores con beauty scroll panels (11.1); cada módulo CRUD incluye: dashboard del módulo, soft delete con papelera + hard delete, listado con paginación/filtros/búsqueda/draggable-sortable/multiselect/dots menu (editar, toggle status, ver detalles, soft delete), forms create/edit como pageviews completos con URL propia convencionada (PROHIBIDO modal box) en doble modalidad wizard guiado/avanzado, datos relacionados y cruzados consultables con búsqueda y filtro dinámico dentro del form, preview cuando aplique, batch processes (export, toggle status, soft delete, hard delete, quick edit) y página de detalles completa con tabs corporate-grade (11.2); UX transversal auto-magic: one-click, drag & drop, toggle buttons, multiselect con select-all, undo en soft delete (11.3); convención de rutas resourceful canónica (11.4); verificación P14 headless + P15 expected-first con la anatomía como CAs numerados (11.5). AP-034 (CRUD incompleto en paneles administrativos), BP #130 (estándar admin panels enterprise), Killer Feature #111 (suite CRUD enterprise por módulo). WIN-020 (W1+W6 — fatiga de re-especificar CRUDs erradicada). Origen: directriz del operador "autoaplica agents.md" con el estándar completo de paneles administrativos. Sincroniza la versión del header (1.0.0 → 2.1.0) con el changelog (P4). |
 
 ---
 

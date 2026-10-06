@@ -85,6 +85,13 @@ Proyecto Instanciado" de AGENTS.md — es el condicionamiento conductual):
 7. "### Prompts de Dominio": referencia EXACTAMENTE \`docs/prompts/architecture.md\`, \`docs/prompts/domain.md\`, \`docs/prompts/stack.md\`.
 8. "### Restricciones y Seguridad": riesgos clave y mitigaciones (de risks/securityNotes).
 9. "### Reglas de Ejecución": 4-6 bullets de cómo el agente debe operar en ESTE proyecto (bucle goal-driven: investigar antes de asumir, verificar tras cada cambio, memoria append-only P9, auto-crítica P13, iterar hasta lograr los goals).
+10. SOLO si el producto define paneles admin/account/users con módulos CRUD: añade
+    "### Módulos de Paneles" enumerando cada módulo (ej. usuarios, inventario, órdenes)
+    y declara que cada uno hereda la anatomía §11 de AGENTS.md (Regla P16): dashboard
+    del módulo, soft delete con papelera + hard delete, listado con paginación/filtros/
+    dots menu, forms create/edit como pageviews con URL propia convencionada (nunca
+    modal) en doble modalidad wizard/avanzado, datos relacionados consultables en el
+    form, preview, batch processes y detalles con tabs.
 No incluyas el heading "##" de nivel 2 (se agrega programáticamente).`,
     user: `## Prompt crudo del operador\n"""\n${rawPrompt}\n"""\n\n## Evidencia de investigación web (Fase 1)\n${researchDigest}\n\nRefactoriza el prompt y produce la spec completa JSON.`,
   };
@@ -106,15 +113,15 @@ export function buildCatalogPrompt(kind: CatalogKind, spec: BootstrapSpec, resea
       ask: `Genera el catálogo de mejores prácticas de desarrollo PARA ESTE PROYECTO
 concreto. Mezcla prácticas universales de ingeniería con prácticas específicas del
 dominio ("${spec.domain}") encontradas en la investigación. Cada entrada cita la regla
-cardinal relacionada (P1-P15) cuando aplica: P1 Read-After-Edit, P2 Gate Honesty,
+cardinal relacionada (P1-P16) cuando aplica: P1 Read-After-Edit, P2 Gate Honesty,
 P3 Closes-Finding Guard, P4 Sync atómica, P5 Apple Light, P6 Layout 7 posiciones,
 P7 Zero-Placeholder/Zero-Emoji, P8 LLM-Agnóstico, P9 Memoria append-only,
 P10 Entornos declarados, P11 Onboarding Tour, P12 Sanitización, P13 Auto-crítica,
-P14 Verificación headless, P15 Expected-first.`,
+P14 Verificación headless, P15 Expected-first, P16 Paneles CRUD enterprise.`,
       format: `Formato (fiel al boilerplate):
 # Catálogo de Mejores Prácticas — ${spec.projectName}
 
-> Catálogo numerado y verificable. Cada entrada cita la regla cardinal (P1-P15)
+> Catálogo numerado y verificable. Cada entrada cita la regla cardinal (P1-P16)
 > cuando aplica. Adaptado al dominio ${spec.domain} por el Instanciador Zero-Shot.
 
 ## Categoría 1: <nombre> (1-N)
@@ -210,6 +217,19 @@ Formato EXACTO por archivo (fiel a docs/personas/ del boilerplate):
 
 <párrafo: cómo el agente usa esta persona en cold runs y ui test>
 
+REGLA OBLIGATORIA para productos con paneles admin/account/users con módulos CRUD:
+las personas operator, apprentice y demo-master DEBEN incluir en "Criterios de éxito"
+AL MENOS 3 criterios que verifiquen puntos concretos de la anatomía §11 de AGENTS.md
+(Regla P16), y en "Criterios de fracaso" al menos 1 que falle si ese punto no existe.
+Puntos concretos a cubrir (elige los aplicables a cada persona, con el vocabulario del
+dominio):
+- Restaurar un registro desde la papelera (soft delete) y borrado permanente con confirmación
+- Crear con el wizard guiado paso a paso Y con el modo avanzado, sin perder datos al alternar
+- Toggle status desde el dots menu sin abrir el editor
+- Batch: seleccionar N registros y exportar / toggle / soft delete / quick edit en lote
+- Ver detalles con tabs (datos, relaciones, timeline/auditoría) en su propia URL
+- Scroll fluido en listados largos (100+ registros) sin cortar columnas
+
 Genera los 6 archivos SEPARADOS por marcadores EXACTOS (una línea con el marcador,
 sin espacios extra):
 ===FILE: docs/personas/analyst.md===
@@ -221,7 +241,14 @@ sin espacios extra):
 
 Los Ids son FIJOS (analyst, operator, executive, apprentice, experience-architect,
 demo-master) pero el Rol y todo el contenido se adapta al dominio según este mapeo:
-${JSON.stringify(spec.personaMapping, null, 2)}`,
+${JSON.stringify(spec.personaMapping, null, 2)}
+
+Si el producto define paneles admin/account/users con módulos CRUD, las personas
+operator/apprentice/demo-master siguen la REGLA OBLIGATORIA de la anatomía §11
+(Regla P16) descrita arriba: sus criterios de éxito/fracaso VERIFICAN el estándar
+(dashboard del módulo, papelera + borrado permanente, dots menu con toggle status,
+pageviews de create/edit con URL propia en modalidad wizard y avanzado, datos
+cruzados consultables, batch processes, detalles con tabs, scroll sin errores).`,
     user: `Proyecto: ${spec.projectName} — ${spec.oneLiner}
 Dominio: ${spec.domain}. Descripción: ${spec.description}
 Usuarios objetivo: ${spec.targetUsers.join(", ")}
@@ -267,8 +294,11 @@ Los 4 archivos SEPARADOS por marcadores EXACTOS:
   abuso de límites) — específico del dominio.
 - edge: casos límite del dominio (archivos de 2GB, 0 items, caracteres unicode,
   conexiones interrumpidas — adaptados al producto).
-- novato: primer contacto sin conocimiento técnico.
-- power: usuario experto que exprime la app al límite con atajos y volumen.`,
+- novato: primer contacto sin conocimiento técnico (para paneles CRUD: solo logra
+  completar la creación guiado por el wizard paso a paso).
+- power: usuario experto que exprime la app al límite con atajos y volumen (para
+  paneles CRUD: batch processes con N registros, modo avanzado del form, quick edit
+  inline y reordenamiento draggable).`,
     user: `Proyecto: ${spec.projectName} — ${spec.oneLiner}
 Dominio: ${spec.domain}. Riesgos conocidos: ${spec.risks.join("; ")}
 Seguridad: ${spec.securityNotes.join("; ")}
@@ -343,7 +373,7 @@ en lenguaje natural)
 ## El bucle agéntico (párrafo: investigar → planear → pre-report → ejecutar →
 pro-report → auto-crítica → auto-aprendizaje → iterar hasta los goals)
 ## Goals del proyecto (lista G1..Gn)
-## Reglas cardinales (tabla resumida P1-P15 con una línea cada una)`,
+## Reglas cardinales (tabla resumida P1-P16 con una línea cada una)`,
     user: `Spec: ${JSON.stringify({ projectName: spec.projectName, oneLiner: spec.oneLiner, description: spec.description, goals: spec.goals, domain: spec.domain, stack: spec.stack }, null, 2)}
 
 Genera el README.md completo.`,

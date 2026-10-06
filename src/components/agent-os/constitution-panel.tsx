@@ -1,8 +1,8 @@
 "use client";
 
 // ════════════════════════════════════════════════════════════════════════
-// constitution-panel.tsx — Constitución AGENTS.md: 16 reglas cardinales
-// (P1-P15 + W-CTA) en detalle, y el directorio de los 17 comandos canónicos.
+// constitution-panel.tsx — Constitución AGENTS.md: 17 reglas cardinales
+// (P1-P16 + W-CTA) en detalle, y el directorio de los 19 comandos canónicos.
 // ════════════════════════════════════════════════════════════════════════
 
 import { ScrollText, TerminalSquare, ShieldCheck } from "lucide-react";
@@ -20,7 +20,7 @@ export function ConstitutionPanel({ rules, commands }: ConstitutionPanelProps) {
       <section data-tour="constitucion" aria-label="Reglas cardinales" className="rounded-2xl border border-[#e5e5ea] bg-white p-5">
         <h3 className="flex items-center gap-2 text-sm font-semibold text-[#1d1d1f]">
           <ShieldCheck className="size-4 text-[#0071e3]" aria-hidden="true" />
-          Reglas Cardinales — AGENTS.md v1.8.0 (Documento Cero)
+          Reglas Cardinales — AGENTS.md v2.1.0 (Documento Cero)
         </h3>
         <p className="mt-1.5 text-xs leading-relaxed text-[#86868b]">
           Ningún archivo puede crearse, modificarse o eliminarse sin haber procesado este documento

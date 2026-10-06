@@ -410,3 +410,22 @@
 > **Instrucción para nuevos agentes:** al descubrir un antipatrón nuevo durante
 > tu sesión, anexa una entrada `## [AP-XXX]` con Fecha, Causa Raíz, Impacto y
 > Regla Correctiva. **Nunca edites entradas existentes.**
+
+## [AP-034] CRUD Incompleto en Paneles Administrativos
+- **Fecha:** 2026-10-06
+- **Causa Raíz:** (Severidad ALTA, clase UX/arquitectura). Los paneles
+  admin/account/users se construían al mínimo viable funcional: crear/editar
+  en modal box (sin URL propia ni estado compartible), sin papelera (soft
+  delete ausente y hard delete sin confirmación destructiva), listados sin
+  paginación/filtros/batch, detalles en modal en vez de página con tabs, y
+  forms sin datos relacionados consultables. Cada omisión se re-especificaba
+  de viva voz por el operador en cada proyecto y cada sesión.
+- **Impacto:** Fatiga crónica del operador (re-especificar el mismo estándar);
+  paneles que crecen con deuda de UX; acciones destructivas sin red de
+  seguridad; rutas no compartibles, no demostrables ni auditable su historial.
+- **Regla Correctiva:** Regla P16 + estándar §11 de AGENTS.md: pageviews con
+  URL propia convencionada para create/edit (doble modalidad wizard/avanzado),
+  papelera + hard delete con confirmación, batch processes, detalles con tabs,
+  beauty scroll panels con scroll vertical y horizontal verificados. La
+  verificación es headless (P14) + expected-first (P15) y cada omisión es un
+  gap declarado con severidad, no una "mejora futura".

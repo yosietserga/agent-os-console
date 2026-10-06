@@ -221,6 +221,8 @@
 
 129. **Ciclo Autónomo de Calidad post-error** — Tras cada ERROR del dispatcher o fallo de pipeline, dispara automáticamente un ciclo que analiza causa raíz, investiga la mejor corrección, corrige, verifica (Gate Honesty), aplica criterios posteriores y genera reporte inmutable. Nunca dejes que una falla muera en el log: el operador no debe ser el detector de fallas del sistema. **[P2, P13]**
 
+130. **Estándar de Paneles Administrativos Enterprise** — Todo admin/account/users panel con sidebar se entrega completo (Regla P16 + AGENTS.md §11): scroll vertical y horizontal sin errores con scrollbars estilizados; cada módulo CRUD con dashboard propio, listado con paginación/filtros/multiselect/dots menu, soft delete con papelera restaurable + hard delete con confirmación, forms create/edit como pageviews con URL propia convencionada (nunca modal box) en doble modalidad wizard/avanzado, datos relacionados consultables con filtro dinámico dentro del form, preview en vivo, batch processes (export, toggle status, soft/hard delete, quick edit) y página de detalles con tabs. **[P16, P14, P15]**
+
 ---
 
 > **Uso en CI:** El workflow `memory-audit.yml` puede importar este catálogo y
@@ -235,3 +237,5 @@
 > `reverse-engineer-skill`. La BP #128 la valida el comando `gaps-finder`
 > (mandatorio en §8.2). La BP #129 la valida el comando `vigila`
 > (disparo automático tras cada ERROR del dispatcher).
+> La BP #130 la validan los comandos `cold run` + `ui test <ruta>` +
+> `expected-check` contra la anatomía del AGENTS.md §11.2 (Regla P16).

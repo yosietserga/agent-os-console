@@ -455,3 +455,17 @@
 > entrada `## [WIN-XXX]` con Fecha, Clase PSIM (W1–W8), Fuerza de Porter,
 > Evidencia (comando ejecutado o artefacto producido) e Impacto. **Nunca edites
 > entradas existentes.**
+
+## [WIN-020] Estándar Enterprise de Paneles Administrativos Canonizado
+- **Fecha:** 2026-10-06
+- **Clase PSIM:** W1 (Capability Strengthening) + W6 (Persona Satisfied)
+- **Fuerza de Porter:** Fuerza 3 (Poder de Compradores — satisfacción del operador)
+- **Evidencia:** Propuesta PRE-v2.0 `add-enterprise-admin-panels-standard`
+  promoted a main (AGENTS.md v2.1.0). Regla P16 + sección §11 + AP-034 +
+  BP #130 + Killer Feature #111. Todo scaffold instanciado con Protocolo 11
+  hereda el estándar automáticamente: la constitución viaja en AGENTS.md y los
+  derivados (catálogos, personas, prompts de dominio) lo citan.
+- **Impacto:** La fatiga de re-especificar cómo debe ser un CRUD enterprise
+  desaparece: cualquier LLM condicionado por AGENTS.md construye paneles
+  completos (dashboard, papelera, wizard/avanzado, batch, tabs, beauty
+  scrolls, datos cruzados) desde la primera iteración.
