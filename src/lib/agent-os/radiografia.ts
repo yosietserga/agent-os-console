@@ -9,8 +9,10 @@ import { infer, sanitizeInput } from "./l2";
 import type {
   BrandTokens,
   BusinessModelXray,
+  ConceptsXray,
   RadiografiaPhaseState,
   RadiografiaRunDTO,
+  RadiografiaSourceMeta,
   ReconstructionSpec,
   VerificationVerdict,
 } from "./types";
@@ -33,7 +35,8 @@ interface PhasesDoc {
 }
 
 function toDTO(row: {
-  id: string; targetUrl: string; targetTitle: string | null; status: string;
+  id: string; targetUrl: string; sourceType: string; sourcesJson: string | null;
+  conceptsJson: string | null; targetTitle: string | null; status: string;
   phase: number; brandTokens: string | null; businessModel: string | null;
   reconstruction: string | null; verification: string | null; summary: string | null;
   tokensUsed: number; createdAt: Date; completedAt: Date | null;
@@ -51,9 +54,21 @@ function toDTO(row: {
     if (!v) return null;
     try { return JSON.parse(v) as T; } catch { return null; }
   };
+  let sources: RadiografiaSourceMeta[] = [];
+  if (row.sourcesJson) {
+    try {
+      const parsed = JSON.parse(row.sourcesJson) as RadiografiaSourceMeta[];
+      if (Array.isArray(parsed)) sources = parsed;
+    } catch {
+      // sourcesJson corrupto → lista vacía (defensivo)
+    }
+  }
   return {
     id: row.id,
     targetUrl: row.targetUrl,
+    sourceType: row.sourceType ?? "url",
+    sources,
+    concepts: safeParse<ConceptsXray>(row.conceptsJson),
     targetTitle: row.targetTitle,
     status: row.status,
     phase: row.phase,

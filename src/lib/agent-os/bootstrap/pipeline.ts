@@ -12,6 +12,11 @@ import { infer, webSearch } from "@/lib/agent-os/l2";
 import type { WebSearchResultItem } from "@/lib/agent-os/l2";
 import type { BootstrapSpec, ResearchItem } from "./types";
 import {
+  buildRadiografiaDigest,
+  loadRadiografiaContext,
+  seedPromptFromRadiografia,
+} from "./radiografia-context";
+import {
   assembleAgentsMd,
   bridgeContent,
   BRIDGE_FILES,
@@ -154,15 +159,37 @@ export async function runBootstrapPipeline(runId: string): Promise<void> {
   try {
     const run = await db.bootstrapRun.findUnique({ where: { id: runId } });
     if (!run) return;
-    const rawPrompt = run.prompt;
+
+    // ── Radiografía multimodal vinculada (fase previa del operador) ──
+    // P2: si no existe o no está COMPLETED, se degrada al flujo clásico
+    // (nota honesta en el reporte) sin inventar evidencia.
+    const radiografiaCtx = await loadRadiografiaContext(run.radiografiaId);
+    const radiografiaDigest = radiografiaCtx ? buildRadiografiaDigest(radiografiaCtx) : null;
     const notes: string[] = [];
+    if (run.radiografiaId && !radiografiaCtx) {
+      notes.push(`radiografía vinculada ${run.radiografiaId} no disponible/COMPLETED — flujo clásico (P2)`);
+    }
+
+    let rawPrompt = run.prompt;
+    if (!rawPrompt.trim() && radiografiaCtx) {
+      rawPrompt = seedPromptFromRadiografia(radiografiaCtx);
+      notes.push("prompt semilla derivado de la síntesis de la radiografía (operador aportó solo material)");
+    }
+    if (!rawPrompt.trim()) {
+      await setPhase(runId, "ERROR", 0, "Prompt vacío y sin radiografía utilizable");
+      await db.bootstrapRun.update({
+        where: { id: runId },
+        data: { status: "ERROR", error: "Prompt vacío y sin radiografía utilizable", durationMs: Date.now() - started },
+      });
+      return;
+    }
 
     // ══ FASE 1: RESEARCHING (zero-knowledge → investigate) ════════════
     await setPhase(runId, "RESEARCHING", 6, "Arranque en frío: derivando dominio y queries de investigación…");
 
     let queries: string[] = [];
     try {
-      const pre = buildPreSpecPrompt(rawPrompt);
+      const pre = buildPreSpecPrompt(rawPrompt, radiografiaDigest);
       const raw = await llm(runId, "bootstrap-prespec", pre.system, pre.user);
       const parsed = extractJson<{ domain: string; searchQueries: string[] }>(raw);
       queries = (parsed.searchQueries ?? []).filter((q) => typeof q === "string" && q.trim()).slice(0, 5);
@@ -199,7 +226,7 @@ export async function runBootstrapPipeline(runId: string): Promise<void> {
     let spec: BootstrapSpec;
     let specDegraded = false;
     try {
-      const p = buildSpecPrompt(rawPrompt, research);
+      const p = buildSpecPrompt(rawPrompt, research, radiografiaDigest);
       const raw = await llm(runId, "bootstrap-spec", p.system, p.user);
       const parsed = extractJson<Partial<BootstrapSpec>>(raw);
       spec = {

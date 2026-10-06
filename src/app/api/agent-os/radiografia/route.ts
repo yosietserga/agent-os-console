@@ -1,17 +1,46 @@
-// POST /api/agent-os/radiografia — Lanza el Pipeline de Radiografía Rayos X
-// Body: { url } → valida, crea el run y responde INMEDIATO con status RUNNING.
-// El pipeline de 5 fases corre en background actualizando la BD fase a fase
-// (AP-032 fix: antes esperaba 25-40s y el gateway del preview cortaba con HTML).
+// POST /api/agent-os/radiografia — Lanza el Pipeline de Radiografía Rayos X.
+// Body: { url } (single-URL, comando 17) O { sources: [...] } (multimodal:
+// URLs + imágenes + videos del operador — fase previa del Instanciador).
+// Valida ANTES de crear el run y responde INMEDIATO con status RUNNING;
+// el pipeline corre en background actualizando la BD fase a fase
+// (AP-032 fix: el gateway del preview corta respuestas >30s con HTML).
 // El cliente hace polling GET /api/agent-os/radiografia?id=<runId>.
 import { NextRequest, NextResponse } from "next/server";
 import { startRadiografia, validateTargetUrl, listRuns, getRun } from "@/lib/agent-os/radiografia";
+import { startMultimodalRadiografia, validateMultimodalSources } from "@/lib/agent-os/radiografia-multimodal";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json()) as { url?: string };
+    const body = (await req.json().catch(() => ({}))) as {
+      url?: string;
+      sources?: unknown;
+      notes?: string;
+    };
+
+    // ── Modo multimodal: fuentes (url | image | video) ──
+    if (Array.isArray(body.sources)) {
+      let validated;
+      try {
+        validated = validateMultimodalSources(body.sources);
+      } catch (e) {
+        return NextResponse.json(
+          { success: false, data: null, error: e instanceof Error ? e.message : "fuentes inválidas", meta: {} },
+          { status: 400 }
+        );
+      }
+      const run = await startMultimodalRadiografia(validated, typeof body.notes === "string" ? body.notes.slice(0, 2000) : undefined);
+      return NextResponse.json({
+        success: true,
+        data: run,
+        error: null,
+        meta: { epoch: Math.floor(Date.now() / 1000), phases: 5, background: true, mode: "multimodal" },
+      });
+    }
+
+    // ── Modo single-URL (comando 17, compatible) ──
     const url = (body.url ?? "").trim();
     if (!url) {
       return NextResponse.json(
@@ -33,7 +62,7 @@ export async function POST(req: NextRequest) {
       success: true,
       data: run,
       error: null,
-      meta: { epoch: Math.floor(Date.now() / 1000), phases: 5, background: true },
+      meta: { epoch: Math.floor(Date.now() / 1000), phases: 5, background: true, mode: "url" },
     });
   } catch (error) {
     return NextResponse.json(

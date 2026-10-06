@@ -161,9 +161,43 @@ export interface RadiografiaPhaseState {
   detail: string;
 }
 
+/** Kind de fuente multimodal aceptada por la Radiografía. */
+export type RadiografiaSourceKind = "url" | "image" | "video";
+
+/** Input de fuente tal como llega al API (con el payload completo). */
+export interface MultimodalSourceInput {
+  kind: RadiografiaSourceKind;
+  /** Para kind=url: URL http/https del objetivo. */
+  url?: string;
+  /** Para image/video: nombre del archivo. */
+  name?: string;
+  /** Para image/video: data URL base64 (data:image/png;base64,...). */
+  dataUrl?: string;
+}
+
+/** Metadata persistida de cada fuente (sin base64 — P2, sin bloat). */
+export interface RadiografiaSourceMeta {
+  kind: RadiografiaSourceKind;
+  name: string;
+  bytes: number;
+  detail: string;
+}
+
+/** Conceptos, pantallas y motion design extraídos de las fuentes. */
+export interface ConceptsXray {
+  productType: string;
+  coreConcepts: string[];
+  screens: { name: string; purpose: string }[];
+  motionDesign: { animations: string[]; effects: string[]; transitions: string[] };
+  uxPatterns: string[];
+}
+
 export interface RadiografiaRunDTO {
   id: string;
   targetUrl: string;
+  sourceType: string;
+  sources: RadiografiaSourceMeta[];
+  concepts: ConceptsXray | null;
   targetTitle: string | null;
   status: string;
   phase: number;

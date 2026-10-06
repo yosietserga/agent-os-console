@@ -7,7 +7,7 @@
 // Gate Honesty — antes el catch mentía con durationMs: 0) y devuelven
 // mensajes accionables en vez de stack traces crípticos.
 // ════════════════════════════════════════════════════════════════════════
-import type { CommandResultDTO, RadiografiaRunDTO } from "./types";
+import type { CommandResultDTO, MultimodalSourceInput, RadiografiaRunDTO } from "./types";
 
 export interface ApiEnvelope<T> {
   success: boolean;
@@ -141,5 +141,48 @@ export async function getRadiografiaRunClient(runId: string): Promise<Radiografi
     return json.data ?? null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * POST /api/agent-os/radiografia (modo multimodal) — lanza la Radiografía
+ * Multimodal (URLs + imágenes + videos) en background. El body puede pesar
+ * decenas de MB (base64), por eso el timeout es generoso; el pipeline corre
+ * en background y se polea con getRadiografiaRunClient.
+ */
+export async function startMultimodalRadiografiaClient(
+  sources: MultimodalSourceInput[],
+  notes?: string
+): Promise<{ ok: true; run: RadiografiaRunDTO } | { ok: false; error: string }> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 90_000);
+  try {
+    const res = await fetch("/api/agent-os/radiografia", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sources, notes }),
+      signal: controller.signal,
+    });
+    const contentType = res.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) {
+      return {
+        ok: false,
+        error: `Respuesta no-JSON del gateway (HTTP ${res.status}). Reintenta en unos segundos.`,
+      };
+    }
+    const json = (await res.json()) as ApiEnvelope<RadiografiaRunDTO>;
+    if (!json.success || !json.data) {
+      return { ok: false, error: json.error ?? "La radiografía no pudo lanzarse" };
+    }
+    return { ok: true, run: json.data };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error && e.name === "AbortError"
+        ? "Timeout lanzando la radiografía — el material puede ser muy pesado; prueba con menos fuentes"
+        : `Error de red: ${e instanceof Error ? e.message : "desconocido"}`,
+    };
+  } finally {
+    clearTimeout(timer);
   }
 }

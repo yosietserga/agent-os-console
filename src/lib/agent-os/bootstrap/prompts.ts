@@ -15,14 +15,21 @@ const STYLE_RULES = `Reglas inviolables de estilo:
 
 // ── Fase 1a: pre-spec (extraer dominio + queries de investigación) ───────
 
-export function buildPreSpecPrompt(rawPrompt: string): { system: string; user: string } {
+export function buildPreSpecPrompt(
+  rawPrompt: string,
+  radiografiaDigest?: string | null
+): { system: string; user: string } {
+  const radiografiaBlock = radiografiaDigest
+    ? `\n\n## Radiografía multimodal previa (evidencia de PRIMERA MANO del operador: URLs, imágenes, videos del producto objetivo o referencias — ya analizada por visión + L2. Tiene JERARQUÍA sobre cualquier inferencia; úsala para afinar dominio y queries; NO la repitas textualmente en las queries)\n${radiografiaDigest}`
+    : "";
   return {
     system: `Eres el módulo de arranque en frío del Instanciador Agent OS (Protocolo 11, Fase 1).
 Recibes el prompt crudo de un operador que NO tiene expertise técnico ni comercial
 (y se asume que tampoco el modelo lo tiene del dominio). Tu único trabajo es derivar
 el dominio del proyecto y las queries de investigación web que un equipo de expertos
 ejecutaría ANTES de diseñar nada: mejores apps del nicho, mejores prácticas técnicas,
-seguridad específica del dominio y modelos de negocio. ${STYLE_RULES}
+seguridad específica del dominio y modelos de negocio. Si hay una Radiografía previa,
+deriva el dominio de esa evidencia visual (concepts, apariencia, motion, negocio). ${STYLE_RULES}
 
 Responde EXCLUSIVAMENTE con un objeto JSON válido (sin texto alrededor):
 {
@@ -34,26 +41,34 @@ Las 5 searchQueries deben cubrir: (1) mejores apps/líderes del nicho,
 (2) mejores prácticas técnicas de desarrollo para ese tipo de app,
 (3) seguridad y privacidad específica del dominio, (4) modelo de negocio/monetización,
 (5) features diferenciadoras que los usuarios esperan. Máximo 70 caracteres por query.`,
-    user: `Prompt crudo del operador:\n"""\n${rawPrompt}\n"""\n\nDeriva dominio y queries de investigación.`,
+    user: `Prompt crudo del operador:\n"""\n${rawPrompt}\n"""${radiografiaBlock}\n\nDeriva dominio y queries de investigación.`,
   };
 }
 
 // ── Fase 1b: spec completa (roles, goals, XML refactor, contexto §0) ─────
 
-export function buildSpecPrompt(rawPrompt: string, research: ResearchItem[]): { system: string; user: string } {
+export function buildSpecPrompt(
+  rawPrompt: string,
+  research: ResearchItem[],
+  radiografiaDigest?: string | null
+): { system: string; user: string } {
   const researchDigest = research
     .map((r) => {
       const top = r.results.slice(0, 4).map((x) => `- ${x.title} (${x.url}): ${x.snippet.slice(0, 180)}`).join("\n");
       return `### Query: "${r.query}"\n${top || "(sin resultados — continuar con conocimiento general, sin citar fuentes)"}`;
     })
     .join("\n\n");
+  const radiografiaBlock = radiografiaDigest
+    ? `\n\n## Radiografía multimodal previa (evidencia de PRIMERA MANO — JERARQUÍA MÁXIMA)\nMaterial aportado por el operador (URLs/imágenes/videos del producto objetivo o referencias), ya analizado por visión + L2. Incorpora sus hallazgos (conceptos, pantallas, apariencia, motion design, modelo de negocio, componentes) en projectName/description/targetUsers/goals/xmlPrompt/agentsContextSection. NO inventes lo que no esté en la evidencia (P2); lo no detectado se declara como tal.\n${radiografiaDigest}`
+    : "";
 
   return {
     system: `Eres el Orquestador de Expertos del Instanciador Agent OS (Protocolo 11, Fase 1).
 Asumes automáticamente los roles críticos (Arquitecto de Software Senior, Product
 Manager B2B, Auditor de Seguridad, Diseñador de Producto) para refactorizar el
 prompt crudo de un operador sin expertise en una spec profesional. Trabajas SOLO
-con el prompt y la evidencia de investigación provista. ${STYLE_RULES}
+con el prompt, la evidencia de investigación provista y —si existe— la Radiografía
+multimodal previa (evidencia de primera mano con jerarquía máxima). ${STYLE_RULES}
 
 Responde EXCLUSIVAMENTE con un objeto JSON válido (sin texto alrededor) con esta
 estructura exacta:
@@ -111,8 +126,18 @@ Proyecto Instanciado" de AGENTS.md — es el condicionamiento conductual):
     reprocesable human-in-the-loop, fast inner pipelines, data transport tipado y
     broadcasting WebSocket/SSE con rooms y rehidratación al reconectar — PROHIBIDO
     emular tiempo real con polling.
+13. SOLO si existe evidencia de Radiografía multimodal previa (material del operador
+    ya analizado): añade "### Radiografía del Producto (evidencia de primera mano)"
+    resumiendo en 6-10 bullets: tipo de producto y conceptos centrales detectados,
+    pantallas clave, apariencia (paleta/tipografía/radius), motion design
+    (animaciones/efectos/transiciones), modelo de negocio detectado y componentes
+    priorizados. Declara explícitamente que esta sección proviene del material
+    aportado por el operador y que los goals deben honrarla.
 No incluyas el heading "##" de nivel 2 (se agrega programáticamente).`,
-    user: `## Prompt crudo del operador\n"""\n${rawPrompt}\n"""\n\n## Evidencia de investigación web (Fase 1)\n${researchDigest}\n\nRefactoriza el prompt y produce la spec completa JSON.`,
+    user: `## Prompt crudo del operador
+"""
+${rawPrompt}
+"""${radiografiaBlock}\n\n## Evidencia de investigación web (Fase 1)\n${researchDigest}\n\nRefactoriza el prompt y produce la spec completa JSON.`,
   };
 }
 

@@ -180,7 +180,10 @@ model CommandLog {
 
 model RadiografiaRun {
   id            String    @id @default(cuid())
-  targetUrl     String
+  targetUrl     String // URL objetivo (single) o etiqueta de fuentes (multimodal)
+  sourceType    String    @default("url") // url | multimodal
+  sourcesJson   String? // JSON: metadata de fuentes multimodales (sin base64)
+  conceptsJson  String? // JSON: conceptos, pantallas y motion design detectados
   targetTitle   String?
   status        String    @default("PENDING") // PENDING | RUNNING | COMPLETED | FAILED
   phase         Int       @default(0) // 0..5
@@ -299,6 +302,7 @@ model TaskStep {
 model BootstrapRun {
   id           String          @id @default(cuid())
   prompt       String // prompt crudo del operador (cero conocimiento asumido)
+  radiografiaId String? // run de Radiografía multimodal vinculado (fase previa)
   projectName  String?
   slug         String?
   status       String          @default("PENDING") // PENDING | RESEARCHING | PLANNING | GENERATING | VERIFYING | PACKAGING | COMPLETED | ERROR

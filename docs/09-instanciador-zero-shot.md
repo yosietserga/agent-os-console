@@ -1,19 +1,20 @@
 # 09 · Instanciador Zero-Shot (Protocolo 11)
 
-> **Versión documentada**: v2.1.0 · Ruta: `/` → tab **Instanciador** · API: `/api/agent-os/bootstrap*`
+> **Versión documentada**: v2.3.0 (multimodal) · Ruta: `/` → tab **Instanciador** · API: `/api/agent-os/bootstrap*` + `/api/agent-os/radiografia`
 > **Motor**: Protocolo 11 *Zero-Shot Project Bootstrap* del [agent-os-boilerplate](https://github.com/yosietserga/agent-os-boilerplate) (v1.10)
 
-El Instanciador convierte la consola Agent OS en un **generador de scaffolds de condicionamiento conductual**. El operador describe la app que desea en un input tipo chatbot ("cuéntame qué app deseas crear") y el sistema **no genera la app**: genera `AGENTS.md` y todos los archivos derivados e interconectados que garantizan que cualquier LLM/SLM (Claude, GPT, Gemini, Cursor, Copilot…) que consuma el scaffold siga el workflow agéntico diseñado — ajustado al tópico del proyecto ingresado. La entrega es un **ZIP** con MANIFEST verificable.
+El Instanciador convierte la consola Agent OS en un **generador de scaffolds de condicionamiento conductual**. El operador describe la app que desea en un input tipo chatbot ("cuéntame qué app deseas crear") **o aporta material de primera mano** (URLs de apps de referencia, capturas/fotos, videos demo) y el sistema **no genera la app**: genera `AGENTS.md` y todos los archivos derivados e interconectados que garantizan que cualquier LLM/SLM (Claude, GPT, Gemini, Cursor, Copilot…) que consuma el scaffold siga el workflow agéntico diseñado — ajustado al tópico del proyecto ingresado. La entrega es un **ZIP** con MANIFEST verificable.
 
 ## 1 · Qué hace (y qué no hace)
 
 | Hace | No hace |
 |:--|:--|
-| Investiga el dominio del prompt (web search real, zero-knowledge) | No construye la app del proyecto |
-| Refactoriza el prompt crudo a XML con roles de expertos | No inventa fuentes ni cifras (P2) |
-| Genera catálogos, personas y prompts adaptados al dominio | No reescribe la constitución AGENTS.md (la instancia) |
-| Ensambia constitución inmutable + contexto del proyecto | No deja archivos huérfanos (verificación de interconexiones) |
-| Empaqueta 114+ archivos en ZIP con sha256 por archivo | No requiere que el operador sepa nada técnico |
+| **Radiografía multimodal opcional**: analiza URLs (page_reader), capturas/fotos (visión) y videos demo (visión) para extraer conceptos, apariencia, animaciones, efectos y modelo de negocio ANTES de generar | No construye la app del proyecto |
+| Investiga el dominio del prompt (web search real, zero-knowledge) | No inventa fuentes ni cifras (P2) |
+| Refactoriza el prompt crudo a XML con roles de expertos | No reescribe la constitución AGENTS.md (la instancia) |
+| Genera catálogos, personas y prompts adaptados al dominio | No deja archivos huérfanos (verificación de interconexiones) |
+| Ensambia constitución inmutable + contexto del proyecto (+ sección "Radiografía del Producto" cuando hay evidencia) | No requiere que el operador sepa nada técnico |
+| Empaqueta 114+ archivos en ZIP con sha256 por archivo | No bloquea al operador: la radiografía fallida ofrece continuar sin ella (P2) |
 
 ## 2 · El bucle agéntico completo del pipeline
 
@@ -60,6 +61,34 @@ flowchart TD
 ```
 
 **Degradación honesta (P2)**: si L2 o web_search fallan en cualquier fase, el pipeline no aborta la instanciación — inserta un *fallback declarado* (ej. catálogo con encabezado "VERSIÓN DEGRADADA") y lo lista en las notas del pro-report. Jamás inventa contenido.
+
+## 2.5 · Fase 0 — Radiografía Multimodal (opcional, material de primera mano)
+
+Cuando el operador adjunta material (URLs, imágenes/fotos de apps, videos demo) en el input del Instanciador, el flujo añade una **fase previa** que entiende el producto ANTES de generar nada:
+
+```mermaid
+flowchart LR
+    MAT[Operador adjunta material<br/>URL · captura/foto · video<br/>+ notas opcionales] --> XRPOST[POST /api/agent-os/radiografia<br/>sources: [...]]
+    XRPOST -.->|background| XPIPE[RadiografíaRun multimodal]
+
+    subgraph XPIPE5 [5 fases en vivo — polling cada 2s]
+        X1[1 · Extracción Multimodal<br/>URL→page_reader · imagen→visión · video→visión] -->
+        X2[2 · Conceptos, Apariencia<br/>&amp; Motion Design — síntesis L2] -->
+        X3[3 · Modelo de Negocio] -->
+        X4[4 · Reconstrucción Modular] -->
+        X5[5 · Verificación]
+    end
+
+    XPIPE -->|COMPLETED| XDTO[RadiografíaRunDTO:<br/>concepts · brandTokens · businessModel<br/>reconstruction · verification · executive]
+    XDTO -->|cuenta regresiva 6s cancelable| AUTO[POST /bootstrap<br/>prompt + radiografiaId]
+    XPIPE -.->|FAILED| DEG[UI honesta: Reintentar ·<br/>Continuar sin radiografía · Cancelar]
+```
+
+**Qué extrae**: tipo de producto y conceptos centrales, pantallas detectadas, apariencia (paleta con hex, tipografía, radius), **motion design** (animaciones, efectos, transiciones — clave en videos), patrones UX, modelo de negocio (oferta, pricing, planes, valor) y componentes priorizados para reconstrucción. Cada fuente deja evidencia con su propio detalle (KB leídos / palabras de evidencia visual).
+
+**Cómo enriquece el flujo existente** (sin cambiarlo de forma): `BootstrapRun.radiografiaId` vincula el run; el pipeline carga el contexto (`loadRadiografiaContext`) e inyecta un digest con **jerarquía máxima** (evidencia de primera mano > investigación web) en el pre-spec (afina dominio y queries) y en la spec (requisito 13: la sección `agentsContextSection` gana "### Radiografía del Producto" con conceptos/pantallas/paleta/motion/negocio). Con material adjunto, el prompt puede ir **vacío** — la semilla se deriva honestamente de la síntesis ejecutiva.
+
+**Límites y resiliencia**: máx 6 fuentes (máx 3 URLs; imagen ≤ 8MB; video ≤ 20MB — validación espejo cliente/servidor ANTES de crear el run); síntesis L2 con 2 intentos automáticos + **salvage de JSON truncado** (reparación de estructura + normalización "no detectado", P2 sin invención); error de transporte no se reintenta en bucle (P17 rate-limit aware).
 
 ## 3 · Secuencia end-to-end (operador → ZIP)
 
@@ -227,15 +256,21 @@ Veredictos: `PASS` (0 fallos) · `PASS_WITH_NOTES (N)` — nunca se emite PASS s
 
 | Endpoint | Método | Descripción |
 |:--|:--|:--|
-| `/api/agent-os/bootstrap` | `POST` | `{ prompt }` (10-2000 chars) → `{ runId }`; dispara el pipeline en background |
+| `/api/agent-os/bootstrap` | `POST` | `{ prompt, radiografiaId? }` — prompt 10-2000 chars (o vacío/≥0 con radiografía COMPLETED vinculada) → `{ runId }`; dispara el pipeline en background |
 | `/api/agent-os/bootstrap` | `GET` | Historial (últimos 10 runs) |
 | `/api/agent-os/bootstrap/[id]` | `GET` | Estado completo + spec + research + árbol de archivos; `?path=` devuelve el contenido de un archivo (preview) |
 | `/api/agent-os/bootstrap/[id]/download` | `GET` | ZIP (solo si COMPLETED; 409 en otro caso) — raíz `<slug>/` + `MANIFEST.json` |
+| `/api/agent-os/radiografia` | `POST` | `{ url }` (single-URL, comando 17) **o** `{ sources: [{kind:url|image|video,...}], notes? }` (multimodal) → run RUNNING inmediato |
+| `/api/agent-os/radiografia?id=` | `GET` | Polling del run: fases en vivo, fuentes, concepts/brandTokens/businessModel/reconstruction/verification |
 
 ## 9 · Comportamiento ante fallos (P2 verificado en vivo)
 
 | Fallo | Comportamiento |
 |:--|:--|
+| Fuente multimodal inválida (MIME/size/duplicada) | HTTP 400 ANTES de crear el run — jamás produce runs basura |
+| Visión falla en una fuente | La fase registra el error de esa fuente y continúa con el resto; si NINGUNA produce evidencia → FAILED |
+| Síntesis L2 truncada/no-JSON | 2º intento automático con instrucción estricta; salvage de JSON truncado + normalización "no detectado"; si persiste → FAILED con fragmento de evidencia (P2) |
+| Radiografía FAILED | UI honesta: Reintentar · Continuar sin radiografía (si prompt ≥ 10) · Cancelar — el operador nunca queda bloqueado |
 | L2 caído en pre-spec | Queries derivadas del prompt crudo; nota honesta en el pro-report |
 | web_search sin resultados | Sintetiza con conocimiento general **sin citar fuentes**; "(sin resultados — P2)" en research.md |
 | L2 caído en un catálogo/persona | Archivo degradado con encabezado "VERSIÓN DEGRADADA (P2)"; el resto del scaffold sigue |
@@ -257,4 +292,4 @@ Veredictos: `PASS` (0 fallos) · `PASS_WITH_NOTES (N)` — nunca se emite PASS s
 
 ---
 
-*Documento generado en la iteración del Instanciador Zero-Shot (v2.1.0). Ejecución de referencia: run "Fusionador de Documentos" (114 archivos, 23 fuentes, 17 archivos L2, veredicto PASS_WITH_NOTES 1 check → .gitkeep corregido).*
+*Documento generado en la iteración del Instanciador Zero-Shot (v2.1.0) y extendido en v2.3.0 con la Radiografía Multimodal (fase 0). Ejecuciones de referencia: run "Fusionador de Documentos" (114 archivos, 23 fuentes, 17 archivos L2, veredicto PASS_WITH_NOTES 1 check → .gitkeep corregido); run multimodal "ProjectFlow Pro" (imagen+video → radiografía con paleta #F4F5F7/#00D2B4 y planes Free/Pro/Enterprise detectados → 115 archivos con sección "Radiografía del Producto" en AGENTS.md).*
