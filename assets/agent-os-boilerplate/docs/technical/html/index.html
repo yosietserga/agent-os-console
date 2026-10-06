@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Interactive technical documentation portal for Agent OS Boilerplate v1.8.0">
+<title>Agent OS Boilerplate v1.8.0 — Documentación Técnica Interactiva</title>
+<style>
+/* ============================================================
+   Agent OS Boilerplate v1.8.0 — Interactive Technical Docs
+   Paleta: Apple Light Mode (Regla P5 inmutable)
+   Sin dependencias externas. Sin JavaScript. Sin !important.
+   ============================================================ */
+
+:root {
+  --bg-primary:#ffffff; --bg-surface:#f5f5f7; --bg-surface-2:#fafafc;
+  --border-fine:#e5e5ea; --border-strong:#d2d2d7;
+  --text-title:#1d1d1f; --text-secondary:#86868b;
+  --accent:#0071e3; --accent-hover:#005bb5; --accent-soft:rgba(0,113,227,0.08);
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.04); --shadow-md:0 4px 14px rgba(0,0,0,0.06);
+  --shadow-lg:0 12px 32px rgba(0,0,0,0.08);
+  --radius-sm:8px; --radius-md:12px; --radius-lg:18px;
+  --transition:all 0.2s ease;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 140px; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+               "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px; font-weight: 400; line-height: 1.55;
+  color: var(--text-title); background: var(--bg-primary);
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+}
+h1, h2, h3, h4, h5, h6 { margin: 0 0 0.4em; color: var(--text-title); font-weight: 600; letter-spacing: -0.01em; }
+h1 { font-size: 40px; font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: 32px; font-weight: 600; letter-spacing: -0.02em; }
+h3 { font-size: 24px; font-weight: 600; }
+h4 { font-size: 18px; font-weight: 600; }
+h5 { font-size: 16px; font-weight: 600; }
+p { margin: 0 0 1em; color: var(--text-title); }
+a { color: var(--accent); text-decoration: none; transition: var(--transition); }
+a:hover { color: var(--accent-hover); text-decoration: underline; }
+code {
+  font-family: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+  font-size: 0.875em; background: var(--bg-surface); color: var(--text-title);
+  padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-fine);
+}
+pre {
+  font-family: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+  font-size: 13px; background: var(--bg-surface); border: 1px solid var(--border-fine);
+  border-radius: var(--radius-sm); padding: 14px 16px; overflow-x: auto;
+  line-height: 1.5; color: var(--text-title);
+}
+pre code { background: none; border: none; padding: 0; }
+
+/* Sticky Header */
+.site-header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--border-fine);
+}
+.site-header__inner {
+  max-width: 1200px; margin: 0 auto; padding: 14px 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.site-header__title { font-size: 18px; font-weight: 600; color: var(--text-title); margin: 0; letter-spacing: -0.01em; }
+.site-header__title span { color: var(--text-secondary); font-weight: 400; }
+.version-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--accent-soft); color: var(--accent);
+  font-size: 13px; font-weight: 600; padding: 4px 12px;
+  border-radius: 980px; border: 1px solid rgba(0, 113, 227, 0.2); white-space: nowrap;
+}
+.version-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+/* Sticky Nav */
+.site-nav { position: sticky; top: 57px; z-index: 90; background: var(--bg-surface); border-bottom: 1px solid var(--border-fine); }
+.site-nav__inner { max-width: 1200px; margin: 0 auto; padding: 10px 24px; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: thin; }
+.site-nav__inner::-webkit-scrollbar { height: 4px; }
+.site-nav__inner::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+.site-nav a {
+  flex: 0 0 auto; font-size: 14px; font-weight: 500; color: var(--text-secondary);
+  padding: 6px 12px; border-radius: 980px; transition: var(--transition);
+  white-space: nowrap; text-decoration: none;
+}
+.site-nav a:hover { background: var(--bg-primary); color: var(--accent); text-decoration: none; }
+
+/* Main Layout */
+main { max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px; }
+.hero { margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border-fine); }
+.hero h1 { margin-bottom: 12px; }
+.hero__lede { font-size: 18px; color: var(--text-secondary); max-width: 760px; margin-bottom: 24px; }
+.hero__meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.meta-chip { font-size: 13px; font-weight: 500; color: var(--text-title); background: var(--bg-surface); border: 1px solid var(--border-fine); padding: 4px 12px; border-radius: 980px; }
+.meta-chip b { color: var(--accent); font-weight: 600; }
+
+/* Sections */
+section.doc-section { margin-bottom: 64px; scroll-margin-top: 140px; }
+.section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--border-fine); }
+.section-num { font-size: 14px; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+.section-head h2 { margin: 0; }
+.section-lede { color: var(--text-secondary); font-size: 16px; margin-bottom: 24px; max-width: 820px; }
+
+/* Collapsible details */
+details.block { border: 1px solid var(--border-fine); border-radius: var(--radius-md); background: var(--bg-primary); margin-bottom: 12px; overflow: hidden; transition: var(--transition); }
+details.block[open] { border-color: var(--border-strong); box-shadow: var(--shadow-md); }
+details.block > summary {
+  list-style: none; cursor: pointer; padding: 16px 20px; font-weight: 500; font-size: 16px;
+  color: var(--text-title); display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; transition: var(--transition); user-select: none;
+}
+details.block > summary::-webkit-details-marker { display: none; }
+details.block > summary::after { content: "+"; font-size: 20px; font-weight: 400; color: var(--text-secondary); width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: var(--transition); }
+details.block[open] > summary::after { content: "\2212"; color: var(--accent); }
+details.block > summary:hover { background: var(--bg-surface); }
+details.block .block-body { padding: 0 20px 20px; border-top: 1px solid var(--border-fine); padding-top: 18px; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; border: 1px solid var(--border-fine); border-radius: var(--radius-md); }
+table.data { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--bg-primary); }
+table.data th, table.data td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border-fine); vertical-align: top; }
+table.data thead th { background: var(--bg-surface); font-weight: 600; color: var(--text-title); font-size: 13px; text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 1px solid var(--border-strong); }
+table.data tbody tr { transition: var(--transition); }
+table.data tbody tr:hover { background: var(--bg-surface-2); }
+table.data tbody tr:last-child td { border-bottom: none; }
+table.data td.mono, table.data th.mono { font-family: "SF Mono", Menlo, monospace; font-size: 13px; }
+table.data td .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 980px; background: var(--accent-soft); color: var(--accent); }
+table.data td .pill.warn { background: rgba(175, 130, 70, 0.12); color: #8a6a3a; }
+
+/* Cards Grid */
+.grid { display: grid; gap: 14px; }
+.grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 900px) { .grid.cols-3, .grid.cols-4 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .grid.cols-2, .grid.cols-3, .grid.cols-4 { grid-template-columns: 1fr; } }
+.card { background: var(--bg-primary); border: 1px solid var(--border-fine); border-radius: var(--radius-md); padding: 18px; transition: var(--transition); }
+.card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.card__id { font-size: 12px; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; letter-spacing: 0.04em; text-transform: uppercase; }
+.card__title { font-size: 16px; font-weight: 600; color: var(--text-title); margin: 4px 0 6px; }
+.card__body { font-size: 14px; color: var(--text-secondary); }
+details.card { padding: 0; }
+details.card > summary { list-style: none; cursor: pointer; padding: 16px 18px; display: flex; flex-direction: column; gap: 2px; transition: var(--transition); }
+details.card > summary::-webkit-details-marker { display: none; }
+details.card > summary::after { content: "Ver detalle +"; align-self: flex-start; font-size: 13px; font-weight: 500; color: var(--accent); margin-top: 8px; padding: 3px 10px; border: 1px solid var(--accent); border-radius: 980px; transition: var(--transition); }
+details.card[open] > summary::after { content: "Cerrar \2212"; background: var(--accent); color: #fff; }
+details.card .card__body { padding: 0 18px 18px; border-top: 1px solid var(--border-fine); padding-top: 14px; font-size: 14px; color: var(--text-title); }
+
+/* Architecture Layer Diagram */
+.layer-stack { display: flex; flex-direction: column; gap: 0; margin: 24px 0; }
+.layer { border: 1px solid var(--border-fine); border-radius: var(--radius-md); padding: 18px 20px; background: var(--bg-surface); position: relative; margin-bottom: 8px; transition: var(--transition); }
+.layer:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+.layer__label { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.layer__tag { font-size: 12px; font-weight: 600; color: #fff; background: var(--text-title); padding: 3px 10px; border-radius: 980px; letter-spacing: 0.04em; }
+.layer__tag.l0 { background: var(--accent); }
+.layer__tag.l-1 { background: #5e5ce0; }
+.layer__tag.l1 { background: #34c759; }
+.layer__tag.l2 { background: #ff9f0a; }
+.layer__name { font-size: 16px; font-weight: 600; color: var(--text-title); }
+.layer__sub { font-size: 13px; color: var(--text-secondary); }
+.layer__boxes { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+.layer__box { background: var(--bg-primary); border: 1px solid var(--border-fine); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 13px; }
+.layer__box b { display: block; color: var(--text-title); font-size: 13px; margin-bottom: 2px; }
+.layer__box span { color: var(--text-secondary); font-size: 12px; }
+.layer-arrow { text-align: center; color: var(--text-secondary); font-size: 18px; margin: -2px 0; line-height: 1; }
+
+/* SVG figure wrapper */
+figure.diagram { margin: 24px 0; padding: 20px; background: var(--bg-surface); border: 1px solid var(--border-fine); border-radius: var(--radius-md); overflow-x: auto; }
+figure.diagram svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+figure.diagram figcaption { font-size: 13px; color: var(--text-secondary); text-align: center; margin-top: 12px; }
+
+/* Pipeline horizontal */
+.pipeline { display: flex; align-items: stretch; gap: 0; margin: 24px 0; flex-wrap: wrap; }
+.pipeline__phase { flex: 1 1 0; min-width: 120px; background: var(--bg-primary); border: 1px solid var(--border-fine); border-radius: var(--radius-md); padding: 14px; position: relative; transition: var(--transition); }
+.pipeline__phase:hover { border-color: var(--accent); box-shadow: var(--shadow-md); }
+.pipeline__phase + .pipeline__phase { margin-left: -1px; }
+.pipeline__num { font-size: 12px; font-weight: 600; color: var(--accent); letter-spacing: 0.05em; }
+.pipeline__title { font-size: 14px; font-weight: 600; margin: 4px 0 4px; }
+.pipeline__desc { font-size: 12px; color: var(--text-secondary); line-height: 1.45; }
+.pipeline__arrow { display: flex; align-items: center; color: var(--border-strong); font-size: 20px; padding: 0 4px; }
+@media (max-width: 760px) { .pipeline { flex-direction: column; } .pipeline__arrow { transform: rotate(90deg); padding: 6px 0; } }
+
+/* State Machine (Circuit Breaker) */
+.cb-states { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; margin: 20px 0; }
+.cb-state { flex: 1 1 180px; max-width: 220px; text-align: center; border: 1px solid var(--border-fine); border-radius: var(--radius-md); padding: 18px; background: var(--bg-primary); }
+.cb-state.closed { border-color: #34c759; background: rgba(52, 199, 89, 0.05); }
+.cb-state.open { border-color: #ff3b30; background: rgba(255, 59, 48, 0.05); }
+.cb-state.half { border-color: #ff9f0a; background: rgba(255, 159, 10, 0.05); }
+.cb-state__name { font-size: 16px; font-weight: 600; margin: 0 0 4px; }
+.cb-state__desc { font-size: 13px; color: var(--text-secondary); }
+
+/* Governance triangle */
+.gov-roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 24px 0; }
+@media (max-width: 760px) { .gov-roles { grid-template-columns: 1fr; } }
+.gov-role { border: 1px solid var(--border-fine); border-radius: var(--radius-md); padding: 18px; background: var(--bg-primary); transition: var(--transition); }
+.gov-role:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+.gov-role__num { font-size: 12px; font-weight: 600; color: var(--accent); letter-spacing: 0.04em; text-transform: uppercase; }
+.gov-role__title { font-size: 18px; font-weight: 600; margin: 4px 0 8px; }
+.gov-role__role { font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; }
+.gov-role ul { margin: 0; padding-left: 18px; font-size: 13px; color: var(--text-title); }
+.gov-role ul li { margin-bottom: 4px; }
+.gov-role .deny { color: #ff3b30; font-weight: 500; }
+.gov-role .allow { color: #34c759; font-weight: 500; }
+
+/* Tree */
+.tree { font-family: "SF Mono", Menlo, monospace; font-size: 13px; line-height: 1.7; background: var(--bg-surface); border: 1px solid var(--border-fine); border-radius: var(--radius-md); padding: 18px 20px; overflow-x: auto; color: var(--text-title); white-space: pre; }
+.tree .c { color: var(--text-secondary); }
+.tree .f { color: var(--accent); font-weight: 600; }
+
+/* Footer */
+.site-footer { border-top: 1px solid var(--border-fine); background: var(--bg-surface); padding: 32px 24px; text-align: center; font-size: 14px; color: var(--text-secondary); }
+.site-footer b { color: var(--text-title); }
+
+/* Misc helpers */
+.note { background: var(--accent-soft); border-left: 3px solid var(--accent); padding: 12px 16px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 14px; color: var(--text-title); margin: 16px 0; }
+.note b { color: var(--accent); }
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+.kpi { background: var(--bg-surface); border: 1px solid var(--border-fine); border-radius: var(--radius-sm); padding: 14px; }
+.kpi__label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; }
+.kpi__value { font-size: 24px; font-weight: 600; color: var(--text-title); font-variant-numeric: tabular-nums; }
+.kpi__target { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+/* Mobile */
+@media (max-width: 600px) {
+  h1 { font-size: 32px; }
+  h2 { font-size: 24px; }
+  main { padding: 24px 16px 60px; }
+  .site-header__inner { padding: 12px 16px; }
+  .site-header__title { font-size: 16px; }
+  .site-nav__inner { padding: 8px 16px; }
+  html { scroll-padding-top: 120px; }
+}
+
+/* Print */
+@media print {
+  .site-nav, .site-header { display: none; }
+  html { scroll-padding-top: 0; }
+  body { background: #fff; font-size: 11pt; color: #000; }
+  main { max-width: 100%; padding: 0; }
+  details.block, details.card { border: 1px solid #ccc; box-shadow: none; }
+  details.block .block-body, details.card .card__body { display: block; }
+  details:not([open]) > .block-body, details:not([open]) .card__body { display: block; }
+  details > summary::after { content: ""; }
+  .card:hover, .layer:hover, .pipeline__phase:hover { transform: none; box-shadow: none; }
+  figure.diagram { page-break-inside: avoid; }
+  section.doc-section { page-break-before: auto; margin-bottom: 24px; }
+  .hero { page-break-after: always; }
+  a { color: #000; text-decoration: underline; }
+  pre, .tree { background: #f5f5f5; color: #000; border: 1px solid #ccc; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ STICKY HEADER ============ -->
+<header class="site-header">
+  <div class="site-header__inner">
+    <h1 class="site-header__title">Agent OS Boilerplate <span>— Documentación Técnica</span></h1>
+    <span class="version-badge">v1.8.0</span>
+  </div>
+</header>
+
+<!-- ============ STICKY NAV ============ -->
+<nav class="site-nav" aria-label="Navegación de secciones">
+  <div class="site-nav__inner">
+    <a href="#architecture">Arquitectura</a>
+    <a href="#rules">Reglas Cardinales</a>
+    <a href="#commands">Comandos</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#circuit-breaker">Circuit Breaker</a>
+    <a href="#governance">PRE-v2.0</a>
+    <a href="#mcp">MCP</a>
+    <a href="#psim">PSIM</a>
+    <a href="#workflows">Workflows</a>
+    <a href="#archetypes">Arquetipos</a>
+    <a href="#antipatterns">Antipatrones</a>
+    <a href="#personas">Personas</a>
+    <a href="#widgets">Widgets</a>
+    <a href="#security">Seguridad</a>
+    <a href="#file-tree">Estructura</a>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ============ HERO ============ -->
+  <div class="hero">
+    <h1>Agent OS Boilerplate v1.8.0</h1>
+    <p class="hero__lede">
+      Portal técnico interactivo del marco constitucional agéntico. 15 reglas
+      cardinales, 17 comandos canónicos, pipeline de 5 fases y gobernanza
+      PRE-v2.0 con juez determinista. Auto-contenido, sin dependencias externas,
+      paleta Apple Light Mode (Regla P5 inmutable).
+    </p>
+    <div class="hero__meta">
+      <span class="meta-chip"><b>15</b> reglas + W-CTA</span>
+      <span class="meta-chip"><b>17</b> comandos canónicos</span>
+      <span class="meta-chip"><b>7</b> servidores MCP</span>
+      <span class="meta-chip"><b>8</b> skills MCP</span>
+      <span class="meta-chip"><b>30</b> antipatrones</span>
+      <span class="meta-chip"><b>17</b> victorias PSIM</span>
+      <span class="meta-chip"><b>10</b> personas</span>
+      <span class="meta-chip"><b>16</b> IDEs</span>
+      <span class="meta-chip"><b>3</b> protocolos de seguridad</span>
+    </div>
+  </div>
+
+  <!-- ============ 1. ARCHITECTURE ============ -->
+  <section class="doc-section" id="architecture">
+    <div class="section-head">
+      <span class="section-num">01</span>
+      <h2>Arquitectura por Capas (4 capas)</h2>
+    </div>
+    <p class="section-lede">
+      Constitución inmutable (L0), memoria empírica append-only (L-1), ejecución
+      agéntica (L1) y plano de control cognitivo (L2). El flujo de dependencia
+      es descendente: toda inferencia LLM pasa obligatoriamente por el L2.
+    </p>
+
+    <div class="layer-stack">
+      <div class="layer">
+        <div class="layer__label">
+          <span class="layer__tag l0">L0</span>
+          <span class="layer__name">Constitution</span>
+          <span class="layer__sub">— AGENTS.md (Documento Cero) · 15 reglas + 17 comandos</span>
+        </div>
+        <div class="layer__boxes">
+          <div class="layer__box"><b>CLAUDE-CODE.md</b><span>entrypoint Claude Code</span></div>
+          <div class="layer__box"><b>CURSOR-RULES.md</b><span>entrypoint Cursor</span></div>
+          <div class="layer__box"><b>GEMINI.md</b><span>entrypoint Gemini</span></div>
+          <div class="layer__box"><b>+13 IDEs</b><span>todos apuntan a AGENTS.md</span></div>
+        </div>
+      </div>
+      <div class="layer-arrow">▼</div>
+      <div class="layer">
+        <div class="layer__label">
+          <span class="layer__tag l-1">L-1</span>
+          <span class="layer__name">Empirical Memory</span>
+          <span class="layer__sub">— append-only (Regla P9) · 30 AP + 17 WIN</span>
+        </div>
+        <div class="layer__boxes">
+          <div class="layer__box"><b>anti-patterns.md</b><span>AP-001..AP-030</span></div>
+          <div class="layer__box"><b>wins-ledger.md</b><span>WIN-001..WIN-017</span></div>
+          <div class="layer__box"><b>worklog.md</b><span>SESSION-000+</span></div>
+          <div class="layer__box"><b>state.json</b><span>K1–K5 + baselines</span></div>
+        </div>
+      </div>
+      <div class="layer-arrow">▼</div>
+      <div class="layer">
+        <div class="layer__label">
+          <span class="layer__tag l1">L1</span>
+          <span class="layer__name">Agentic Execution</span>
+          <span class="layer__sub">— Pipeline 5 Fases + Scripts + MCP + packages/eval</span>
+        </div>
+        <div class="layer__boxes">
+          <div class="layer__box"><b>Pipeline</b><span>F0 → F1 → F5</span></div>
+          <div class="layer__box"><b>Scripts</b><span>17 comandos canónicos</span></div>
+          <div class="layer__box"><b>MCP</b><span>7 servers + 8 skills</span></div>
+          <div class="layer__box"><b>packages/eval</b><span>Juez determinista (P3)</span></div>
+        </div>
+      </div>
+      <div class="layer-arrow">▼</div>
+      <div class="layer">
+        <div class="layer__label">
+          <span class="layer__tag l2">L2</span>
+          <span class="layer__name">Cognitive Control Plane</span>
+          <span class="layer__sub">— Circuit Breaker · Model Registry · Cost Ledger (P9)</span>
+        </div>
+        <div class="layer__boxes">
+          <div class="layer__box"><b>l2_model_registry</b><span>modelos LLM/SLM</span></div>
+          <div class="layer__box"><b>l2_app_routing_profiles</b><span>Circuit Breaker</span></div>
+          <div class="layer__box"><b>l2_cost_token_ledger</b><span>append-only (P9)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <details class="block">
+      <summary>Diagrama SVG — Stack de 4 capas con flechas de dependencia</summary>
+      <div class="block-body">
+        <figure class="diagram">
+          <svg viewBox="0 0 760 460" width="760" height="460" role="img" aria-label="Arquitectura en 4 capas">
+            <defs>
+              <marker id="arr-arch" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#86868b"/>
+              </marker>
+            </defs>
+            <!-- L0 -->
+            <rect x="40" y="20" width="680" height="80" rx="12" fill="#0071e3" fill-opacity="0.08" stroke="#0071e3" stroke-width="1.5"/>
+            <text x="60" y="46" font-family="-apple-system, sans-serif" font-size="12" font-weight="700" fill="#0071e3" letter-spacing="1">L0 · CONSTITUTION</text>
+            <text x="60" y="68" font-family="-apple-system, sans-serif" font-size="15" font-weight="600" fill="#1d1d1f">AGENTS.md — Documento Cero</text>
+            <text x="60" y="88" font-family="-apple-system, sans-serif" font-size="12" fill="#86868b">15 reglas cardinales · 17 comandos · Pipeline 5 Fases · PRE-v2.0 · PSIM</text>
+            <!-- arrow -->
+            <line x1="380" y1="108" x2="380" y2="138" stroke="#86868b" stroke-width="1.5" marker-end="url(#arr-arch)"/>
+            <!-- L-1 -->
+            <rect x="40" y="140" width="680" height="80" rx="12" fill="#5e5ce0" fill-opacity="0.08" stroke="#5e5ce0" stroke-width="1.5"/>
+            <text x="60" y="166" font-family="-apple-system, sans-serif" font-size="12" font-weight="700" fill="#5e5ce0" letter-spacing="1">L-1 · EMPIRICAL MEMORY (append-only · P9)</text>
+            <text x="60" y="188" font-family="-apple-system, sans-serif" font-size="15" font-weight="600" fill="#1d1d1f">docs/memory/ — anti-patterns · wins-ledger · worklog · state.json</text>
+            <text x="60" y="208" font-family="-apple-system, sans-serif" font-size="12" fill="#86868b">30 antipatrones · 17 victorias PSIM · KPIs K1–K5</text>
+            <!-- arrow -->
+            <line x1="380" y1="228" x2="380" y2="258" stroke="#86868b" stroke-width="1.5" marker-end="url(#arr-arch)"/>
+            <!-- L1 -->
+            <rect x="40" y="260" width="680" height="80" rx="12" fill="#34c759" fill-opacity="0.08" stroke="#34c759" stroke-width="1.5"/>
+            <text x="60" y="286" font-family="-apple-system, sans-serif" font-size="12" font-weight="700" fill="#34c759" letter-spacing="1">L1 · AGENTIC EXECUTION</text>
+            <text x="60" y="308" font-family="-apple-system, sans-serif" font-size="15" font-weight="600" fill="#1d1d1f">Pipeline 5 Fases · Scripts (17) · MCP (7+8) · packages/eval</text>
+            <text x="60" y="328" font-family="-apple-system, sans-serif" font-size="12" fill="#86868b">F0 auditoría → F1 datos → F2 contratos → F3 UI → F4 tests → F5 validación</text>
+            <!-- arrow -->
+            <line x1="380" y1="348" x2="380" y2="378" stroke="#86868b" stroke-width="1.5" marker-end="url(#arr-arch)"/>
+            <!-- L2 -->
+            <rect x="40" y="380" width="680" height="60" rx="12" fill="#ff9f0a" fill-opacity="0.10" stroke="#ff9f0a" stroke-width="1.5"/>
+            <text x="60" y="406" font-family="-apple-system, sans-serif" font-size="12" font-weight="700" fill="#b06a00" letter-spacing="1">L2 · COGNITIVE CONTROL PLANE</text>
+            <text x="60" y="426" font-family="-apple-system, sans-serif" font-size="13" fill="#1d1d1f">model_registry · routing_profiles (CB) · cost_token_ledger · CLOSED ⇌ OPEN ⇌ HALF_OPEN</text>
+          </svg>
+          <figcaption>Flujo de dependencia descendente. Toda inferencia LLM pasa por L2 (Regla P8).</figcaption>
+        </figure>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ 2. CARDINAL RULES ============ -->
+  <section class="doc-section" id="rules">
+    <div class="section-head">
+      <span class="section-num">02</span>
+      <h2>15 Reglas Cardinales + W-CTA</h2>
+    </div>
+    <p class="section-lede">
+      Las 15 reglas P1–P15 son la constitución inviolable del sistema. W-CTA es
+      directriz de widget. Toda modificación requiere PR aprobado por el juez
+      PRE-v2.0. Clic en cada regla para expandir su especificación.
+    </p>
+
+    <details class="block" open>
+      <summary>Tabla rápida de referencia (clic para colapsar)</summary>
+      <div class="block-body">
+        <div class="table-wrap">
+          <table class="data">
+            <thead>
+              <tr><th style="width:64px">ID</th><th>Regla</th><th>Previene</th><th style="width:90px">Origen</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="mono">P1</td><td><b>Read-After-Edit</b></td><td>Falsos éxitos por no-op en edición</td><td>AP-001</td></tr>
+              <tr><td class="mono">P2</td><td><b>Gate Honesty</b></td><td>Reportar PASS sin ejecutar el comando</td><td>AP-004</td></tr>
+              <tr><td class="mono">P3</td><td><b>Closes-Finding Guard</b></td><td>Cerrar hallazgos solo en mocks</td><td>AP-005</td></tr>
+              <tr><td class="mono">P4</td><td><b>Sync Atómica</b></td><td>Drift entre API y OpenAPI</td><td>—</td></tr>
+              <tr><td class="mono">P5</td><td><b>Apple Light Mode</b></td><td>UI discordante y <code>!important</code></td><td>AP-006</td></tr>
+              <tr><td class="mono">P6</td><td><b>Layout 7 posiciones</b></td><td>Archivos monolíticos</td><td>AP-006</td></tr>
+              <tr><td class="mono">P7</td><td><b>Zero-Placeholder, Zero-Emoji</b></td><td>Datos ficticios en producción</td><td>AP-007</td></tr>
+              <tr><td class="mono">P8</td><td><b>LLM-Agnóstico</b></td><td>Vendor lock-in con SDKs directos</td><td>AP-002</td></tr>
+              <tr><td class="mono">P9</td><td><b>Memoria append-only</b></td><td>Pérdida de aprendizaje histórico</td><td>AP-011</td></tr>
+              <tr><td class="mono">P10</td><td><b>Entornos Dev/Deploy</b></td><td>Bugs Windows ↔ Ubuntu</td><td>AP-013</td></tr>
+              <tr><td class="mono">P11</td><td><b>Onboarding Tour</b></td><td>Pantallas densas sin Joyride</td><td>AP-015</td></tr>
+              <tr><td class="mono">P12</td><td><b>Anti-Prompt-Injection (7 capas)</b></td><td>OWASP LLM01 2026</td><td>AP-022..025</td></tr>
+              <tr><td class="mono">P13</td><td><b>Auto-Crítica obligatoria</b></td><td>Auto-aprobación complaciente</td><td>AP-026</td></tr>
+              <tr><td class="mono">P14</td><td><b>Headless Browser Verification</b></td><td>curl/fetch aislado (éxito falso)</td><td>AP-027</td></tr>
+              <tr><td class="mono">P15</td><td><b>Expected-First Workflow</b></td><td>Generación sin expectativas</td><td>AP-028</td></tr>
+              <tr><td class="mono">W-CTA</td><td><b>GlowingCtaButton</b></td><td>CTAs grises sin invitar a tocar</td><td>AP-015</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+
+    <div class="grid cols-2">
+      <details class="card"><summary><span class="card__id">P1</span><span class="card__title">Read-After-Edit Obligatorio</span>
+        <div class="card__body">Tras editar, DEBE releerse la sección modificada (<code>git diff</code> o lectura directa) para verificar que el diff está presente y no ocurrió un no-op. <b>Origen:</b> AP-001 — 79 iteraciones con fallo oculto por no-op en regex.</div></details>
+      <details class="card"><summary><span class="card__id">P2</span><span class="card__title">Gate Honesty Absoluta</span>
+        <div class="card__body">Prohibido declarar PASS sin ejecutar el comando real. Si no se ejecutó, declarar <code>NOT RUN</code>. Toda afirmación incluye comando + exit code + stdout. <b>Origen:</b> AP-004.</div></details>
+      <details class="card"><summary><span class="card__id">P3</span><span class="card__title">Closes-Finding Guard</span>
+        <div class="card__body">NUNCA declarar resuelto un hallazgo si la solución reside solo en un mock. El archivo de producción debe contener la corrección sustantiva. <b>Origen:</b> AP-005.</div></details>
+      <details class="card"><summary><span class="card__id">P4</span><span class="card__title">Sync Atómica</span>
+        <div class="card__body">Todo cambio en código DEBE commitearse junto con: especificaciones API (OpenAPI/Protobuf), documentación y memoria empírica (anti-patterns.md o wins-ledger.md).</div></details>
+      <details class="card"><summary><span class="card__id">P5</span><span class="card__title">Estilo Modo Claro Apple</span>
+        <div class="card__body">Paleta inmutable: <code>#ffffff</code> bg, <code>#f5f5f7</code> surface, <code>#e5e5ea</code> / <code>#d2d2d7</code> borders, <code>#1d1d1f</code> / <code>#86868b</code> text, <code>#0071e3</code> accent. Prohibido: mostaza, dark base, <code>!important</code>.</div></details>
+      <details class="card"><summary><span class="card__id">P6</span><span class="card__title">Layout Canónico 7 Posiciones</span>
+        <div class="card__body">header · featuredContent · column_left · main · column_right · featuredFooter · footer. Prohibidos archivos monolíticos que ignoren el motor de layout.</div></details>
+      <details class="card"><summary><span class="card__id">P7</span><span class="card__title">Zero-Placeholder, Zero-Emoji</span>
+        <div class="card__body">Datos comerciales DEBEN provenir de DB/config. Cero emojis en UI. Solo iconos SVG vectoriales. <b>Origen:</b> AP-007.</div></details>
+      <details class="card"><summary><span class="card__id">P8</span><span class="card__title">Aislamiento LLM-Agnóstico</span>
+        <div class="card__body">Ningún controlador de negocio puede importar SDK de proveedor LLM. Toda inferencia pasa por L2 (envelope + circuit breaker + ledger). Cambiar proveedor = UPDATE en <code>l2_model_registry</code>. Compat: Claude, GPT, Gemini, DeepSeek, Qwen, Llama, Mistral, vLLM, Ollama, LM Studio.</div></details>
+      <details class="card"><summary><span class="card__id">P9</span><span class="card__title">Memoria Append-Only</span>
+        <div class="card__body"><code>anti-patterns.md</code>, <code>wins-ledger.md</code>, <code>worklog.md</code> son append-only. Solo <code>&gt;&gt;</code>. Correcciones vía <code>[CORRIGE-AP-XXX]</code>. Único escribible: <code>state.json</code> (snapshot).</div></details>
+      <details class="card"><summary><span class="card__id">P10</span><span class="card__title">Entornos Dev/Deploy Declarados</span>
+        <div class="card__body"><code>.env</code> define <code>DEV_OS</code> (windows) y <code>DEPLOY_OS</code> (ubuntu). <code>.gitattributes</code> fuerza <code>eol=lf</code>. Paths en código DEBEN usar <code>path.join()</code>.</div></details>
+      <details class="card"><summary><span class="card__id">P11</span><span class="card__title">Onboarding Tour Obligatorio</span>
+        <div class="card__body">Toda vista con &gt;3 secciones interactivas, composer o &gt;3 métricas DEBE montar <code>OnboardingTour</code>. WCAG 2.1 AA, focus-trap, persistencia, máximo 8 steps.</div></details>
+      <details class="card"><summary><span class="card__id">P12</span><span class="card__title">Anti-Prompt-Injection (7 capas)</span>
+        <div class="card__body">1) structured prompts · 2) input sanitization · 3) system sandwich · 4) output validation · 5) HITL destructivas · 6) least privilege · 7) monitoring + audit. <b>Origen:</b> OWASP LLM Top 10 2026 LLM01.</div></details>
+      <details class="card"><summary><span class="card__id">P13</span><span class="card__title">Auto-Crítica Obligatoria</span>
+        <div class="card__body">Modo A (self-revision, mín. 3 debilidades) · Modo D (adversario, 2 vectores si toca seguridad) · Tabla AGREE/DISAGREE (mín. 1 DISAGREE) · Análisis crítico contrario. <b>Origen:</b> Constitutional AI + AgentAuditor (arXiv Feb 2026).</div></details>
+      <details class="card"><summary><span class="card__id">P14</span><span class="card__title">Headless Browser Verification</span>
+        <div class="card__body">Verificar "el server funciona" NO es HTTP 200. Browser headless (MCP browser-devtools) con 10 puntos: navigate + console + network + screenshot + WCAG + 7-pos + sticky + palette + Tour + CTA. curl/fetch SOLO para <code>/health</code>, <code>/ping</code>.</div></details>
+      <details class="card"><summary><span class="card__id">P15</span><span class="card__title">Expected-First Workflow</span>
+        <div class="card__body">ANTES de implementar: generar <code>docs/expected/&lt;epoch&gt;-&lt;topic&gt;.md</code> con 6 secciones (wireframe, documental, comportamiento, rendimiento, accesibilidad, CAs verificables). DESPUÉS: <code>expected-check</code> → MATCH/BETTER/WORSE/FAIL.</div></details>
+      <details class="card"><summary><span class="card__id">W-CTA</span><span class="card__title">GlowingCtaButton</span>
+        <div class="card__body">Botón primario al habilitarse (ej. 2+ archivos) DEBE usar <code>GlowingCtaButton</code>: gradient <code>#0071e3 → #005bb5</code>, glow pulsante 2.4s, 6 estados, <code>prefers-reduced-motion</code> desactiva glow, WCAG 2.1 AA, touch target ≥44px.</div></details>
+    </div>
+  </section>
+
+  <!-- ============ 3. CANONICAL COMMANDS ============ -->
+  <section class="doc-section" id="commands">
+    <div class="section-head">
+      <span class="section-num">03</span>
+      <h2>17 Comandos Canónicos</h2>
+    </div>
+    <p class="section-lede">
+      Punto de entrada obligatorio: <code>lee AGENTS.md, ejecuta: &lt;comando&gt;</code>.
+      Cualquier comando fuera de esta lista se rechaza como no canónico.
+      <code>reverse-engineer</code> tiene alias <code>rayos-x</code>.
+    </p>
+
+    <div class="grid cols-3">
+      <details class="card"><summary><span class="card__id">01 · start</span><span class="card__title">Bootstrap completo</span>
+        <div class="card__body"><b>Script:</b> <code>start.sh</code> (119 líneas). Carga <code>.env</code>, verifica puertos 5432/6379/5672, detecta stack (TS/Py/Go/Rust/PHP/C++), aplica migraciones + DDL L2, levanta dev server.</div></details>
+      <details class="card"><summary><span class="card__id">02 · cold run</span><span class="card__title">Auditoría read-only</span>
+        <div class="card__body"><b>Script:</b> <code>cold-run.sh</code> (111 líneas). Verifica memory sync, type checking, contract fidelity, <b>P8 LLM-agnostic</b>, P9 append-only. Sin modificar archivos.</div></details>
+      <details class="card"><summary><span class="card__id">02a · reverse-engineer</span><span class="card__title">Radiografía rayos X (alias: rayos-x)</span>
+        <div class="card__body"><b>Script:</b> <code>reverse-engineer.sh</code> (623 líneas). 5 etapas: branding Apple P5 → shaders/3D → modelo+Porter → reconstrucción modular → verificación P14+P15.</div></details>
+      <details class="card"><summary><span class="card__id">03 · itera</span><span class="card__title">Procesa N tareas worklog</span>
+        <div class="card__body">Procesa hasta N tareas pendientes del worklog. Uso: <code>itera 5</code>.</div></details>
+      <details class="card"><summary><span class="card__id">04 · verify</span><span class="card__title">Gate-honesty multi-stack</span>
+        <div class="card__body"><b>Script:</b> <code>verify.sh</code> (156 líneas). Gates: tsc/lint/test/build (TS) · mypy/ruff/pytest (Py) · go build/golangci-lint/test -race (Go) · cargo clippy/fmt/test (Rust) · phpstan/phpcs/pest (PHP) · cmake/clang-tidy/ctest (C++). Output: PASS / FAIL / NOT_RUN.</div></details>
+      <details class="card"><summary><span class="card__id">05 · audit memory</span><span class="card__title">Anti-reincidencia AP</span>
+        <div class="card__body"><b>Script:</b> <code>audit-memory.sh</code> (71 líneas). Compara código vs <code>anti-patterns.md</code>. Bloquea reintroducción de AP-001..AP-030.</div></details>
+      <details class="card"><summary><span class="card__id">06 · sil trend</span><span class="card__title">Recalcular K1–K5 + W1–W8</span>
+        <div class="card__body"><b>Script:</b> <code>sil-trend.sh</code> (148 líneas). Regenera <code>state.json</code> + <code>metrics-trend.md</code> con serie temporal y recomendaciones automáticas.</div></details>
+      <details class="card"><summary><span class="card__id">07 · pre cycle</span><span class="card__title">Juez PRE-v2.0 sobre propuesta</span>
+        <div class="card__body"><b>Script:</b> <code>pre-cycle.sh</code> (120 líneas). Veredicto: <code>PROMOTE</code> / <code>REJECT</code> / <code>INCONCLUSO</code>. Requiere ΔS ≥ 5.0 ∧ ∀i ΔDᵢ ≥ −2.0 ∧ σ &lt; |ΔS|.</div></details>
+      <details class="card"><summary><span class="card__id">08 · report</span><span class="card__title">Cierre AGREE/DISAGREE</span>
+        <div class="card__body"><b>Script:</b> <code>report.sh</code> (120 líneas). Genera <code>docs/reports/&lt;epoch&gt;-&lt;title&gt;.md</code> con veredicto, Porter, costos L2, handoff.</div></details>
+      <details class="card"><summary><span class="card__id">09 · ui test</span><span class="card__title">Browser MCP + P5/P6/P7 + WCAG</span>
+        <div class="card__body"><b>Script:</b> <code>ui-test.sh</code> (183 líneas). Valida HTTP 2xx-3xx, header/main/footer (P6), palette (P5), zero-placeholder (P7), sticky footer, sin <code>!important</code>.</div></details>
+      <details class="card"><summary><span class="card__id">10 · persona check</span><span class="card__title">10 personas → W6</span>
+        <div class="card__body"><b>Script:</b> <code>persona-check.sh</code> (248 líneas). Valida ruta contra 10 perfiles. Verifica <code>OnboardingTour</code> (P11) en rutas complejas.</div></details>
+      <details class="card"><summary><span class="card__id">11 · ide</span><span class="card__title">Auto-activation 16 IDEs</span>
+        <div class="card__body"><b>Script:</b> <code>ide.sh</code> (501 líneas). Subcomandos: <code>detect</code> / <code>&lt;name&gt;</code> / <code>all</code>. Salvaguard AP-018: rechaza sobrescribir AGENTS.md.</div></details>
+      <details class="card"><summary><span class="card__id">12 · mejorate</span><span class="card__title">Escanea 10 repos → adoptions</span>
+        <div class="card__body"><b>Script:</b> <code>mejorate.sh</code> (290 líneas). Modos: <code>scan</code> / <code>synthesize</code> / <code>list</code>. Repos: leaked-system-prompts, chatgpt_system_prompt, awesome-cursorrules, Aider, SWE-agent, OpenHands, litellm, mcp/servers, anthropic-cookbook, etc.</div></details>
+      <details class="card"><summary><span class="card__id">13 · investiga</span><span class="card__title">Web search + page reader</span>
+        <div class="card__body"><b>Script:</b> <code>investiga.sh</code> (238 líneas). Usa <code>web_search</code> + <code>page_reader</code>. Lee top 5 páginas. Output: <code>docs/research/&lt;epoch&gt;-&lt;topic-slug&gt;.md</code>.</div></details>
+      <details class="card"><summary><span class="card__id">14 · critica</span><span class="card__title">Auto-crítica Modo A + D</span>
+        <div class="card__body"><b>Script:</b> <code>critica.sh</code> (176 líneas). Modo A (3 debilidades) + Modo D (2 vectores si seguridad) + AGREE/DISAGREE + análisis crítico contrario.</div></details>
+      <details class="card"><summary><span class="card__id">15 · expected-check</span><span class="card__title">Real vs expected P15</span>
+        <div class="card__body"><b>Script:</b> <code>expected-check.sh</code> (298 líneas). Veredicto: <code>MATCH</code> / <code>BETTER</code> / <code>WORSE</code> / <code>FAIL</code>. Requiere <code>docs/expected/&lt;topic&gt;.md</code>. Verificación vía browser headless P14.</div></details>
+      <details class="card"><summary><span class="card__id">16 · gaps-finder</span><span class="card__title">15 checks sync (MANDATORIO)</span>
+        <div class="card__body"><b>Script:</b> <code>gaps-finder.sh</code> (410 líneas). 15 checks de sincronización. Exit 0 = OK, exit 1 = BLOCK. Mandatorio antes de commit (§8.2).</div></details>
+      <details class="card"><summary><span class="card__id">17 · rayos-x</span><span class="card__title">Alias de reverse-engineer</span>
+        <div class="card__body">Alias canónico de <code>cold run reverse-engineer &lt;url&gt;</code>. Punto de entrada corto para la radiografía rayos X de 5 etapas.</div></details>
+    </div>
+
+    <details class="block">
+      <summary>Los 15 checks de gaps-finder (detalle)</summary>
+      <div class="block-body">
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th style="width:48px">#</th><th>Verifica sync entre</th><th style="width:140px">Severidad</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">01</td><td>Comandos AGENTS.md vs scripts/ reales</td><td><span class="pill">critical</span></td></tr>
+              <tr><td class="mono">02</td><td>Reglas cardinales AGENTS.md vs state.json</td><td><span class="pill">critical</span></td></tr>
+              <tr><td class="mono">03</td><td>Antipatrones anti-patterns.md vs state.json</td><td><span class="pill">high</span></td></tr>
+              <tr><td class="mono">04</td><td>Victorias PSIM wins-ledger.md vs state.json</td><td><span class="pill">high</span></td></tr>
+              <tr><td class="mono">05</td><td>Versión state.json vs AGENTS.md changelog</td><td><span class="pill">critical</span></td></tr>
+              <tr><td class="mono">06</td><td>README versión vs state.json</td><td><span class="pill">high</span></td></tr>
+              <tr><td class="mono">07</td><td>README diagrama DISPATCH rutas vs comandos</td><td><span class="pill">critical</span></td></tr>
+              <tr><td class="mono">08</td><td>README estado actual counts vs state.json</td><td><span class="pill">high</span></td></tr>
+              <tr><td class="mono">09</td><td>MCP servers configs vs state.json</td><td><span class="pill">medium</span></td></tr>
+              <tr><td class="mono">10</td><td>MCP skills dirs vs state.json</td><td><span class="pill">medium</span></td></tr>
+              <tr><td class="mono">11</td><td>Personas docs/personas/ vs state.json</td><td><span class="pill">medium</span></td></tr>
+              <tr><td class="mono">12</td><td>Worklog SESSIONs consecutivas</td><td><span class="pill">high</span></td></tr>
+              <tr><td class="mono">13</td><td>PR template checkboxes vs reglas</td><td><span class="pill">low</span></td></tr>
+              <tr><td class="mono">14</td><td>Catálogos counts reales vs declarados</td><td><span class="pill">medium</span></td></tr>
+              <tr><td class="mono">15</td><td>README changelog vs AGENTS.md changelog</td><td><span class="pill">high</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ 4. PIPELINE ============ -->
+  <section class="doc-section" id="pipeline">
+    <div class="section-head">
+      <span class="section-num">04</span>
+      <h2>Pipeline de 5 Fases</h2>
+    </div>
+    <p class="section-lede">
+      Flujo secuencial obligatorio. F5 fallido reintentar máx. 3 veces; luego
+      escalar humano. Cada fase produce artefactos verificables (P15) y deja
+      rastro en memoria (P9).
+    </p>
+
+    <div class="pipeline">
+      <div class="pipeline__phase">
+        <div class="pipeline__num">FASE 0</div>
+        <div class="pipeline__title">Auditoría + Premisas</div>
+        <div class="pipeline__desc">anti-patterns, worklog, state.json, leer AGENTS.md</div>
+      </div>
+      <div class="pipeline__arrow">▶</div>
+      <div class="pipeline__phase">
+        <div class="pipeline__num">FASE 1</div>
+        <div class="pipeline__title">Datos + Dominio</div>
+        <div class="pipeline__desc">Prisma, Zod strict, tipado estricto</div>
+      </div>
+      <div class="pipeline__arrow">▶</div>
+      <div class="pipeline__phase">
+        <div class="pipeline__num">FASE 2</div>
+        <div class="pipeline__title">Contratos API</div>
+        <div class="pipeline__desc">OpenAPI, Zod wrapper {success,data,error,meta}</div>
+      </div>
+      <div class="pipeline__arrow">▶</div>
+      <div class="pipeline__phase">
+        <div class="pipeline__num">FASE 3</div>
+        <div class="pipeline__title">UI + Widgets</div>
+        <div class="pipeline__desc">7-pos P6, EAV, Tour P11, WCAG AA</div>
+      </div>
+      <div class="pipeline__arrow">▶</div>
+      <div class="pipeline__phase">
+        <div class="pipeline__num">FASE 4</div>
+        <div class="pipeline__title">Tests + Docs</div>
+        <div class="pipeline__desc">Vitest/Contratos, sync memoria P4</div>
+      </div>
+      <div class="pipeline__arrow">▶</div>
+      <div class="pipeline__phase">
+        <div class="pipeline__num">FASE 5</div>
+        <div class="pipeline__title">Validación Caliente</div>
+        <div class="pipeline__desc">tsc, lint, build, smoke test</div>
+      </div>
+    </div>
+
+    <details class="block">
+      <summary>Diagrama SVG — Pipeline horizontal con feedback loop F5</summary>
+      <div class="block-body">
+        <figure class="diagram">
+          <svg viewBox="0 0 760 240" width="760" height="240" role="img" aria-label="Pipeline 5 fases horizontal">
+            <defs>
+              <marker id="arr-pipe" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#0071e3"/>
+              </marker>
+            </defs>
+            <!-- 6 phases -->
+            <g font-family="-apple-system, sans-serif">
+              <rect x="10"  y="60" width="110" height="80" rx="10" fill="#ffffff" stroke="#d2d2d7"/>
+              <text x="65"  y="85" text-anchor="middle" font-size="11" font-weight="700" fill="#0071e3">FASE 0</text>
+              <text x="65"  y="105" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1f">Auditoría</text>
+              <text x="65"  y="122" text-anchor="middle" font-size="10" fill="#86868b">Premisas</text>
+
+              <rect x="135" y="60" width="110" height="80" rx="10" fill="#ffffff" stroke="#d2d2d7"/>
+              <text x="190" y="85" text-anchor="middle" font-size="11" font-weight="700" fill="#0071e3">FASE 1</text>
+              <text x="190" y="105" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1f">Datos</text>
+              <text x="190" y="122" text-anchor="middle" font-size="10" fill="#86868b">Prisma + Zod</text>
+
+              <rect x="260" y="60" width="110" height="80" rx="10" fill="#ffffff" stroke="#d2d2d7"/>
+              <text x="315" y="85" text-anchor="middle" font-size="11" font-weight="700" fill="#0071e3">FASE 2</text>
+              <text x="315" y="105" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1f">Contratos</text>
+              <text x="315" y="122" text-anchor="middle" font-size="10" fill="#86868b">OpenAPI</text>
+
+              <rect x="385" y="60" width="110" height="80" rx="10" fill="#ffffff" stroke="#d2d2d7"/>
+              <text x="440" y="85" text-anchor="middle" font-size="11" font-weight="700" fill="#0071e3">FASE 3</text>
+              <text x="440" y="105" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1f">UI</text>
+              <text x="440" y="122" text-anchor="middle" font-size="10" fill="#86868b">7-pos + Tour</text>
+
+              <rect x="510" y="60" width="110" height="80" rx="10" fill="#ffffff" stroke="#d2d2d7"/>
+              <text x="565" y="85" text-anchor="middle" font-size="11" font-weight="700" fill="#0071e3">FASE 4</text>
+              <text x="565" y="105" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1f">Tests</text>
+              <text x="565" y="122" text-anchor="middle" font-size="10" fill="#86868b">+ Docs</text>
+
+              <rect x="635" y="60" width="110" height="80" rx="10" fill="#ffffff" stroke="#0071e3" stroke-width="1.5"/>
+              <text x="690" y="85" text-anchor="middle" font-size="11" font-weight="700" fill="#0071e3">FASE 5</text>
+              <text x="690" y="105" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1f">Validación</text>
+              <text x="690" y="122" text-anchor="middle" font-size="10" fill="#86868b">Smoke test</text>
+            </g>
+            <!-- arrows forward -->
+            <g stroke="#0071e3" stroke-width="1.5" fill="none" marker-end="url(#arr-pipe)">
+              <line x1="120" y1="100" x2="135" y2="100"/>
+              <line x1="245" y1="100" x2="260" y2="100"/>
+              <line x1="370" y1="100" x2="385" y2="100"/>
+              <line x1="495" y1="100" x2="510" y2="100"/>
+              <line x1="620" y1="100" x2="635" y2="100"/>
+            </g>
+            <!-- decision diamond -->
+            <polygon points="690,160 730,195 690,230 650,195" fill="#f5f5f7" stroke="#d2d2d7"/>
+            <text x="690" y="200" text-anchor="middle" font-size="10" font-weight="600" fill="#1d1d1f">¿PASS?</text>
+            <line x1="690" y1="140" x2="690" y2="160" stroke="#d2d2d7"/>
+            <!-- FAIL loop back -->
+            <path d="M 650 195 Q 380 220 65 140" fill="none" stroke="#ff3b30" stroke-width="1.4" stroke-dasharray="5 3"/>
+            <text x="380" y="218" text-anchor="middle" font-size="10" fill="#ff3b30">FAIL ↺ corregir (máx 3)</text>
+            <!-- PASS forward -->
+            <text x="755" y="200" text-anchor="end" font-size="10" fill="#34c759">PASS →</text>
+          </svg>
+          <figcaption>Si F5 falla &gt; 3 veces, escalar humano. PASS dispara cierre de sesión (Paso 6 del workflow maestro).</figcaption>
+        </figure>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ 5. CIRCUIT BREAKER ============ -->
+  <section class="doc-section" id="circuit-breaker">
+    <div class="section-head">
+      <span class="section-num">05</span>
+      <h2>Circuit Breaker (L2 Control Plane)</h2>
+    </div>
+    <p class="section-lede">
+      Máquina de estados de 3 nodos que protege al sistema de cascadas de error
+      del proveedor LLM. Vive en <code>l2_app_routing_profiles</code>.
+    </p>
+
+    <div class="cb-states">
+      <div class="cb-state closed">
+        <div class="cb-state__name">CLOSED</div>
+        <div class="cb-state__desc">Operación normal. Requests pasan al modelo primario.</div>
+      </div>
+      <div class="cb-state open">
+        <div class="cb-state__name">OPEN</div>
+        <div class="cb-state__desc">Bloqueado. <code>R_fail ≥ 0.40</code> con N ≥ 10 muestras. Backoff activo.</div>
+      </div>
+      <div class="cb-state half">
+        <div class="cb-state__name">HALF_OPEN</div>
+        <div class="cb-state__desc">Canary tras <code>T_reset_ms</code>. OK → CLOSED. FAIL → OPEN.</div>
+      </div>
+    </div>
+
+    <div class="note">
+      <b>Fórmula R_fail:</b> Σ𝟙(eᵢ ∈ {5xx, 429, Timeout}) / N &nbsp;·&nbsp;
+      <b>Backoff:</b> T_sleep = min(T_max, random(T_base, T_prev × 3))
+    </div>
+
+    <details class="block">
+      <summary>Diagrama SVG — Máquina de estados con transiciones</summary>
+      <div class="block-body">
+        <figure class="diagram">
+          <svg viewBox="0 0 760 280" width="760" height="280" role="img" aria-label="Circuit Breaker state machine">
+            <defs>
+              <marker id="arr-cb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#86868b"/>
+              </marker>
+              <marker id="arr-cb-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#ff3b30"/>
+              </marker>
+              <marker id="arr-cb-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#34c759"/>
+              </marker>
+            </defs>
+            <!-- CLOSED -->
+            <rect x="40" y="110" width="160" height="70" rx="12" fill="#34c759" fill-opacity="0.10" stroke="#34c759" stroke-width="1.8"/>
+            <text x="120" y="140" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#1d1d1f">CLOSED</text>
+            <text x="120" y="160" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="11" fill="#86868b">normal · R_fail &lt; 0.40</text>
+            <!-- OPEN -->
+            <rect x="300" y="40" width="160" height="70" rx="12" fill="#ff3b30" fill-opacity="0.10" stroke="#ff3b30" stroke-width="1.8"/>
+            <text x="380" y="70" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#1d1d1f">OPEN</text>
+            <text x="380" y="90" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="11" fill="#86868b">bloqueado · backoff</text>
+            <!-- HALF_OPEN -->
+            <rect x="560" y="110" width="160" height="70" rx="12" fill="#ff9f0a" fill-opacity="0.12" stroke="#ff9f0a" stroke-width="1.8"/>
+            <text x="640" y="140" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="16" font-weight="700" fill="#1d1d1f">HALF_OPEN</text>
+            <text x="640" y="160" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="11" fill="#86868b">canary · T_reset</text>
+            <!-- transitions -->
+            <!-- CLOSED -> OPEN -->
+            <path d="M 200 130 Q 250 80 300 80" fill="none" stroke="#ff3b30" stroke-width="1.6" marker-end="url(#arr-cb-r)"/>
+            <text x="250" y="80" text-anchor="middle" font-size="11" fill="#ff3b30" font-weight="600">R_fail ≥ 0.40</text>
+            <text x="250" y="95" text-anchor="middle" font-size="10" fill="#86868b">(N ≥ 10)</text>
+            <!-- OPEN -> HALF_OPEN -->
+            <path d="M 460 90 Q 520 100 560 130" fill="none" stroke="#86868b" stroke-width="1.6" marker-end="url(#arr-cb)"/>
+            <text x="510" y="100" text-anchor="middle" font-size="11" fill="#86868b">tras T_reset_ms</text>
+            <!-- HALF_OPEN -> CLOSED (canary OK) -->
+            <path d="M 560 160 Q 350 230 200 160" fill="none" stroke="#34c759" stroke-width="1.6" marker-end="url(#arr-cb-g)"/>
+            <text x="380" y="240" text-anchor="middle" font-size="11" fill="#34c759" font-weight="600">canary OK → CLOSED</text>
+            <!-- HALF_OPEN -> OPEN (canary FAIL) -->
+            <path d="M 620 110 Q 540 60 460 70" fill="none" stroke="#ff3b30" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arr-cb-r)"/>
+            <text x="540" y="50" text-anchor="middle" font-size="11" fill="#ff3b30">canary FAIL → OPEN (reset)</text>
+          </svg>
+          <figcaption>3 estados, 4 transiciones. El canary fallido reinicia el backoff con T_prev × 3 (capped a T_max).</figcaption>
+        </figure>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ 6. GOVERNANCE ============ -->
+  <section class="doc-section" id="governance">
+    <div class="section-head">
+      <span class="section-num">06</span>
+      <h2>PRE-v2.0 Governance — 3 Roles</h2>
+    </div>
+    <p class="section-lede">
+      Separación estricta de roles para impedir que el LLM relaje su propia
+      constitución. El juez es software determinista puro, sin LLM. Promoción
+      requiere ΔS ≥ 5.0 ∧ sin regresiones severas ∧ significancia estadística.
+    </p>
+
+    <div class="gov-roles">
+      <div class="gov-role">
+        <div class="gov-role__num">ROL 1</div>
+        <div class="gov-role__title">Ejecutor</div>
+        <div class="gov-role__role">Code Agent</div>
+        <ul>
+          <li><span class="allow">Permitido:</span> escribir código siguiendo AGENTS.md</li>
+          <li><span class="deny">Prohibido:</span> modificar archivos de reglas</li>
+          <li>Implementación: branch protection en GitHub</li>
+        </ul>
+      </div>
+      <div class="gov-role">
+        <div class="gov-role__num">ROL 2</div>
+        <div class="gov-role__title">Optimizador</div>
+        <div class="gov-role__role">Rule Engineer</div>
+        <ul>
+          <li><span class="allow">Permitido:</span> abrir PRs a AGENTS.md desde <code>pre/propose/*</code></li>
+          <li>Obligatorio: causa raíz + evidencia + diffs vs memory</li>
+          <li><span class="deny">Prohibido:</span> mergear su propia propuesta</li>
+        </ul>
+      </div>
+      <div class="gov-role">
+        <div class="gov-role__num">ROL 3</div>
+        <div class="gov-role__title">Juez Determinista</div>
+        <div class="gov-role__role">packages/eval — sin LLM</div>
+        <ul>
+          <li><span class="allow">Permitido:</span> ejecutar benchmark y emitir veredicto</li>
+          <li><span class="deny">Prohibido:</span> contener cualquier LLM</li>
+          <li>Decisión matemática inviolable (CI <code>pre-cycle.yml</code>)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="note">
+      <b>Condición de promoción:</b> ΔS ≥ 5.0 ∧ ∀i ΔDᵢ ≥ −2.0 ∧ (σ_c + σ_b) &lt; |ΔS|.
+      Las 6 dimensiones: D1 Compilación (0.20) · D2 Contratos (0.15) · D3 Pipeline (0.20) ·
+      D4 Casos ocultos (0.20) · D5 Tokens (0.10) · D6 Arquitectura (0.15).
+    </div>
+
+    <details class="block">
+      <summary>Diagrama SVG — Triángulo de gobernanza PRE-v2.0</summary>
+      <div class="block-body">
+        <figure class="diagram">
+          <svg viewBox="0 0 760 320" width="760" height="320" role="img" aria-label="Triangulo de gobernanza PRE-v2.0">
+            <defs>
+              <marker id="arr-gov" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#0071e3"/>
+              </marker>
+            </defs>
+            <!-- Ejecutor (top-left) -->
+            <rect x="30" y="30" width="220" height="110" rx="14" fill="#ffffff" stroke="#d2d2d7" stroke-width="1.5"/>
+            <text x="140" y="55" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#0071e3" letter-spacing="1">ROL 1 · EJECUTOR</text>
+            <text x="140" y="80" text-anchor="middle" font-size="14" font-weight="600" fill="#1d1d1f">Code Agent</text>
+            <text x="140" y="100" text-anchor="middle" font-size="11" fill="#86868b">Escribe código</text>
+            <text x="140" y="116" text-anchor="middle" font-size="11" fill="#86868b">siguiendo AGENTS.md</text>
+            <!-- Optimizador (top-right) -->
+            <rect x="510" y="30" width="220" height="110" rx="14" fill="#ffffff" stroke="#d2d2d7" stroke-width="1.5"/>
+            <text x="620" y="55" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#0071e3" letter-spacing="1">ROL 2 · OPTIMIZADOR</text>
+            <text x="620" y="80" text-anchor="middle" font-size="14" font-weight="600" fill="#1d1d1f">Rule Engineer</text>
+            <text x="620" y="100" text-anchor="middle" font-size="11" fill="#86868b">Propone cambios</text>
+            <text x="620" y="116" text-anchor="middle" font-size="11" fill="#86868b">en rama pre/propose/*</text>
+            <!-- Juez (bottom-center) -->
+            <rect x="270" y="190" width="220" height="110" rx="14" fill="#0071e3" fill-opacity="0.06" stroke="#0071e3" stroke-width="1.8"/>
+            <text x="380" y="215" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#0071e3" letter-spacing="1">ROL 3 · JUEZ DETERMINISTA</text>
+            <text x="380" y="240" text-anchor="middle" font-size="14" font-weight="600" fill="#1d1d1f">packages/eval</text>
+            <text x="380" y="260" text-anchor="middle" font-size="11" fill="#86868b">Software SIN LLM</text>
+            <text x="380" y="276" text-anchor="middle" font-size="11" fill="#86868b">Decisión matemática</text>
+            <!-- arrows -->
+            <path d="M 250 70 Q 380 30 510 70" fill="none" stroke="#0071e3" stroke-width="1.5" marker-end="url(#arr-gov)"/>
+            <text x="380" y="35" text-anchor="middle" font-size="11" fill="#0071e3">feedback</text>
+            <path d="M 620 140 Q 540 170 490 200" fill="none" stroke="#0071e3" stroke-width="1.5" marker-end="url(#arr-gov)"/>
+            <text x="600" y="180" text-anchor="middle" font-size="11" fill="#0071e3">propone</text>
+            <path d="M 270 220 Q 200 170 140 140" fill="none" stroke="#34c759" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arr-gov)"/>
+            <text x="180" y="180" text-anchor="middle" font-size="11" fill="#34c759">PROMOTE → merge</text>
+            <text x="380" y="310" text-anchor="middle" font-size="11" fill="#86868b">W4 ADOPTED Promotion en wins-ledger</text>
+          </svg>
+          <figcaption>Ciclo cerrado: feedback → propuesta → juez → merge condicional → WIN-XXX (W4).</figcaption>
+        </figure>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ 7. MCP ECOSYSTEM ============ -->
+  <section class="doc-section" id="mcp">
+    <div class="section-head">
+      <span class="section-num">07</span>
+      <h2>Ecosistema MCP (7 servers + 8 skills)</h2>
+    </div>
+    <p class="section-lede">
+      Model Context Protocol servers exponen capacidades al agente. Las skills
+      son módulos autónomos con frontmatter, ejecutables bajo demanda.
+    </p>
+
+    <h4 style="margin-top:24px">7 MCP Servers</h4>
+    <div class="grid cols-3">
+      <div class="card"><div class="card__id">SERVER · 1</div><div class="card__title">filesystem</div><div class="card__body">Read/write + verificación P1 (Read-After-Edit).</div></div>
+      <div class="card"><div class="card__id">SERVER · 2</div><div class="card__title">git-worktree</div><div class="card__body">Squads de agentes aislados en worktrees separados.</div></div>
+      <div class="card"><div class="card__id">SERVER · 3</div><div class="card__title">lsp-bridge</div><div class="card__body">Diagnósticos polyglot (TS/Py/Go/Rust/PHP/C++).</div></div>
+      <div class="card"><div class="card__id">SERVER · 4</div><div class="card__title">postgres-inspector</div><div class="card__body">Readonly. Verifica RLS y tenant_id (AP-003).</div></div>
+      <div class="card"><div class="card__id">SERVER · 5</div><div class="card__title">browser-devtools</div><div class="card__body">WCAG + 7-pos P6 + palette P5 + prompt-injection.</div></div>
+      <div class="card"><div class="card__id">SERVER · 6</div><div class="card__title">sequential-thinking</div><div class="card__body">Pasos cognitivos explícitos para razonamiento.</div></div>
+      <div class="card"><div class="card__id">SERVER · 7</div><div class="card__title">memory</div><div class="card__body">Knowledge graph. Append-only (P9).</div></div>
+    </div>
+
+    <h4 style="margin-top:32px">8 MCP Skills</h4>
+    <div class="grid cols-4">
+      <div class="card"><div class="card__id">SKILL · 1</div><div class="card__title">schema-validator</div><div class="card__body">Valida schemas canónicos (envelope L2, PRs).</div></div>
+      <div class="card"><div class="card__id">SKILL · 2</div><div class="card__title">circuit-breaker-evaluator</div><div class="card__body">Simula estados CB y verifica transiciones.</div></div>
+      <div class="card"><div class="card__id">SKILL · 3</div><div class="card__title">memory-sync</div><div class="card__body">Sincroniza ledgers append-only vs state.json.</div></div>
+      <div class="card"><div class="card__id">SKILL · 4</div><div class="card__title">porter-forces-analyzer</div><div class="card__body">Mapea victorias/AP a las 5 fuerzas competitivas.</div></div>
+      <div class="card"><div class="card__id">SKILL · 5</div><div class="card__title">apple-theme-linter</div><div class="card__body">Verifica paleta P5 inmutable y sin <code>!important</code>.</div></div>
+      <div class="card"><div class="card__id">SKILL · 6</div><div class="card__title">prompt-injection-scanner</div><div class="card__body">Detecta patrones de inyección (P12, 7 capas).</div></div>
+      <div class="card"><div class="card__id">SKILL · 7</div><div class="card__title">expected-spec-generator</div><div class="card__body">Genera <code>docs/expected/*.md</code> (P15) con 6 secciones.</div></div>
+      <div class="card"><div class="card__id">SKILL · 8</div><div class="card__title">reverse-engineer-skill</div><div class="card__body">Radiografía rayos X 5 etapas (alias rayos-x).</div></div>
+    </div>
+  </section>
+
+  <!-- ============ 8. PSIM ============ -->
+  <section class="doc-section" id="psim">
+    <div class="section-head">
+      <span class="section-num">08</span>
+      <h2>PSIM — Positive Self-Improvement &amp; Measurement</h2>
+    </div>
+    <p class="section-lede">
+      Framework de medición simétrica positiva: 8 clases de victoria (W1–W8) +
+      5 KPIs de trayectoria (K1–K5). Toda sesión debe producir al menos 1
+      victoria verificable con evidencia.
+    </p>
+
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi__label">W1 · Capability Strengthening</div><div class="kpi__value">15</div><div class="kpi__target">Nueva capacidad funcional · Fuerza 4</div></div>
+      <div class="kpi"><div class="kpi__label">W4 · ADOPTED Promotion</div><div class="kpi__value">3</div><div class="kpi__target">Regla promovida vía PRE-v2.0 · Fuerza 5</div></div>
+      <div class="kpi"><div class="kpi__label">W6 · Persona Satisfied</div><div class="kpi__value">6</div><div class="kpi__target">Cumplimiento de persona · Fuerza 3</div></div>
+      <div class="kpi"><div class="kpi__label">W7 · Gate Velocity</div><div class="kpi__value">3</div><div class="kpi__target">Reducción tiempo build/test · Fuerza 1</div></div>
+      <div class="kpi"><div class="kpi__label">TOTAL Victorias</div><div class="kpi__value">17</div><div class="kpi__target">WIN-001..WIN-017 · docs/memory/wins-ledger.md</div></div>
+      <div class="kpi"><div class="kpi__label">K4 · Capability streak</div><div class="kpi__value">17</div><div class="kpi__target">target ≥ 1/iter</div></div>
+    </div>
+
+    <div class="grid cols-2">
+      <details class="block">
+        <summary>8 Clases de Victoria (W1–W8)</summary>
+        <div class="block-body">
+          <div class="table-wrap">
+            <table class="data">
+              <thead><tr><th style="width:60px">ID</th><th>Nombre</th><th>Fuerza Porter</th></tr></thead>
+              <tbody>
+                <tr><td class="mono">W1</td><td>Capability Strengthening</td><td>4 — Sustitutos</td></tr>
+                <tr><td class="mono">W2</td><td>Carry-over Closure</td><td>5 — Rivalidad</td></tr>
+                <tr><td class="mono">W3</td><td>Mock Reduction</td><td>5 — Rivalidad</td></tr>
+                <tr><td class="mono">W4</td><td>ADOPTED Promotion</td><td>5 — Rivalidad</td></tr>
+                <tr><td class="mono">W5</td><td>Anti-Pattern Retirement</td><td>1 — Nuevos Entrantes</td></tr>
+                <tr><td class="mono">W6</td><td>Persona Satisfied</td><td>3 — Compradores</td></tr>
+                <tr><td class="mono">W7</td><td>Gate Velocity</td><td>1 — Nuevos Entrantes</td></tr>
+                <tr><td class="mono">W8</td><td>Finding Half-Life</td><td>1 — Nuevos Entrantes</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+      <details class="block">
+        <summary>5 KPIs de Trayectoria (K1–K5)</summary>
+        <div class="block-body">
+          <div class="table-wrap">
+            <table class="data">
+              <thead><tr><th style="width:60px">ID</th><th>KPI</th><th>Target</th></tr></thead>
+              <tbody>
+                <tr><td class="mono">K1</td><td>P0/P1 Closure Rate</td><td>≥ 0.90</td></tr>
+                <tr><td class="mono">K2</td><td>Mock Reduction Velocity</td><td>&lt; 0 (pendiente negativa)</td></tr>
+                <tr><td class="mono">K3</td><td>Finding Half-Life</td><td>≤ 2 iteraciones</td></tr>
+                <tr><td class="mono">K4</td><td>Capability-Strengthening Count</td><td>≥ 1 / iter</td></tr>
+                <tr><td class="mono">K5</td><td>Gate Stability Streak</td><td>monótono creciente</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <details class="block">
+      <summary>17 Victorias PSIM (WIN-001..WIN-017) — catálogo completo</summary>
+      <div class="block-body">
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th style="width:80px">ID</th><th>Título</th><th style="width:60px">Clase</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">WIN-001</td><td>Constitución de AGENTS.md como Documento Cero Inmutable</td><td>W1</td></tr>
+              <tr><td class="mono">WIN-002</td><td>Desacoplamiento de Inferencia con Especificación L2 Control Plane</td><td>W1</td></tr>
+              <tr><td class="mono">WIN-003</td><td>Gobernanza PRE-v2.0 con Juez Determinista sin LLM</td><td>W4</td></tr>
+              <tr><td class="mono">WIN-004</td><td>Memoria Episódica Append-Only Anti-Reincidencia</td><td>W1</td></tr>
+              <tr><td class="mono">WIN-005</td><td>Matriz Polyglot de 6 Lenguajes con Pipeline Unificado</td><td>W1</td></tr>
+              <tr><td class="mono">WIN-006</td><td>Catálogos Exhaustivos 1-100 (BP / AP / Killer Features)</td><td>W1</td></tr>
+              <tr><td class="mono">WIN-007</td><td>Matriz MCP de 5 Servidores + 5 Skills Modulares</td><td>W1</td></tr>
+              <tr><td class="mono">WIN-008</td><td>CI/CD con Gate Honesty Determinista</td><td>W1</td></tr>
+              <tr><td class="mono">WIN-009</td><td>Cobertura 100% de Prompts Operativos Reales via PRE-v2.0</td><td>W4</td></tr>
+              <tr><td class="mono">WIN-010</td><td>Absorción de Directriz Joyride + Ecosistema de Personas</td><td>W6</td></tr>
+              <tr><td class="mono">WIN-011</td><td>Comando <code>ide</code> — Auto-Activation Layer para 16 IDEs</td><td>W6</td></tr>
+              <tr><td class="mono">WIN-012</td><td>Comando <code>mejorate</code> — Auto-Mejora del Sistema</td><td>W6</td></tr>
+              <tr><td class="mono">WIN-013</td><td>Protocolo Anti-Prompt-Injection (7 capas, OWASP LLM01 2026)</td><td>W6</td></tr>
+              <tr><td class="mono">WIN-014</td><td>Auto-Crítica Obligatoria (Anti Complacencia Generalizada)</td><td>W6</td></tr>
+              <tr><td class="mono">WIN-015</td><td>CTA Glowing + Headless Verify + Expected-First Workflow</td><td>W6</td></tr>
+              <tr><td class="mono">WIN-016</td><td>Comando <code>cold run reverse-engineer</code> — Radiografía Rayos X</td><td>W7</td></tr>
+              <tr><td class="mono">WIN-017</td><td>Comando <code>gaps-finder</code> — Detección Automática de Desincronización</td><td>W7</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ 9. WORKFLOWS ============ -->
+  <section class="doc-section" id="workflows">
+    <div class="section-head">
+      <span class="section-num">09</span>
+      <h2>Workflows — 4 Tipos de Path</h2>
+    </div>
+    <p class="section-lede">
+      Toda interacción operador ↔ agente sigue el workflow maestro de 6 pasos.
+      Internamente combina paths secuenciales, alternos, recíprocos y paralelos.
+    </p>
+
+    <div class="grid cols-2">
+      <details class="block">
+        <summary>Path Secuencial — Pipeline 5 Fases</summary>
+        <div class="block-body">
+          <pre><code>F0 ──► F1 ──► F2 ──► F3 ──► F4 ──► F5
+│      │      │      │      │      │
+│      │      │      │      │      └─► ¿compila? ──no──► ↺ (max 3)
+│      │      │      │      └─► sync docs + memoria
+│      │      │      └─► UI + widgets + 4 estados
+│      │      └─► OpenAPI + wrapper {success,data,error,meta}
+│      └─► Datos + dominio + tipado estricto
+└─► Premisas + memory sync</code></pre>
+          <p style="font-size:14px;color:var(--text-secondary);margin:8px 0 0">Cada fase produce artefacto verificable (P15). Fallo en F5 reintentar máx. 3.</p>
+        </div>
+      </details>
+      <details class="block">
+        <summary>Paths Alternos — Dispatch 7 Grupos + 6 extendidos</summary>
+        <div class="block-body">
+          <pre><code>          ┌── GRUPO A (bootstrap)     ── start
+          ├── GRUPO B (auditoría)      ── cold run, verify
+          ├── GRUPO C (governance)     ── audit memory, sil trend
+comando ──┼── GRUPO D (iteración)      ── itera
+          ├── GRUPO E (UI/UX)          ── ui test, persona check
+          ├── GRUPO F (reglas)         ── pre cycle
+          └── GRUPO G (cierre)         ── report
+                                        │
+                                        ▼
+              docs/reports/&lt;epoch&gt;-&lt;title&gt;.md
+
+Extendidos v1.8.0:
+  ide · mejorate · investiga · critica · expected-check · gaps-finder</code></pre>
+        </div>
+      </details>
+      <details class="block">
+        <summary>Paths Recíprocos — 5 Feedback Loops</summary>
+        <div class="block-body">
+          <ol style="font-size:14px;line-height:1.7;padding-left:20px">
+            <li><b>Memory Loop</b> (entre sesiones): sesión N anexa AP/WIN → sesión N+1 lee en F0</li>
+            <li><b>Gate Honesty Loop</b> (en sesión): editar → releer P1 → diff OK? → continuar / reeditar (max 3) → escalar</li>
+            <li><b>Circuit Breaker Loop</b> (L2): CLOSED → OPEN → HALF_OPEN → CLOSED/OPEN(reset)</li>
+            <li><b>PRE-v2.0 Loop</b>: Ejecutor → Optimizador → Juez → PROMOTE → merge → WIN-XXX (W4)</li>
+            <li><b>PSIM Loop</b>: sesión N registra wins → <code>sil trend</code> → state.json → sesión N+1 lee KPIs</li>
+          </ol>
+        </div>
+      </details>
+      <details class="block">
+        <summary>Paths Paralelos — 5 Patrones de Concurrencia</summary>
+        <div class="block-body">
+          <ol style="font-size:14px;line-height:1.7;padding-left:20px">
+            <li><b>Squad de Agentes en Worktrees</b> — merges por blast radius: bajo → medio → alto</li>
+            <li><b>MCP Servers Paralelos</b> — 7 servers consumidos simultáneamente por el agente LLM</li>
+            <li><b>Fase 0 Lecturas Paralelas</b> — AGENTS.md, anti-patterns, worklog, state.json, 3 reportes</li>
+            <li><b>Cierre de Sesión Escrituras Paralelas</b> — append WIN + append AP + append worklog → reporte → state.json</li>
+            <li><b>CI/CD Paralelo</b> — gate-honesty.yml + memory-audit.yml + pre-cycle.yml (si toca AGENTS.md)</li>
+          </ol>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ============ 10. ARCHETYPES ============ -->
+  <section class="doc-section" id="archetypes">
+    <div class="section-head">
+      <span class="section-num">10</span>
+      <h2>4 Arquetipos Satélite (L2 Routing)</h2>
+    </div>
+    <p class="section-lede">
+      Perfiles operativos canónicos que consumen el Control Plane L2. Cada uno
+      tiene SLA, modelo primario, fallback y criterio de escalado.
+    </p>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th>Arquetipo</th><th style="width:90px">SLA</th><th>Modelo Primario</th><th>Fallback (CB Open)</th><th>Escalado</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>Vision-to-Spec</b></td>
+            <td class="mono">8000ms</td>
+            <td>Gemini 2.5 Flash (visión)</td>
+            <td>Qwen 2.5 VL 72B (Ollama)</td>
+            <td>Upgrade → Claude 4.5 Sonnet</td>
+          </tr>
+          <tr>
+            <td><b>Accounting-OCR</b></td>
+            <td class="mono">4000ms</td>
+            <td>DeepSeek V3.2</td>
+            <td>GPT-4.1 mini</td>
+            <td>Upgrade → DeepSeek R2 / o3</td>
+          </tr>
+          <tr>
+            <td><b>Commerce-Bot</b></td>
+            <td class="mono">800ms</td>
+            <td>Llama 3.3 70B</td>
+            <td>Cerebras 3.1 8B</td>
+            <td>Mistral Small</td>
+          </tr>
+          <tr>
+            <td><b>Fraud-Guard</b></td>
+            <td class="mono">90ms</td>
+            <td>Micro-SLM vLLM</td>
+            <td>Reglas L1</td>
+            <td>Denegación</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:14px;color:var(--text-secondary);margin-top:12px">
+      <b>Fraud-Guard</b> tiene SLA más estricto (90ms) y escalado a denegación — prefiere
+      bloquear antes que exceder el presupuesto de latencia. <b>Vision-to-Spec</b> admite
+      8000ms porque combina OCR + validador determinista post-inferencia.
+    </p>
+  </section>
+
+  <!-- ============ 11. ANTIPATTERNS ============ -->
+  <section class="doc-section" id="antipatterns">
+    <div class="section-head">
+      <span class="section-num">11</span>
+      <h2>30 Antipatrones (AP-001..AP-030)</h2>
+    </div>
+    <p class="section-lede">
+      Catálogo append-only (P9). Toda corrección via <code>[CORRIGE-AP-XXX]</code>.
+      El comando <code>audit memory</code> bloquea reintroducción.
+    </p>
+
+    <details class="block" open>
+      <summary>Catálogo completo — clic para colapsar</summary>
+      <div class="block-body">
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th style="width:70px">ID</th><th>Antipatrón</th><th style="width:80px">Regla</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">AP-001</td><td>Falso Éxito por No-Op en Scripts de Modificación</td><td>P1</td></tr>
+              <tr><td class="mono">AP-002</td><td>Invocación Directa de APIs de LLM sin Control Plane L2</td><td>P8</td></tr>
+              <tr><td class="mono">AP-003</td><td>Omisión de Tenant ID en Consultas Dinámicas EAV</td><td>—</td></tr>
+              <tr><td class="mono">AP-004</td><td>Puertas de Validación Falsificadas (Typecheck PASS cableado)</td><td>P2</td></tr>
+              <tr><td class="mono">AP-005</td><td>Pruebas Aisladas sobre Stubs (Overfit-Backend)</td><td>P3</td></tr>
+              <tr><td class="mono">AP-006</td><td>Inyección de Estilos con !important y Layout Monolítico</td><td>P5/P6</td></tr>
+              <tr><td class="mono">AP-007</td><td>Uso de Emojis y Placeholders Ficticios en UI</td><td>P7</td></tr>
+              <tr><td class="mono">AP-008</td><td>Reintentos Ciegos sin Backoff ante HTTP 429</td><td>—</td></tr>
+              <tr><td class="mono">AP-009</td><td>Sobreajuste de Modelos Costosos para Tareas Triviales</td><td>—</td></tr>
+              <tr><td class="mono">AP-010</td><td>Auto-Aprobación Complaciente de Reglas por el Mismo LLM</td><td>P13</td></tr>
+              <tr><td class="mono">AP-011</td><td>Borrado de Lecciones en Memoria (sobreescritura de ledgers)</td><td>P9</td></tr>
+              <tr><td class="mono">AP-012</td><td>Falta de AbortController en Inferencia LLM</td><td>—</td></tr>
+              <tr><td class="mono">AP-013</td><td>Entornos Dev/Deploy No Declarados</td><td>P10</td></tr>
+              <tr><td class="mono">AP-014</td><td>Reportes de Sesión Sin Convención de Nombrado</td><td>—</td></tr>
+              <tr><td class="mono">AP-015</td><td>Pantalla UI Compleja Huérfana de Onboarding</td><td>P11</td></tr>
+              <tr><td class="mono">AP-016</td><td>Tour Onboarding No Persistente (Repetición Molesta)</td><td>P11</td></tr>
+              <tr><td class="mono">AP-017</td><td>Tour Onboarding No Responsivo Ni Accesible</td><td>P11</td></tr>
+              <tr><td class="mono">AP-018</td><td>Sobrescritura de AGENTS.md por Script de Auto-Configuración</td><td>—</td></tr>
+              <tr><td class="mono">AP-019</td><td>Auto-Mejora No Automatizada (Fallo Meta del Sistema)</td><td>—</td></tr>
+              <tr><td class="mono">AP-020</td><td>Lectura de Archivo Gigante de Golpe (Satura Contexto)</td><td>—</td></tr>
+              <tr><td class="mono">AP-021</td><td>Mejorate Sin Investigar Internet (Fallo Meta 2)</td><td>—</td></tr>
+              <tr><td class="mono">AP-022</td><td>System Prompt Sin Delimitadores Canónicos</td><td>P12</td></tr>
+              <tr><td class="mono">AP-023</td><td>Ausencia de Input Sanitization</td><td>P12</td></tr>
+              <tr><td class="mono">AP-024</td><td>Tools con Privilegios Excesivos</td><td>P12</td></tr>
+              <tr><td class="mono">AP-025</td><td>Ausencia de Audit Log en Llamadas LLM</td><td>P12</td></tr>
+              <tr><td class="mono">AP-026</td><td>Auto-Crítica Omitida (Auto-Aprobación Complaciente Generalizada)</td><td>P13</td></tr>
+              <tr><td class="mono">AP-027</td><td>Verificación por curl/fetch Aislado de Rutas HTML (Éxito Falso)</td><td>P14</td></tr>
+              <tr><td class="mono">AP-028</td><td>Generación de Código Sin Expectativas Previas</td><td>P15</td></tr>
+              <tr><td class="mono">AP-029</td><td>Ingeniería Inversa Sin Normalización Apple Light Mode</td><td>P5</td></tr>
+              <tr><td class="mono">AP-030</td><td>Clonación Sin Expected-First (Iteraciones Infinitas)</td><td>P15</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ 12. PERSONAS ============ -->
+  <section class="doc-section" id="personas">
+    <div class="section-head">
+      <span class="section-num">12</span>
+      <h2>10 Personas (6 base + 4 cold-run)</h2>
+    </div>
+    <p class="section-lede">
+      Validadas por <code>persona check &lt;route&gt;</code> (W6). Las cold-run
+      auditan el sistema desde perspectivas adversarias y extremas.
+    </p>
+
+    <div class="grid cols-2">
+      <div class="card"><div class="card__id">BASE · 1</div><div class="card__title">executive</div><div class="card__body">Métricas, KPIs, vista agregada para reportes a stakeholders.</div></div>
+      <div class="card"><div class="card__id">BASE · 2</div><div class="card__title">operator</div><div class="card__body">Ejecución diaria del pipeline, dispatch de comandos canónicos.</div></div>
+      <div class="card"><div class="card__id">BASE · 3</div><div class="card__title">analyst</div><div class="card__body">Investigación, drill-down de antipatrones y victorias PSIM.</div></div>
+      <div class="card"><div class="card__id">BASE · 4</div><div class="card__title">apprentice</div><div class="card__body">Onboarding guiado. Exige Joyride (P11) en pantallas complejas.</div></div>
+      <div class="card"><div class="card__id">BASE · 5</div><div class="card__title">demo-master</div><div class="card__body">Demos reproducibles. Exige CTA glowing y datos reales (P7).</div></div>
+      <div class="card"><div class="card__id">BASE · 6</div><div class="card__title">experience-architect</div><div class="card__body">Diseño de experiencias coherentes con paleta Apple (P5).</div></div>
+      <div class="card"><div class="card__id">COLD-RUN · 7</div><div class="card__title">novato</div><div class="card__body">Primer contacto. Detecta fricción no documentada.</div></div>
+      <div class="card"><div class="card__id">COLD-RUN · 8</div><div class="card__title">power</div><div class="card__body">Atajos, keyboard, flujos densos. Exige eficiencia.</div></div>
+      <div class="card"><div class="card__id">COLD-RUN · 9</div><div class="card__title">adversario</div><div class="card__body">Intenta romper el sistema. Verifica P12 (7 capas anti-injection).</div></div>
+      <div class="card"><div class="card__id">COLD-RUN · 10</div><div class="card__title">edge</div><div class="card__body">Casos límite: red lenta, low-memory, dispositivos antiguos.</div></div>
+    </div>
+  </section>
+
+  <!-- ============ 13. WIDGETS ============ -->
+  <section class="doc-section" id="widgets">
+    <div class="section-head">
+      <span class="section-num">13</span>
+      <h2>2 Widgets Canónicos</h2>
+    </div>
+    <p class="section-lede">
+      Especificaciones obligatorias declaradas en <code>docs/widgets/</code>.
+      Cumplen paleta Apple (P5), zero-emoji (P7), responsivo 375px y WCAG 2.1 AA.
+    </p>
+
+    <div class="grid cols-2">
+      <details class="card" open>
+        <summary><span class="card__id">WIDGET · 1</span><span class="card__title">OnboardingTour</span>
+        <div class="card__body">
+          <p>Obligatorio en vistas con &gt;3 secciones interactivas, composer, &gt;3 métricas, rutas críticas (/, /dashboard, /signup-success), o cuando la persona <code>apprentice</code> está en scope.</p>
+          <ul style="font-size:13px;line-height:1.7;padding-left:18px;margin:8px 0">
+            <li>Paleta Apple (P5), zero-emoji (P7)</li>
+            <li>Responsivo 375px, focus-trap WCAG 2.1 AA</li>
+            <li>Persistencia <code>tour_&lt;tourKey&gt;_completed</code></li>
+            <li>Máximo 8 steps</li>
+          </ul>
+          <p style="font-size:13px;color:var(--text-secondary);margin:8px 0 0"><b>Antipatrón relacionado:</b> AP-015 (pantalla huérfana de onboarding).</p>
+        </div>
+      </details>
+      <details class="card" open>
+        <summary><span class="card__id">WIDGET · 2</span><span class="card__title">GlowingCtaButton</span>
+        <div class="card__body">
+          <p>Cuando un botón primario de acción se habilita (ej. 2+ archivos agregados), DEBE usar <code>GlowingCtaButton</code> con:</p>
+          <ul style="font-size:13px;line-height:1.7;padding-left:18px;margin:8px 0">
+            <li>Gradient <code>#0071e3 → #005bb5</code></li>
+            <li>Glow pulsante 2.4s (expansión 12–16px, opacidad 0.4)</li>
+            <li>6 estados: disabled → enabled-glowing → hover → active → success → error</li>
+            <li><code>prefers-reduced-motion</code>: desactiva glow, mantiene gradient</li>
+            <li>WCAG 2.1 AA: focus-visible, aria-disabled, touch target ≥44px</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ============ 14. SECURITY ============ -->
+  <section class="doc-section" id="security">
+    <div class="section-head">
+      <span class="section-num">14</span>
+      <h2>3 Protocolos de Seguridad</h2>
+    </div>
+    <p class="section-lede">
+      Protocolos formales en <code>docs/security/</code>. Toda feature que toque
+      datos externos o acciones destructivas DEBE pasar los tres.
+    </p>
+
+    <div class="grid cols-3">
+      <details class="card">
+        <summary><span class="card__id">PROTO · 1</span><span class="card__title">Anti-Prompt-Injection</span>
+        <div class="card__body">
+          <p style="font-size:13px">7 capas defensivas contra OWASP LLM01 2026 (top 1 por 2ª edición consecutiva).</p>
+          <ol style="font-size:12px;line-height:1.7;padding-left:18px">
+            <li>Structured prompts <code>&lt;system&gt;...&lt;user_input&gt;</code></li>
+            <li>Input sanitization (decode-then-validate, typoglycemia norm)</li>
+            <li>System prompt sandwich (antes Y después del input)</li>
+            <li>Output validation (schema + exfiltration detection)</li>
+            <li>HITL para acciones destructivas/externas</li>
+            <li>Least privilege (sandbox FS, network allowlist, DB readonly)</li>
+            <li>Comprehensive monitoring + audit log inmutable</li>
+          </ol>
+        </div>
+      </details>
+      <details class="card">
+        <summary><span class="card__id">PROTO · 2</span><span class="card__title">Auto-Crítica</span>
+        <div class="card__body">
+          <p style="font-size:13px">Antes de publicar artefacto (P13):</p>
+          <ul style="font-size:12px;line-height:1.7;padding-left:18px">
+            <li><b>Modo A</b> (self-revision): mín. 3 debilidades reales</li>
+            <li><b>Modo D</b> (adversario): 2 vectores de ataque si toca seguridad</li>
+            <li><b>Tabla AGREE/DISAGREE</b>: mín. 1 DISAGREE si exploró algo nuevo</li>
+            <li><b>Análisis crítico contrario</b>: "¿hay mejores formas? ¿newer ways 2026?"</li>
+          </ul>
+          <p style="font-size:12px;color:var(--text-secondary);margin:8px 0 0"><b>Origen:</b> Anthropic Constitutional AI + AgentAuditor (arXiv Feb 2026).</p>
+        </div>
+      </details>
+      <details class="card">
+        <summary><span class="card__id">PROTO · 3</span><span class="card__title">Headless Verify + Expected-First</span>
+        <div class="card__body">
+          <p style="font-size:13px">Verificación de rutas HTML obligatoria vía browser headless (P14 + P15):</p>
+          <ul style="font-size:12px;line-height:1.7;padding-left:18px">
+            <li>10 puntos: navigate + console + network + screenshot + WCAG + 7-pos + sticky + palette + Tour + CTA</li>
+            <li>curl/fetch SOLO para <code>/health</code>, <code>/ping</code></li>
+            <li>Antes de implementar: generar <code>docs/expected/*.md</code> con 6 secciones</li>
+            <li>Después: <code>expected-check</code> → MATCH/BETTER/WORSE/FAIL</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ============ 15. FILE TREE ============ -->
+  <section class="doc-section" id="file-tree">
+    <div class="section-head">
+      <span class="section-num">15</span>
+      <h2>Estructura de Archivos (117 archivos)</h2>
+    </div>
+    <p class="section-lede">
+      <b>20 repos de referencia escaneados</b> por <code>mejorate</code>.
+      <b>16 IDE integraciones</b> auto-activables por <code>ide</code>.
+      <b>3 workflows CI</b> instalables vía script.
+    </p>
+
+    <div class="tree"><span class="f">agent-os-boilerplate/</span>
+├── <span class="f">AGENTS.md</span>                     <span class="c"># Constitution (15 rules + 17 commands)</span>
+├── <span class="f">README.md</span>                     <span class="c"># Main documentation (1200+ lines)</span>
+├── CLAUDE-CODE.md · CLAUDE.md        <span class="c"># IDE entrypoints</span>
+├── CURSOR-RULES.md · GEMINI.md      <span class="c"># IDE entrypoints</span>
+├── CODEX.md · COPILOT-INSTRUCTIONS.md
+├── opencode.md · .env.example       <span class="c"># 16 IDE configs total</span>
+├── <span class="f">docs/</span>
+│   ├── memory/                      <span class="c"># Append-only empirical memory (P9)</span>
+│   │   ├── anti-patterns.md         <span class="c"># AP-001..AP-030</span>
+│   │   ├── wins-ledger.md           <span class="c"># WIN-001..WIN-017</span>
+│   │   ├── worklog.md               <span class="c"># SESSION-000+</span>
+│   │   ├── state.json               <span class="c"># K1–K5 + baselines (snapshot)</span>
+│   │   └── MEMORY.md                <span class="c"># Index with frontmatter</span>
+│   ├── reports/                     <span class="c"># &lt;epoch&gt;-&lt;title&gt;.md</span>
+│   ├── expected/                    <span class="c"># P15 expected-first documents</span>
+│   ├── research/                    <span class="c"># `investiga` research reports</span>
+│   ├── security/                    <span class="c"># 3 security protocols</span>
+│   ├── patterns/                    <span class="c"># Orchestration + ACI patterns</span>
+│   ├── mejorate-scans/              <span class="c"># `mejorate` scan reports (20 repos)</span>
+│   ├── reverse-engineering/         <span class="c"># Radiografía rayos X protocol</span>
+│   ├── personas/                    <span class="c"># 10 personas (6 base + 4 cold-run)</span>
+│   ├── widgets/                     <span class="c"># 2 canonical widget specs</span>
+│   ├── l2-control-plane/            <span class="c"># L2 schema + envelope + resilience math</span>
+│   ├── catalogs/                    <span class="c"># 100+28 BP, 100 AP, 100+9 Killer Features</span>
+│   ├── governance/                  <span class="c"># PRE-v2.0 + PSIM</span>
+│   ├── polyglot/                    <span class="c"># 6-language adaptation matrix</span>
+│   ├── ide-integrations/            <span class="c"># 16 IDE auto-activation configs</span>
+│   ├── ci-workflows/                <span class="c"># 3 CI workflows (install via script)</span>
+│   └── technical/                   <span class="c"># MD + HTML docs (← this file)</span>
+├── <span class="f">mcp/</span>
+│   ├── servers/ (7)                 <span class="c"># filesystem, git-worktree, lsp-bridge, ...</span>
+│   └── skills/ (8)                  <span class="c"># schema-validator, circuit-breaker-evaluator, ...</span>
+├── <span class="f">packages/eval/</span>               <span class="c"># Deterministic judge (PRE-v2.0, no LLM)</span>
+├── <span class="f">scripts/</span> (17 + 1 util)        <span class="c"># Canonical command implementations</span>
+└── 16 IDE entrypoints               <span class="c"># .cursorrules, CLAUDE.md, GEMINI.md, ...</span>
+</div>
+
+    <details class="block">
+      <summary>Resumen de conteos (sincronizado con state.json)</summary>
+      <div class="block-body">
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi__label">Reglas cardinales</div><div class="kpi__value">15</div><div class="kpi__target">P1–P15 + W-CTA</div></div>
+          <div class="kpi"><div class="kpi__label">Comandos canónicos</div><div class="kpi__value">17</div><div class="kpi__target">incluye alias rayos-x</div></div>
+          <div class="kpi"><div class="kpi__label">MCP servers</div><div class="kpi__value">7</div><div class="kpi__target">filesystem → memory</div></div>
+          <div class="kpi"><div class="kpi__label">MCP skills</div><div class="kpi__value">8</div><div class="kpi__target">schema-validator → reverse-eng.</div></div>
+          <div class="kpi"><div class="kpi__label">Antipatrones documentados</div><div class="kpi__value">30</div><div class="kpi__target">AP-001..AP-030</div></div>
+          <div class="kpi"><div class="kpi__label">Victorias PSIM</div><div class="kpi__value">17</div><div class="kpi__target">WIN-001..WIN-017</div></div>
+          <div class="kpi"><div class="kpi__label">Personas</div><div class="kpi__value">10</div><div class="kpi__target">6 base + 4 cold-run</div></div>
+          <div class="kpi"><div class="kpi__label">IDE integrations</div><div class="kpi__value">16</div><div class="kpi__target">Cursor, Claude, Gemini, ...</div></div>
+          <div class="kpi"><div class="kpi__label">Repos escaneados</div><div class="kpi__value">20</div><div class="kpi__target">mejorate GitHub scan</div></div>
+          <div class="kpi"><div class="kpi__label">Widgets canónicos</div><div class="kpi__value">2</div><div class="kpi__target">OnboardingTour · GlowingCtaButton</div></div>
+          <div class="kpi"><div class="kpi__label">Protocolos de seguridad</div><div class="kpi__value">3</div><div class="kpi__target">injection · auto-crítica · headless</div></div>
+          <div class="kpi"><div class="kpi__label">Checks gaps-finder</div><div class="kpi__value">15</div><div class="kpi__target">MANDATORIO antes commit</div></div>
+        </div>
+      </div>
+    </details>
+  </section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+  <p><b>Agent OS Boilerplate v1.8.0</b> — Documentación técnica interactiva</p>
+  <p>Generado por Agent OS Boilerplate v1.8.0 · Paleta Apple Light Mode (Regla P5 inmutable) · Sin dependencias externas · Sin JavaScript · Sin <code>!important</code></p>
+  <p style="margin-top:8px">Fuentes: <code>docs/technical/architecture.md</code> · <code>rules-reference.md</code> · <code>commands-reference.md</code> · <code>workflows.md</code> · <code>docs/governance/</code> · <code>docs/memory/state.json</code></p>
+</footer>
+
+</body>
+</html>

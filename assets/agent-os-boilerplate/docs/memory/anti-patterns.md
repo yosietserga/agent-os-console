@@ -429,3 +429,44 @@
   beauty scroll panels con scroll vertical y horizontal verificados. La
   verificación es headless (P14) + expected-first (P15) y cada omisión es un
   gap declarado con severidad, no una "mejora futura".
+
+## [AP-035] Cola sin Presupuesto de Reintentos y Toasts Saturando la Pantalla
+- **Fecha:** 2026-10-06
+- **Causa Raíz:** (Severidad ALTA, clase UX/resiliencia). Los flujos de creación
+  masiva se construían sin cola de trabajo: reintentos ingenuos en bucle que
+  agravan el rate limit del backend (429 en cascada — cada reintento inmediato
+  consume la cuota que necesitaba el siguiente), un toast por registro que
+  satura la webview (repaints en cascada, pantalla invadida), y errores que
+  bloquean el flujo o mueren en la consola del navegador sin acción posible.
+- **Impacto:** Caídas del backend por abuso de cuota en horas pico de captura;
+  el operador abandona la captura en el registro 3 de 20; errores invisibles
+  que se descubren días después; datos perdidos al refrescar sin autosave.
+- **Regla Correctiva:** Regla P17 + §11.6/§11.7 de AGENTS.md: cola de trabajo
+  con "Guardar y crear otro", autosave con rehidratación, reintentos con
+  backoff exponencial + jitter dentro de un presupuesto de intentos por
+  ventana (respeta 429/Retry-After), idempotency keys, presupuesto visual de
+  toasts (máx. 3, agregados, deduplicados, "+N más") y errores terminales
+  estacionados en el centro de notificaciones con acciones human-in-the-loop
+  (Reintentar · Editar · Descartar) sin detener la cola.
+
+## [AP-036] SaaS/Streaming sobre Request-Response Acoplado
+- **Fecha:** 2026-10-06
+- **Causa Raíz:** (Severidad ALTA, clase arquitectura). Apps SaaS o de datos en
+  vivo construidas con llamadas síncronas punto a punto: productores que
+  conocen a todos sus consumidores (agregar uno exige tocar el core), caches
+  coherentes solo por TTL (stale reads en datos vivos), trabajo asíncrono
+  (emails, exports, webhooks) ejecutado dentro del request cycle (timeouts,
+  reintentos duplicados), y "tiempo real" emulado con polling de N clientes
+  que escala como N×frecuencia en vez de escalar con los cambios reales.
+- **Impacto:** Acoplamiento que convierte cada feature nueva en una
+  refactorización transversal; carga del backend multiplicada por el polling;
+  datos inconsistentes entre clientes; imposibilidad de auditar qué reaccionó
+  a qué (sin correlation/causation); DLQ inexistente: los fallos asíncronos
+  se pierden.
+- **Regla Correctiva:** Regla P18 + §12 de AGENTS.md: event bus central con
+  eventos tipados versionados (metadata tenant/actor/correlation/causation),
+  pub/sub desacoplado, handlers idempotentes; caching invalidado por eventos
+  con claves por tenant; hooks/filters declarativos; queuing subsystems con
+  backpressure, prioridades y DLQ reprocesable human-in-the-loop; fast inner
+  pipelines con batching/coalescing; data transport tipado por contrato;
+  broadcasting WebSocket/SSE con rooms y rehidratación al reconectar.

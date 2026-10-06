@@ -223,6 +223,10 @@
 
 130. **Estándar de Paneles Administrativos Enterprise** — Todo admin/account/users panel con sidebar se entrega completo (Regla P16 + AGENTS.md §11): scroll vertical y horizontal sin errores con scrollbars estilizados; cada módulo CRUD con dashboard propio, listado con paginación/filtros/multiselect/dots menu, soft delete con papelera restaurable + hard delete con confirmación, forms create/edit como pageviews con URL propia convencionada (nunca modal box) en doble modalidad wizard/avanzado, datos relacionados consultables con filtro dinámico dentro del form, preview en vivo, batch processes (export, toggle status, soft/hard delete, quick edit) y página de detalles con tabs. **[P16, P14, P15]**
 
+131. **Cola de Trabajo de Creación Continua con Notificaciones Inteligentes** — Todo flujo de creación soporta encadenar registros distintos uno tras otro ("Guardar y crear otro") con cola visible por estado (Regla P17 + §11.6/§11.7): autosave de borradores con rehidratación, reintentos automáticos rate-limit aware (backoff exponencial + jitter + presupuesto de intentos por ventana — jamás el bucle que provoca 429 en cascada), idempotency keys, toasts con presupuesto visual (máx. 3 visibles, agregados y deduplicados, "+N más" hacia el centro de notificaciones) y errores terminales estacionados para resolución human-in-the-loop (Reintentar · Editar · Descartar) sin bloquear la cola. **[P17, P14, P15]**
+
+132. **Arquitectura Event-Driven para SaaS y Data Streaming** — Toda app SaaS o con data streaming se construye sobre event bus (Regla P18 + §12): eventos tipados versionados con metadata tenant/actor/correlation/causation, pub/sub desacoplado con handlers idempotentes, caching multi-capa invalidado por eventos (claves por tenant), hooks y filters before/after/around con veto, queuing subsystems con backpressure + prioridades + DLQ reprocesable human-in-the-loop, fast inner pipelines (parse→validate→enrich→persist→broadcast) con batching/coalescing, data transport tipado por contrato y broadcasting WebSocket/SSE con rooms por tenant y reconexión con rehidratación — jamás polling como emulación de tiempo real. **[P18, P14, P15]**
+
 ---
 
 > **Uso en CI:** El workflow `memory-audit.yml` puede importar este catálogo y
@@ -239,3 +243,8 @@
 > (disparo automático tras cada ERROR del dispatcher).
 > La BP #130 la validan los comandos `cold run` + `ui test <ruta>` +
 > `expected-check` contra la anatomía del AGENTS.md §11.2 (Regla P16).
+> La BP #131 la validan contra el AGENTS.md §11.6/§11.7 (Regla P17): cola de
+> N registros con presupuesto de reintentos, presupuesto de toasts y error
+> estacionado con acción human-in-the-loop. La BP #132 la valida
+> `expected-check` contra el AGENTS.md §12 (Regla P18): broadcast a N
+> suscriptores, caché invalidada por evento y DLQ reprocesable.

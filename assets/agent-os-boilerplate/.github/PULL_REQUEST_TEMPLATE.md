@@ -35,6 +35,9 @@
 - [ ] **P13** Auto-crítica: ejecuté `critica <file>` con Modo A (3 debilidades) + Modo D (2 vectores) si aplica.
 - [ ] **P14** Verifiqué por browser headless (no curl/fetch aislado) si toca rutas HTML.
 - [ ] **P15** Generé `docs/expected/<topic>.md` antes de implementar y ejecuté `expected-check` después.
+- [ ] **P16** Si toca paneles admin/account/users con sidebar: anatomía §11 completa (dashboard, papelera, pageviews wizard/avanzado, batch, detalles con tabs, beauty scrolls).
+- [ ] **P17** Si hay flujos de creación: cola de trabajo §11.6 ("Guardar y crear otro", autosave, reintentos con presupuesto rate-limit aware) + notificaciones §11.7 (toasts acotados, errores a human-in-the-loop).
+- [ ] **P18** Si el producto es SaaS o con data streaming: arquitectura event-driven §12 (event bus, caching por eventos, hooks/filters, colas con DLQ, pipelines, broadcasting).
 - [ ] **W-CTA** Si hay CTA primario que se habilita por condición: usé `GlowingCtaButton` con gradient + glow.
 - [ ] **gaps-finder** Ejecuté `bash scripts/gaps-finder.sh` y hay cero gaps critical/high (BP #128 mandatorio).
 

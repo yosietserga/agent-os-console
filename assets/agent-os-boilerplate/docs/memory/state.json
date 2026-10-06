@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "last_updated": "2026-10-06T00:00:00Z",
   "project": "agent-os-boilerplate",
   "kpi_targets": {
@@ -43,19 +43,19 @@
     "circuit_breaker_p99_latency_ms": null
   },
   "psim_wins_count": {
-    "W1_capability_strengthening": 15,
+    "W1_capability_strengthening": 19,
     "W2_carry_over_closure": 0,
     "W3_mock_reduction": 0,
     "W4_adopted_promotion": 3,
     "W5_anti_pattern_retirement": 0,
-    "W6_persona_satisfied": 6,
+    "W6_persona_satisfied": 8,
     "W7_gate_velocity": 3,
-    "W8_finding_half_life": 0,
-    "total": 19
+    "W8_finding_half_life": 1,
+    "total": 21
   },
-  "anti_patterns_documented": 33,
+  "anti_patterns_documented": 36,
   "personas_documented": 10,
-  "cardinal_rules_count": 15,
+  "cardinal_rules_count": 18,
   "canonical_commands_count": 19,
   "ide_integrations_count": 16,
   "mcp_servers_count": 7,

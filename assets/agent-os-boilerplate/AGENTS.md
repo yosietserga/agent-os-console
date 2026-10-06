@@ -8,7 +8,7 @@
 > Ningún archivo puede crearse, modificarse o eliminarse sin haber procesado este
 > documento **Y** la memoria empírica en `docs/memory/`.
 >
-> **Versión:** 2.1.0 — Actualizada 2026-10-06
+> **Versión:** 2.2.0 — Actualizada 2026-10-06
 > **Stacks compatibles:** TypeScript, JavaScript, PHP, Python, Go, Rust, C++
 > **Proveedores LLM compatibles:** Claude, OpenAI/GPT, Gemini, DeepSeek, Qwen, Llama, Mistral, vLLM local
 
@@ -228,6 +228,55 @@ detalles completa con tabs y URL propia.
   papelera + borrado permanente, dots menu, pageviews con URL convencionada,
   wizard guiado + avanzado, datos cruzados consultables, preview, batch processes
   y detalles con tabs enterprise-grade.
+
+### 🔴 Regla P17: Cola de Trabajo de Creación Continua (Work Queue Agéntico)
+Todo flujo de creación/edición de registros DEBE soportar crear diferentes
+registros uno tras otro sin fricción mediante una **cola de trabajo** (§11.6):
+cada ítem con estado visible (borrador → guardando → guardado / reintentando →
+fallido), **autosave** de borradores (jamás se pierden datos), guardado automático
+con **reintentos automáticos que respetan el rate limit** (backoff exponencial +
+jitter + presupuesto de intentos por ventana — PROHIBIDO el reintento en bucle
+que provoca 429 en cascada), **toasts inteligentes** agregados y acotados que
+JAMÁS saturan la webview ni la pantalla (§11.7), y los errores terminales se
+estacionan en el **centro de notificaciones para acciones human-in-the-loop**
+(reintentar / editar / descartar) — sin bloquear la cola ni perder el registro.
+
+- **Verificación:** headless browser (P14) + expected-first (P15) con la anatomía
+  §11.6/§11.7 como criterios de aceptación numerados (cola de N registros,
+  presupuesto de reintentos, presupuesto de toasts, error estacionado con acción).
+- **Omisiones:** se declaran como gaps con severidad, NUNCA como "mejoras futuras".
+- **Antipatrón relacionado:** AP-035 Cola sin Presupuesto de Reintentos y Toasts
+  Saturando la Pantalla.
+- **Origen:** Directriz del operador: "adapta cola de trabajo para permitir crear
+  diferentes registros uno tras otro y tener auto guardado con intentos
+  automáticos sin abusar del rate limit y notificaciones toast sin saturar webview
+  ni la pantalla, si ocurren errores dejarlo en notificaciones para acciones
+  human in the loop".
+
+### 🔴 Regla P18: Arquitectura Event-Driven para SaaS y Data Streaming
+Toda app con **manejo SaaS** (multi-tenancy, suscripciones, billing,
+colaboración multiusuario) o con **data streaming de cualquier tipo**
+(actualizaciones en tiempo real, feeds, notificaciones push, chat, telemetría,
+live dashboards, colas distribuidas) DEBE construirse sobre **arquitectura
+event-driven** (§12): **event bus central** con eventos tipados y versionados;
+**caching** multi-capa con invalidación por eventos; **hooks y filters** como
+puntos de extensión declarativos; **queuing subsystems** con backpressure,
+prioridades y DLQ con reprocesamiento human-in-the-loop; **fast inner pipelines**
+para comunicación interna de alta velocidad entre componentes; **data transport**
+tipado por contrato; y **broadcasting** en tiempo real (WebSocket/SSE) con
+rooms/canales y rehidratación al reconectar. PROHIBIDO emular tiempo real con
+polling ni ejecutar trabajo asíncrono dentro del request cycle.
+
+- **Verificación:** headless browser (P14) + expected-first (P15) con los
+  criterios de §12.8 (evento emitido → N suscriptores reaccionan, caché
+  invalidada por evento, DLQ reprocesable, cola sin exceder presupuesto).
+- **Omisiones:** se declaran como gaps con severidad, NUNCA como "mejoras futuras".
+- **Antipatrón relacionado:** AP-036 SaaS/Streaming sobre Request-Response
+  Acoplado.
+- **Origen:** Directriz del operador: "en la arquitectura, cada vez que se trate
+  de una app con manejo saas o con data streaming de algún tipo, utilizar
+  arquitectura event driven events bus con caching, hooks and filters, queuing
+  subsystems, fast inner pipelines communications data transport broadcasting".
 
 ### 🟡 Regla W-CTA: Glowing CTA Button en Estados Listos
 **When a primary action button (Combinar, Procesar, Generar, Publicar) becomes
@@ -670,12 +719,182 @@ Laravel, Django, Rails).
   operable, cero errores de consola — en desktop Y móvil.
 - **P15 expected-first**: las expectativas del módulo se escriben ANTES y detallan
   la anatomía 11.2 como criterios de aceptación numerados.
+- La verificación de cada módulo incluye la cola de trabajo (11.6), el sistema de
+  notificaciones (11.7), los menús contextuales (11.8) y el dashboard por perfil
+  (11.9) cuando apliquen al módulo.
 - `cold run` + `ui test <ruta>` recorren la anatomía por módulo; las omisiones
   producen hallazgos con severidad, jamás "mejoras futuras" silenciosas.
 
+### 11.6 Cola de Trabajo de Creación Continua (Regla P17)
+Todo flujo de creación/edición permite construir **N registros diferentes uno
+tras otro sin salir del flujo**:
+
+1. **Acción "Guardar y crear otro"** en todo form de creación: al guardar, el
+   form se reinicia listo para el siguiente registro; el operador encadena
+   registros distintos (producto A, producto B, categoría C…) sin fricción.
+2. **Cola visible con estado por ítem**: cada registro pendiente/en vuelo muestra
+   su estado — `borrador` → `guardando` → `guardado` · `reintentando (n/N)` ·
+   `fallido (ver notificaciones)`. La cola es un panel accesible (no un log
+   crudo): progreso total, restantes, fallidos con acción de reintento.
+3. **Autosave de borradores**: el registro en captura se autoguarda (local +
+   rehidratación al recargar/navegar); cambiar de modalidad wizard/avanzado, de
+   pestaña o refrescar JAMÁS pierde datos (extiende 11.2 punto 5).
+4. **Reintentos automáticos con presupuesto (rate-limit aware)**: el guardado
+   fallido reintenta con **backoff exponencial + jitter** dentro de un
+   **presupuesto de intentos por ventana de tiempo** (ej. máx. 5 intentos /
+   60s por ítem, pausa compartida si el backend responde 429/Retry-After).
+   Agotado el presupuesto, el ítem pasa a `fallido` y queda estacionado —
+   PROHIBIDO el bucle de reintentos que agrava el rate limit.
+5. **Idempotencia**: cada guardado lleva idempotency key (reintentar no duplica
+   registros); la respuesta 409/422 de validación NO se reintente ciegamente —
+   va directo a notificaciones human-in-the-loop.
+6. **La cola nunca se detiene**: un ítem fallido no bloquea los siguientes; el
+   operador resuelve los fallidos después desde la cola o el centro de
+   notificaciones.
+
+### 11.7 Sistema de Notificaciones Inteligente (Toast sin Saturación + Human-in-the-Loop)
+- **Presupuesto visual de toasts**: máx. 3 toasts visibles simultáneos; el
+  excedente encola y colapsa como "+N más" enlazando al centro de
+  notificaciones. JAMÁS un toast por registro en operaciones en masa.
+- **Agregación y deduplicación**: series de eventos del mismo tipo se funden
+  ("3 registros guardados", "Export en curso… 60%"); un mismo error repetido
+  muestra UN toast con contador, no una cortina de toasts idénticos.
+- **Toast = resumen efímero; notificación = registro persistente**: todo lo que
+  requiere acción o revisión posterior queda en el **centro de notificaciones**
+  (campana + panel): errores terminales de la cola, reintentos agotados,
+  resultados de batch, acciones requeridas. Cada notificación tiene **acciones
+  contextuales** (Reintentar · Editar · Descartar) y estado leído/no-leído.
+- **Human-in-the-loop**: el error no se descarta solo ni bloquea la app — queda
+  estacionado con su contexto (qué registro, qué error, qué acción sugiere) y
+  el operador lo resuelve cuando decida. Nada muere en la consola del navegador.
+- **Sin saturar la webview**: las animaciones de toast son ligeras
+  (`prefers-reduced-motion` respetado), sin repaints costosos ni apilamiento
+  infinito; el centro de notificaciones es virtualizable para volúmenes altos.
+
+### 11.8 Menús Contextuales de Clic Derecho (cuando aplique)
+- En superficies con acciones por ítem (listados, filas, cards, tree items,
+  tableros): **clic derecho abre un menú contextual custom** con las MISMAS
+  acciones del dots menu (⋯) de 11.2 + acciones de contexto (duplicar, copiar
+  enlace, abrir en nueva pestaña, acciones de batch sobre la selección).
+  Una sola fuente de verdad de acciones por tipo de ítem: dots menu y context
+  menu se alimentan del mismo registro.
+- **Comportamiento correcto**: posicionamiento inteligente (flip dentro del
+  viewport, nunca cortado), cierre por click-afuera/Escape/scroll, foco
+  manejado, accesible por teclado (Shift+F10 / tecla Menú) y long-press como
+  fallback táctil cuando aplique.
+- **Donde NO aplica, no se secuestra al navegador**: inputs, texto seleccionado
+  y superficies sin acciones custom conservan el menú nativo del
+  navegador/SO. El context menu custom es una mejora dirigida, no un rehén
+  global del clic derecho.
+- Verificación (P14): clic derecho en fila → menú con acciones operables;
+  Escape cierra; clic derecho en input → menú nativo intacto.
+
+### 11.9 Killer Features Corporate Grade por Perfil (Persona/Perfil)
+- **Dashboard con identidad por rol**: cada perfil de usuario (admin, owner,
+  manager, operador, viewer…) tiene un dashboard con LOS widgets y KPIs de SU
+  rol, densidad de información acorde, accesos rápidos a SUS flujos y estado de
+  retorno ("3 ítems de la cola fallaron — revisar"). La identidad visual vive
+  dentro del design system (P5): paleta, tipografía y microinteracciones del
+  sistema, diferenciación por contenido y jerarquía — no por temas arbitrarios.
+- **Personalización acotada al estándar**: el usuario reordena/oculta widgets de
+  SU dashboard (persistido por perfil); la anatomía §11.2 del módulo es
+  invariante para todos los roles.
+- **Visual appeal corporate grade**: jerarquía tipográfica clara, skeletons en
+  cargas, estados vacíos con CTA, gráficos con la paleta del sistema,
+  microinteracciones sutiles, cero placeholder (P7). El panel debe verse
+  producto-terminado, no prototype.
+- **Killer features por perfil**: el admin ve salud del sistema y cola de
+  trabajo global; el owner ve negocio (ingresos, suscripciones, churn); el
+  operador ve su cola de tareas y atajos de captura rápida; cada rol con sus
+  joyas — export de SU vista, filtros guardados, atajos de teclado.
+
 ---
 
-## 12. Changelog
+## 12. Arquitectura Event-Driven para SaaS y Data Streaming (Regla P18)
+
+**Ámbito:** TODA app con manejo SaaS (multi-tenancy, suscripciones, billing,
+colaboración multiusuario, marketplaces) o con data streaming de cualquier tipo
+(actualizaciones en tiempo real, feeds, notificaciones push, chat, telemetría,
+live dashboards, colas de trabajo distribuidas). La detección se declara en la
+spec del producto y la arquitectura se elige ANTES de escribir el primer módulo:
+rediseñar a mitad de camino es el fallo caro.
+
+### 12.1 Event Bus Central (Columna Vertebral)
+- **Eventos tipados y versionados**: nombre en pasado (`order.completed`,
+  `user.invited`), payload con schema versionado, metadata obligatoria —
+  `tenant_id`, `actor_id`, `correlation_id`, `causation_id`, `occurred_at`.
+- **Pub/sub desacoplado**: los productores publican hechos, no comandos;
+  NUNCA conocen a los consumidores. Agregar un consumidor no toca al productor.
+- **Handlers idempotentes**: consumir dos veces el mismo evento produce el
+  mismo estado (entregas at-least-once asumidas).
+- **Orden por aggregate**: los eventos del mismo aggregate se procesan en
+  orden; entre aggregates no se garantiza orden global.
+
+### 12.2 Caching Multi-Capa con Invalidación por Eventos
+- Capas: memoria de proceso → cache distribuida/aplicativa → caché HTTP/cliente.
+- **Cache-aside por defecto**; el evento es quien invalida (`order.completed`
+  invalida el listado de órdenes del tenant) — PROHIBIDO confiar en TTLs como
+  único mecanismo de coherencia en datos vivos.
+- `stale-while-revalidate` donde la frescura exacta no sea crítica; claves
+  siempre **por tenant** — cero fuga cruzada entre tenants.
+- Las capas de caché son medibles (hit/miss/latencia) desde el dashboard del
+  módulo (§11.2 punto 1).
+
+### 12.3 Hooks y Filters (Puntos de Extensión)
+- **Hooks** declarativos `before`/`after`/`around` en el bus y en los
+  pipelines: reaccionan a eventos sin acoplarse al core.
+- **Filters** que pueden mutar, enriquecer o **vetar** el flujo (ej. filtro de
+  plan/limite antes de `invoice.generated`): registrables por módulo, orden
+  predecible, errores aislados (un filter defectuoso no tumba el pipeline).
+- Habilitan plugins/integraciones sin modificar el core (open-closed) — la vía
+  canónica de extensión en vez de parchear código ajeno.
+
+### 12.4 Queuing Subsystems (Trabajo Asíncrono)
+- Todo trabajo que no sea respuesta directa al usuario vive en una **cola
+  persistente**: emails, exports (§11.2 punto 8), webhooks, integraciones,
+  procesamiento de archivos.
+- **Backpressure**: la cola acota su profundidad y aplica degradación honesta
+  (P2) — nunca crece sin límite ni pierde ítems en silencio.
+- **Prioridades** (interactivo > batch > mantenimiento) y **reintentos con
+  backoff + presupuesto** coherentes con P17/§11.6.
+- **DLQ (dead-letter queue)**: lo irrecuperable se estaciona con contexto
+  completo y es **reprocesable human-in-the-loop** desde el panel (§11.7) —
+  ver el estado de las colas es parte del dashboard del módulo.
+
+### 12.5 Fast Inner Pipelines y Data Transport
+- **Pipelines in-process** para transformaciones encadenadas
+  (`parse → validate → enrich → persist → broadcast`): etapas tipadas,
+  medibles, cortocircuitables por filters (12.3).
+- **Transport tipado por contrato** (DTOs/schema compartidos) entre
+  componentes y servicios: sin objetos sueltos ni `any` de contrabando.
+- **Batching y coalescing** de escrituras y broadcasts (N eventos del mismo
+  aggregate en ventana → 1 escritura/1 emisión); el pipeline interno es la vía
+  rápida — el network hop solo cuando cruza procesos.
+
+### 12.6 Broadcasting en Tiempo Real (Data Transport en Vivo)
+- **WebSocket/SSE con rooms/canales** por tenant/recurso; el servidor hace
+  fan-out eficiente y la UI **reacciona a eventos** — la data empuja hacia los
+  clientes, PROHIBIDO emular tiempo real con polling (salvo health checks).
+- **Reconexión con rehidratación**: al reconectar, el cliente recupera los
+  eventos perdidos (desde `last_event_id` o snapshot) — sin huecos ni F5.
+- Presencia y indicadores en vivo (quién está viendo/editando) cuando aporte al
+  dominio; siempre con presupuesto de ancho de banda (throttle de emisiones).
+
+### 12.7 Verificación de la Arquitectura
+- **P14 headless**: 2 clientes conectados ven el mismo broadcast; la mutación
+  en uno aparece en el otro sin refrescar; el ítem fallido aparece en DLQ y es
+  reprocesable; cero errores de consola durante reconexión.
+- **P15 expected-first**: CAs numerados — evento emitido → N suscriptores
+  reaccionan; caché invalidada por evento (no por TTL); cola con reintentos
+  sin exceder presupuesto de rate limit; broadcast con rehidratación al
+  reconectar.
+- La spec del producto declara QUÉ partes son event-driven y por qué (SaaS /
+  streaming detectado en F2 del Protocolo 11); las omisiones son gaps con
+  severidad.
+
+---
+
+## 13. Changelog
 
 | Fecha | Versión | Cambios |
 | :--- | :--- | :--- |
@@ -691,6 +910,7 @@ Laravel, Django, Rails).
 | 2026-10-02 | 1.9.0 | **PRE-v2.0 proposal `add-sentinel-autonomous-quality-loop` promoted.** Añade: comando canónico `vigila` (18º), con contrato en la tabla §0 — Ciclo Autónomo de Calidad: el sistema audita los registros de ejecución y detecta fallas automáticamente (comandos con ERROR, radiografías FAILED, ledger L2 ERROR, presupuesto de gateway >25s), clasifica cada falla real con taxonomía determinista normalizada (NO_DEFECT para inputs inválidos del operador; BUDGET; EXTERNAL; INTERNAL) y abre un pipeline de 7 fases (detectar → analizar → investigar en la memoria empírica → corregir → verificar con Gate Honesty P2 y exit code real → criterios posteriores: gaps-finder + audit memory + expected-check P15 → reportar reporte epoch inmutable con auto-crítica P13 y anexo append-only al worklog P9) sin intervención del operador. `scripts/vigila.sh` implementa el ciclo para entornos file-based. AP-031 (ciclo de calidad pasivo — fallas que mueren en el log sin análisis ni reporte; el fallo raíz reportado por el operador), AP-032 (presupuesto de gateway — respuestas >30s cortadas con HTML 504 que el frontend parsea como JSON), AP-033 (regex de prefijo IDE sin coma que consumía `ide detect`/`ide all`). BP #129 (ciclo autónomo post-error). Killer Feature #110 (sentinel quality loop). WIN-019 (W1+W8 PSIM — cierre automático de hallazgos). Origen: directriz del operador: "el workflow agéntico debe automáticamente buscar fallas, analizarlas, investigar cómo corregirlas de la mejor manera, corregir, confirmar y verificar, aplicar los criterios posteriores y generar los reportes". |
 | 2026-10-04 | 2.0.0 | **PRE-v2.0 proposal `add-goal-driven-workflow-loop` promoted.** Añade: comando canónico `bucle <prompt>` (19º), con contrato en la tabla §0 y protocolo §8.4 — Bucle Agéntico Goal-Driven: el sistema asume cero conocimiento (ni el operador ni el LLM/SLM saben nada), deriva goals con criterios de aceptación verificables SOLO del prompt inicial, investiga (web real), genera el plan de pasos y tareas, emite reportes PRE y PRO por iteración, ejecuta, auto-critica (P13), auto-aprende (P9), evalúa goals contra su criterio y re-itera con handoff hasta lograr TODOS los goals (PAUSED reanudable con `bucle continúa` — bucle infinito entre invocaciones). Artefactos vinculados al tema del prompt (el contenido proviene del prompt, no del modelo). Modelos de datos: WorkflowRun/Goal/TaskStep. gaps-finder check 4 evoluciona a append-friendly (DB ≥ upstream: la memoria P9 crece por diseño; cero pérdidas upstream). Origen: directriz del operador con capturas de referencia (agente IDE creando `Plan And Steps <Topic>` / `Handoff <Topic>` / `Audits <Topic>` / `Cold Run <Topic>`): «que asuma que ni yo ni la llm/slm saben nada, que investigue, genere los planes de pasos y tareas, genere los reportes pre, haga las tareas, genere los reportes pro, auto critique, auto aprenda, auto evolucione, mejore, siguiente iteración para pasar por el mismo bucle workflow infinitamente hasta lograr los goals definidos y generados desde el prompt inicial». |
 | 2026-10-06 | 2.1.0 | **PRE-v2.0 proposal `add-enterprise-admin-panels-standard` promoted.** Añade: **Regla P16** (Estándar Enterprise de Paneles Administrativos) + **sección §11 completa** — todo admin/account/users panel con navegación sidebar debe garantizar scroll vertical y horizontal sin errores con beauty scroll panels (11.1); cada módulo CRUD incluye: dashboard del módulo, soft delete con papelera + hard delete, listado con paginación/filtros/búsqueda/draggable-sortable/multiselect/dots menu (editar, toggle status, ver detalles, soft delete), forms create/edit como pageviews completos con URL propia convencionada (PROHIBIDO modal box) en doble modalidad wizard guiado/avanzado, datos relacionados y cruzados consultables con búsqueda y filtro dinámico dentro del form, preview cuando aplique, batch processes (export, toggle status, soft delete, hard delete, quick edit) y página de detalles completa con tabs corporate-grade (11.2); UX transversal auto-magic: one-click, drag & drop, toggle buttons, multiselect con select-all, undo en soft delete (11.3); convención de rutas resourceful canónica (11.4); verificación P14 headless + P15 expected-first con la anatomía como CAs numerados (11.5). AP-034 (CRUD incompleto en paneles administrativos), BP #130 (estándar admin panels enterprise), Killer Feature #111 (suite CRUD enterprise por módulo). WIN-020 (W1+W6 — fatiga de re-especificar CRUDs erradicada). Origen: directriz del operador "autoaplica agents.md" con el estándar completo de paneles administrativos. Sincroniza la versión del header (1.0.0 → 2.1.0) con el changelog (P4). |
+| 2026-10-06 | 2.2.0 | **Directriz del operador promoted (work queue + event-driven + UX contextual).** Añade: **Regla P17** (Cola de Trabajo de Creación Continua — work queue agéntico) + **§11.6**: crear N registros diferentes uno tras otro ("Guardar y crear otro"), cola visible con estado por ítem (borrador/guardando/guardado/reintentando/fallido), autosave de borradores con rehidratación, reintentos automáticos rate-limit aware (backoff exponencial + jitter + presupuesto de intentos por ventana, PROHIBIDO el bucle que provoca 429 en cascada), idempotency keys, la cola nunca se detiene; **§11.7 Sistema de Notificaciones Inteligente**: presupuesto visual de toasts (máx. 3 visibles, "+N más"), agregación y deduplicación (jamás un toast por registro en masa), toast = efímero / notificación = persistente con acciones contextuales (Reintentar · Editar · Descartar), errores terminales estacionados para human-in-the-loop — nada muere en consola ni bloquea la app; **§11.8 Menús Contextuales de Clic Derecho** cuando aplique (misma fuente de verdad que el dots menu, posicionamiento con flip, cierre por Escape/click-afuera, Shift+F10, long-press táctil, menú nativo intacto donde no aplique); **§11.9 Killer Features Corporate Grade por Perfil**: dashboard con identidad por rol dentro del design system (P5), personalización acotada (widgets por perfil, anatomía §11.2 invariante), visual appeal producto-terminado (skeletons, estados vacíos con CTA, cero placeholder P7); **Regla P18** (Arquitectura Event-Driven para SaaS y Data Streaming) + **§12 completo**: event bus central (eventos tipados versionados, metadata tenant/actor/correlation/causation, pub/sub desacoplado, handlers idempotentes, orden por aggregate), caching multi-capa con invalidación por eventos (cache-aside, PROHIBIDO TTL como única coherencia, claves por tenant), hooks y filters (before/after/around, veto, open-closed), queuing subsystems (backpressure, prioridades, reintentos coherentes con P17, DLQ reprocesable human-in-the-loop), fast inner pipelines (parse→validate→enrich→persist→broadcast, batching/coalescing), data transport tipado por contrato y broadcasting WebSocket/SSE con rooms por tenant, reconexión con rehidratación y PROHIBIDO emular tiempo real con polling; verificación P14+P15 de ambas reglas (12.7, 11.5). AP-035 (cola sin presupuesto de reintentos + toasts saturando pantalla), AP-036 (SaaS/streaming sobre request-response acoplado), BP #131-132, Killer Features #112-115, WIN-021 (W1+W6). Changelog renumerado §12→§13. Origen: directrices del operador: cola de trabajo con autosave e intentos automáticos sin abusar del rate limit + toasts sin saturar webview + errores en notificaciones human-in-the-loop; killer features corporate grade visual appeal para cada persona/perfil; clic derecho custom contextual cuando aplique; "en la arquitectura, cada vez que se trate de una app con manejo saas o con data streaming de algún tipo, utilizar arquitectura event driven events bus con caching, hooks and filters, queuing subsystems, fast inner pipelines communications data transport broadcasting". |
 
 ---
 

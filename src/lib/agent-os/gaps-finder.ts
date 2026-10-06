@@ -261,8 +261,9 @@ export async function runGapsFinder(): Promise<GapsFinderResult> {
         stale.push(`"${cmdMentions.join(", ")} comandos canónicos" ≠ ${stateCmds} en state.json`);
       }
       const ruleRange = readme.match(/P1[–-]P(\d+)/);
-      if (ruleRange && parseInt(ruleRange[1], 10) !== 15) {
-        stale.push(`"P1–P${ruleRange[1]}" ≠ P1–P15 vigentes`);
+      const stateRules = upstreamState.cardinal_rules_count;
+      if (ruleRange && stateRules !== undefined && parseInt(ruleRange[1], 10) !== stateRules) {
+        stale.push(`"P1–P${ruleRange[1]}" ≠ P1–P${stateRules} vigentes (state.json)`);
       }
       const apMentions = [...readme.matchAll(/AP-\d+\.\.AP-(\d+)\s*\((\d+)\s+antipatrones\)/gi)].map((m) => parseInt(m[2], 10));
       const stateAps = upstreamState.anti_patterns_documented;

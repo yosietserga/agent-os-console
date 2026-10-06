@@ -194,7 +194,7 @@ export default function AgentOSPage() {
             </span>
           </div>
           <span className="rounded-full border border-[#e5e5ea] bg-[#f5f5f7] px-2 py-0.5 font-mono text-[10px] font-semibold text-[#1d1d1f]">
-            v2.1.0
+            v2.2.0
           </span>
           <div className="ml-auto flex items-center gap-4">
             <span className="hidden items-center gap-1.5 font-mono text-[11px] text-[#86868b] md:flex" aria-label="Epoch Unix en vivo">
@@ -498,12 +498,12 @@ export default function AgentOSPage() {
       <footer className="mt-auto border-t border-[#e5e5ea] bg-white/90 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
         <div className="mx-auto flex max-w-[1440px] flex-col items-center justify-between gap-2 px-4 py-4 text-center sm:flex-row sm:px-6 sm:text-left">
           <p className="text-[11px] text-[#86868b]">
-            <span className="font-semibold text-[#1d1d1f]">Agent OS v2.1.0</span> · Operador:{" "}
+            <span className="font-semibold text-[#1d1d1f]">Agent OS v2.2.0</span> · Operador:{" "}
             <span className="font-medium text-[#1d1d1f]">Yosiet Serga</span> · Venezuela ·
             Windows dev / Ubuntu deploy (P10)
           </p>
           <p className="font-mono text-[10px] text-[#86868b]">
-            instanciador zero-shot (P11) · 18 comandos · arranque en frío + prompt XML · ciclo autónomo · living topology · 15 reglas + W-CTA · LLM-agnóstico ·{" "}
+            instanciador zero-shot (P11) · {overview?.commands.length ?? 19} comandos · arranque en frío + prompt XML · ciclo autónomo · living topology · {overview?.rules.length ?? 18} reglas + W-CTA · LLM-agnóstico ·{" "}
             <a
               href="/docs/index.html"
               target="_blank"

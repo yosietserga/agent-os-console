@@ -164,6 +164,14 @@
 
 111. **Suite CRUD Enterprise por Módulo** — Cada módulo de un panel administrativo nace completo (Regla P16 + §11): dashboard de KPIs propio, papelera con restauración y purga, creación en doble modalidad (wizard guiado paso a paso + avanzado con todos los campos, sin perder datos al cambiar), batch actions sobre la selección con contador N (export, toggle status, soft/hard delete, quick edit), y página de detalles con tabs mostrando toda la información y relaciones cruzadas con timeline y auditoría — nivel corporativo sin construirlo desde cero.
 
+112. **Work Queue Agéntico con Autosave Rate-Limit Aware** — El operador encadena registros distintos uno tras otro ("Guardar y crear otro") mientras la cola trabaja sola: autosave que nunca pierde datos, reintentos con backoff exponencial + jitter dentro de un presupuesto por ventana (respeta el rate limit del backend), idempotency keys que impiden duplicados y un panel de cola con estado vivo por ítem (borrador → guardando → guardado · reintentando n/N · fallido). La captura masiva se siente como una conversación, no como un formulario hostigado.
+
+113. **Centro de Notificaciones Human-in-the-Loop** — Los toasts son resúmenes efímeros con presupuesto visual (máx. 3 visibles, series agregadas "3 registros guardados", duplicados fundidos con contador, "+N más"); lo que requiere acción queda estacionado en un centro persistente con acciones contextuales (Reintentar · Editar · Descartar) y contexto completo (qué registro, qué error, qué acción sugiere). Ningún error bloquea la app, se pierde o muere en la consola.
+
+114. **Menú Contextual de Clic Derecho + Dots Menu con Fuente Única** — Clic derecho en filas/cards/tree items abre un menú custom con las mismas acciones del dots menu más acciones de contexto (duplicar, copiar enlace, batch sobre la selección), con flip de posicionamiento, cierre por Escape/click-afuera, Shift+F10 para teclado y long-press táctil — y el menú nativo intacto en inputs y superficies sin acciones. Una sola fuente de verdad de acciones por tipo de ítem.
+
+115. **Event Bus con Broadcasting en Tiempo Real** — La arquitectura SaaS/streaming respira eventos: bus central tipado y versionado (metadata tenant/actor/correlation/causation), caching invalidado por eventos, hooks/filters extensibles, colas con DLQ reprocesable y broadcasting WebSocket/SSE con rooms por tenant y rehidratación al reconectar — la data empuja hacia los clientes y dos usuarios ven el mismo cambio sin refrescar. El tiempo real es arquitectura, no un parche de polling.
+
 ---
 
 > **Uso:** Cada killer feature implementada con evidencia genera una entrada
@@ -175,4 +183,7 @@
 > (ingeniería inversa canónica + 10 repos orquestados = clonación profesional).
 > La #110 es W1+W8 (sentinel quality loop — cierre automático de hallazgos).
 > La #111 es W1+W6 (suite CRUD enterprise — paneles completos desde la
-> primera iteración, operador satisfecho sin re-especificar).
+> primera iteración, operador satisfecho sin re-especificar). Las #112-114
+> son W1+W6 (work queue + notificaciones + context menu — captura continua
+> sin fatiga ni saturación). La #115 es W1+W6+W7 (event bus — el tiempo real
+> como arquitectura primera, no como parche).

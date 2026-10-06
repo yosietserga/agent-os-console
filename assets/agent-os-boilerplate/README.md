@@ -2,13 +2,13 @@
 
 > **Sistema Universal de Control Agéntico, Memoria Empírica Reusable y Gobernanza L2**
 > Plantilla boilerplate agnóstica al LLM/SLM para contextualización de procesos agénticos.
-> Actualizada: **2026-10-04** · **Versión 2.0.0**
+> Actualizada: **2026-10-06** · **Versión 2.2.0**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![LLM Agnostic](https://img.shields.io/badge/LLM-Agnostic-blue)](#stack-agnóstico)
 [![Polyglot](https://img.shields.io/badge/Polyglot-TS%7CPHP%7CPy%7CGo%7CRust%7CC%2B%2B-green)](#matriz-polyglot)
-[![Version](https://img.shields.io/badge/version-2.1.0-purple)](#changelog)
-[![Constitución Agéntica](https://img.shields.io/badge/v2.1.0-constituci%C3%B3n%20ag%C3%A9ntica-blue)](#changelog)
+[![Version](https://img.shields.io/badge/version-2.2.0-purple)](#changelog)
+[![Constitución Agéntica](https://img.shields.io/badge/v2.2.0-constituci%C3%B3n%20ag%C3%A9ntica-blue)](#changelog)
 
 ---
 
@@ -61,7 +61,7 @@ en cualquier repositorio, con cualquier proveedor LLM/SLM y en cualquier lenguaj
 ║                                                                              ║
 ║   ┌──────────────────────────────────────────────────────────────────────┐   ║
 ║   │                         AGENTS.md (Documento Cero)                   │   ║
-║   │  16 reglas (P1–P15 + W-CTA)   ·  19 comandos canónicos  ·  5 fases  │   ║
+║   │  19 reglas (P1–P18 + W-CTA)   ·  19 comandos canónicos  ·  5 fases  │   ║
 ║   └──────────────────────────────────────────────────────────────────────┘   ║
 ║                                                                              ║
 ║   ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐             ║
@@ -774,8 +774,8 @@ agent-os-boilerplate/
 ├── docs/
 │   ├── memory/                        # Memoria empírica append-only (P9)
 │   │   ├── MEMORY.md                  # Index con frontmatter (patrón Claude Code)
-│   │   ├── anti-patterns.md           # AP-001..AP-033 (33 antipatrones)
-│   │   ├── wins-ledger.md             # WIN-001..WIN-019 (W1–W8)
+│   │   ├── anti-patterns.md           # AP-001..AP-036 (36 antipatrones)
+│   │   ├── wins-ledger.md             # WIN-001..WIN-021 (W1–W8)
 │   │   ├── state.json                 # KPIs K1–K5 + baselines (snapshot v1.6.0)
 │   │   └── worklog.md                 # Bitácora SESSION-000..SESSION-008
 │   ├── reports/                       # Reportes de sesión (<epoch>-<title>.md, inmutables)
@@ -842,7 +842,7 @@ agent-os-boilerplate/
 │
 ├── .github/
 │   ├── copilot-instructions.md
-│   └── PULL_REQUEST_TEMPLATE.md       # Checklist P1–P15 + W-CTA + 5 fases + PSIM
+│   └── PULL_REQUEST_TEMPLATE.md       # Checklist P1–P18 + W-CTA + 5 fases + PSIM
 │
 └── scripts/                           # Comandos operativos canónicos (18 + utilidad)
     ├── start.sh                       # start / inicia
@@ -1152,10 +1152,10 @@ Workflows:
 | Métrica | Valor |
 | :--- | :---: |
 | Versión | 2.0.0 |
-| Reglas cardinales | 15 (P1–P15) + W-CTA |
-| Comandos canónicos | 18 (+ alias `rayos-x`) |
-| Antipatrones documentados | 33 (AP-001..AP-033) |
-| Victorias PSIM | 19 (WIN-001..WIN-019) |
+| Reglas cardinales | 18 (P1–P18) + W-CTA |
+| Comandos canónicos | 19 (+ alias `rayos-x`) |
+| Antipatrones documentados | 36 (AP-001..AP-036) |
+| Victorias PSIM | 21 (WIN-001..WIN-021) |
 | Personas | 10 (3 base + 3 joyride + 4 cold-run) |
 | MCP servers | 7 |
 | MCP skills | 8 |
@@ -1166,7 +1166,7 @@ Workflows:
 | Repos de referencia escaneados | 20 (10 mejorate + 10 reverse-engineer) |
 | Reportes de investigación | 1 (vía `investiga`) |
 | Gaps-finder checks | 15 (mandatorio antes de cerrar sesión) |
-| Versiones en changelog | 10 (1.0.0 → 2.0.0) |
+| Versiones en changelog | 13 (1.0.0 → 2.2.0) |
 | Commits en main | 21+ |
 
 ---
@@ -1223,7 +1223,10 @@ Implementación file-based: `scripts/vigila.sh`. Uso:
 | 2026-10-02 | 1.6.0 | **PRE-v2.0 `add-cta-glowing-headless-verify-expected-first` promoted.** 3 nuevas reglas (**P14 Headless Browser Verification**, **P15 Expected-First Workflow**, **W-CTA Glowing CTA Button**) + 1 nuevo comando (`expected-check` 16º). Widget `GlowingCtaButton` (gradient azul + glow pulsante 2.4s + 6 estados + WCAG 2.1 AA + prefers-reduced-motion). `docs/security/headless-verify-and-expected-first-protocol.md`. Skill `expected-spec-generator`. `docs/expected/` nuevo dir. AP-027 (curl aislado HTML — éxito falso), AP-028 (generación sin expectativas). BP #118-122 (5 nuevas). Killer #106-107. WIN-015. **3 frustraciones finales del operador erradicadas: CTA glowing + browser headless real + expected-first workflow.** |
 | 2026-10-02 | 1.7.0 | **PRE-v2.0 `add-reverse-engineer-radiography` promoted.** Extensión de `cold run` con `cold run reverse-engineer <url>` (alias `rayos-x <url>`) — pipeline 5 etapas Radiografía Rayos X: (1) branding → normalización Apple P5, (2) 3D Three.js → WebGL + GLSL + geometrías + ThreeCanvas widget, (3) modelo negocio → pricing + APIs + 5 Fuerzas Porter + DDL, (4) reconstrucción → componentes + widgets EAV + tour + CTA glowing, (5) verificación → browser headless P14 + expected-check P15 + screenshot diff <15%. Skill `reverse-engineer-skill` (8º) con 5 sub-comandos orquestando 10 repos (browser-use 117k⭐, firecrawl 188k⭐, awesome-mcp-servers 96k⭐, modelcontextprotocol/servers 91k⭐, screenshot-to-code 80k⭐, e2b-dev/fragments 6k⭐, crewAI-tools 1.5k⭐, autogen 61k⭐, gpt-researcher 30k⭐, AutoGPT 188k⭐). `docs/reverse-engineering/protocol.md`. AP-029/030. BP #123-127. Killer #108-109. WIN-016. **Fatiga de 'copia este sitio' erradicada.** |
 | 2026-10-02 | 1.8.0 | **PRE-v2.0 `add-gaps-finder-mandatorio` promoted.** Comando `gaps-finder` (17º). Script `scripts/gaps-finder.sh` (320 líneas, 15 checks) detecta desincronizaciones entre AGENTS.md, README, state.json, catálogos, scripts/, mcp/, personas, worklog, PR template, changelog. **MANDATORIO en §8.2 antes de cerrar sesión** (BP #128). Bloquea commit si hay gaps critical/high. Corrige gap detectado por operador: README diagrama DISPATCH mostraba '11 rutas' cuando ya hay 16 comandos + alias rayos-x. Tras gaps-finder + corrección: diagrama actualizado a 16 rutas + alias, todos los counts sincronizados. BP #128. WIN-017 (W1+W7). |
-| 2026-10-02 | 2.0.0 | **PRE-v2.0 `add-sentinel-autonomous-quality-loop` promoted.** Comando `vigila` (18º) — Ciclo Autónomo de Calidad: el sistema detecta fallas automáticamente (comandos con ERROR, radiografías FAILED, ledger L2 ERROR, presupuesto de gateway >25s), abre por cada falla real un ciclo de 7 etapas (detectar → analizar → investigar → corregir → verificar → criterios posteriores → reportar) y genera reportes epoch inmutables con auto-crítica P13 sin intervención del operador. `scripts/vigila.sh` implementa el ciclo para entornos file-based. AP-031 (ciclo de calidad pasivo), AP-032 (presupuesto de gateway — HTML 504 parseado como JSON), AP-033 (regex de prefijo IDE que consumía `ide detect`/`ide all`). BP #129 (ciclo autónomo post-error). Killer Feature #110 (sentinel quality loop). WIN-019 (W1+W8). |
+| 2026-10-02 | 1.9.0 | **PRE-v2.0 `add-sentinel-autonomous-quality-loop` promoted.** Comando `vigila` (18º) — Ciclo Autónomo de Calidad: el sistema detecta fallas automáticamente (comandos con ERROR, radiografías FAILED, ledger L2 ERROR, presupuesto de gateway >25s), abre por cada falla real un ciclo de 7 etapas (detectar → analizar → investigar → corregir → verificar → criterios posteriores → reportar) y genera reportes epoch inmutables con auto-crítica P13 sin intervención del operador. `scripts/vigila.sh` implementa el ciclo para entornos file-based. AP-031 (ciclo de calidad pasivo), AP-032 (presupuesto de gateway — HTML 504 parseado como JSON), AP-033 (regex de prefijo IDE que consumía `ide detect`/`ide all`). BP #129 (ciclo autónomo post-error). Killer Feature #110 (sentinel quality loop). WIN-019 (W1+W8). |
+| 2026-10-04 | 2.0.0 | **PRE-v2.0 `add-goal-driven-workflow-loop` promoted.** Comando `bucle <prompt>` (19º) + protocolo §8.4 — Bucle Agéntico Goal-Driven: asume cero conocimiento, deriva goals con criterios verificables SOLO del prompt inicial, investiga (web real), planifica pasos y tareas, emite reportes PRE/PRO por iteración, ejecuta, auto-critica (P13), auto-aprende (P9), evalúa goals y re-itera con handoff hasta lograr TODOS (PAUSED reanudable con `bucle continúa` — bucle infinito entre invocaciones). `scripts/bucle.sh` implementa el orquestador para entornos file-based. WIN-018. |
+| 2026-10-06 | 2.1.0 | **PRE-v2.0 `add-enterprise-admin-panels-standard` promoted.** Regla **P16** + sección **§11** — estándar enterprise de paneles admin/account/users: scroll verificado + beauty scroll panels, dashboard por módulo, soft delete con papelera + hard delete auditado, listados con paginación/filtros/draggable-sortable/dots menu, forms como pageviews con URL propia (PROHIBIDO modal box) en doble modalidad wizard/avanzado, datos cruzados consultables, preview, batch processes y detalles con tabs corporate-grade; UX auto-magic; rutas resourceful; verificación P14+P15. AP-034, BP #130, Killer #111, WIN-020. |
+| 2026-10-06 | 2.2.0 | **Directriz del operador promoted (work queue + event-driven).** Reglas **P17** (Cola de Trabajo de Creación Continua: "Guardar y crear otro", autosave con rehidratación, reintentos rate-limit aware con backoff + jitter + presupuesto por ventana, idempotency keys, toasts con presupuesto visual agregados/deduplicados, errores terminales a notificaciones human-in-the-loop sin bloquear la cola) + **§11.6-11.9** (cola, notificaciones inteligentes, menú contextual clic derecho con fuente única vs dots menu, killer features corporate grade por perfil) y **P18** (Arquitectura Event-Driven para SaaS y data streaming) + **§12** (event bus tipado versionado, caching invalidado por eventos, hooks/filters, queuing con backpressure + DLQ reprocesable, fast inner pipelines con batching, data transport por contrato, broadcasting WebSocket/SSE con rooms y rehidratación — PROHIBIDO polling como tiempo real). AP-035/036, BP #131-132, Killer #112-115, WIN-021. |
 
 ---
 

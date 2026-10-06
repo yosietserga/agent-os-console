@@ -555,6 +555,20 @@ ${r.results.map((x) => `- **${x.title}** — ${x.url}\n  ${x.snippet}`).join("\n
       pass: !!agents && agents.content.includes("Contexto del Proyecto Instanciado") && agents.content.includes(spec.projectName),
       detail: agents ? "sección de contexto presente" : "ausente",
     });
+    checks.push({
+      name: "AGENTS.md porta P17/P18 (work queue + event-driven)",
+      pass:
+        !!agents &&
+        agents.content.includes("Regla P17: Cola de Trabajo de Creación Continua") &&
+        agents.content.includes("Regla P18: Arquitectura Event-Driven para SaaS y Data Streaming") &&
+        agents.content.includes("### 11.6 Cola de Trabajo de Creación Continua") &&
+        agents.content.includes("## 12. Arquitectura Event-Driven para SaaS y Data Streaming"),
+      detail: agents
+        ? agents.content.includes("Regla P18") && agents.content.includes("### 11.6")
+          ? "P17 + P18 + §11.6-11.9 + §12 presentes"
+          : "constitución sin las reglas nuevas (upstream desactualizado)"
+        : "ausente",
+    });
 
     for (const c of catalogKinds) {
       const f = fileMap.get(c.path);

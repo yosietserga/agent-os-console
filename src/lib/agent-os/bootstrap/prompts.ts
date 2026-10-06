@@ -91,7 +91,26 @@ Proyecto Instanciado" de AGENTS.md — es el condicionamiento conductual):
     del módulo, soft delete con papelera + hard delete, listado con paginación/filtros/
     dots menu, forms create/edit como pageviews con URL propia convencionada (nunca
     modal) en doble modalidad wizard/avanzado, datos relacionados consultables en el
-    form, preview, batch processes y detalles con tabs.
+    form, preview, batch processes y detalles con tabs. Declara además el menú
+    contextual de clic derecho (§11.8) con las mismas acciones del dots menu y el
+    dashboard con killer features por perfil (§11.9).
+11. SOLO si el producto tiene flujos de creación de registros (aunque no sean paneles
+    CRUD): añade "### Cola de Trabajo y Notificaciones" declarando la herencia de
+    §11.6/§11.7 (Regla P17): "Guardar y crear otro" para encadenar registros distintos,
+    cola visible con estado por ítem (borrador/guardando/guardado/reintentando/fallido),
+    autosave con rehidratación, reintentos con backoff + presupuesto por ventana
+    (rate-limit aware), toasts con presupuesto visual agregados (máx 3, "+N más") y
+    errores terminales estacionados en el centro de notificaciones para acciones
+    human-in-the-loop (Reintentar · Editar · Descartar) sin bloquear la cola.
+12. SOLO si el producto es SaaS (multi-tenancy, suscripciones, billing, colaboración)
+    o maneja data streaming (tiempo real, feeds, notificaciones, chat, telemetría,
+    live dashboards): añade "### Arquitectura Event-Driven" declarando la herencia de
+    §12 (Regla P18): event bus central con eventos tipados versionados (metadata
+    tenant/actor/correlation/causation), caching invalidado por eventos con claves por
+    tenant, hooks y filters before/after/around, queuing con backpressure + DLQ
+    reprocesable human-in-the-loop, fast inner pipelines, data transport tipado y
+    broadcasting WebSocket/SSE con rooms y rehidratación al reconectar — PROHIBIDO
+    emular tiempo real con polling.
 No incluyas el heading "##" de nivel 2 (se agrega programáticamente).`,
     user: `## Prompt crudo del operador\n"""\n${rawPrompt}\n"""\n\n## Evidencia de investigación web (Fase 1)\n${researchDigest}\n\nRefactoriza el prompt y produce la spec completa JSON.`,
   };
@@ -113,15 +132,17 @@ export function buildCatalogPrompt(kind: CatalogKind, spec: BootstrapSpec, resea
       ask: `Genera el catálogo de mejores prácticas de desarrollo PARA ESTE PROYECTO
 concreto. Mezcla prácticas universales de ingeniería con prácticas específicas del
 dominio ("${spec.domain}") encontradas en la investigación. Cada entrada cita la regla
-cardinal relacionada (P1-P16) cuando aplica: P1 Read-After-Edit, P2 Gate Honesty,
+cardinal relacionada (P1-P18) cuando aplica: P1 Read-After-Edit, P2 Gate Honesty,
 P3 Closes-Finding Guard, P4 Sync atómica, P5 Apple Light, P6 Layout 7 posiciones,
 P7 Zero-Placeholder/Zero-Emoji, P8 LLM-Agnóstico, P9 Memoria append-only,
 P10 Entornos declarados, P11 Onboarding Tour, P12 Sanitización, P13 Auto-crítica,
-P14 Verificación headless, P15 Expected-first, P16 Paneles CRUD enterprise.`,
+P14 Verificación headless, P15 Expected-first, P16 Paneles CRUD enterprise,
+P17 Cola de trabajo con reintentos rate-limit aware y notificaciones human-in-the-loop,
+P18 Arquitectura event-driven para SaaS/streaming.`,
       format: `Formato (fiel al boilerplate):
 # Catálogo de Mejores Prácticas — ${spec.projectName}
 
-> Catálogo numerado y verificable. Cada entrada cita la regla cardinal (P1-P16)
+> Catálogo numerado y verificable. Cada entrada cita la regla cardinal (P1-P18)
 > cuando aplica. Adaptado al dominio ${spec.domain} por el Instanciador Zero-Shot.
 
 ## Categoría 1: <nombre> (1-N)
@@ -154,7 +175,14 @@ Organiza en 4-6 categorías. TOTAL entre 25 y 35 anti-patrones numerados AP-1..A
       ask: `Genera el catálogo de killer features (features diferenciadoras que los
 usuarios de "${spec.domain}" esperan y que impresionan) priorizadas por impacto.
 Basadas en la investigación y en los goals del proyecto. Marca la prioridad
-(P0 crítica / P1 alta / P2 deseable) y a qué goal del proyecto sirve.`,
+(P0 crítica / P1 alta / P2 deseable) y a qué goal del proyecto sirve. Si el producto
+tiene creación de registros, incluye killer features de la cola de trabajo (§11.6/§11.7,
+Regla P17: captura continua con autosave, reintentos rate-limit aware, toasts
+agregados, centro de notificaciones human-in-the-loop) y del menú contextual de
+clic derecho (§11.8); si es SaaS o con data streaming, incluye killer features de
+la arquitectura event-driven (§12, Regla P18: event bus, broadcasting en tiempo
+real, DLQ reprocesable); y siempre incluye killer features del dashboard con
+identidad por perfil (§11.9: cada rol con SUS widgets y accesos rápidos).`,
       format: `Formato (fiel al boilerplate):
 # Catálogo de Killer Features — ${spec.projectName}
 
@@ -230,6 +258,23 @@ dominio):
 - Ver detalles con tabs (datos, relaciones, timeline/auditoría) en su propia URL
 - Scroll fluido en listados largos (100+ registros) sin cortar columnas
 
+REGLA OBLIGATORIA para productos con flujos de creación de registros: operator,
+apprentice y demo-master incluyen AL MENOS 2 criterios que verifiquen la cola de
+trabajo §11.6/§11.7 (Regla P17), con el vocabulario del dominio:
+- Encadenar registros distintos uno tras otro con "Guardar y crear otro" sin salir del flujo
+- Que un guardado fallido NO bloquee la cola: el ítem queda "fallido" y se resuelve
+  después desde las notificaciones (Reintentar · Editar · Descartar)
+- Que la pantalla no se sature: operaciones en masa producen toasts agregados
+  ("N registros guardados"), no un toast por registro
+- Que un refresco a mitad de captura no pierda datos (autosave con rehidratación)
+
+REGLA OBLIGATORIA para productos SaaS o con data streaming: operator y demo-master
+incluyen AL MENOS 2 criterios que verifiquen la arquitectura event-driven §12
+(Regla P18), con el vocabulario del dominio:
+- Que dos usuarios conectados vean el mismo cambio sin refrescar (broadcasting)
+- Que el trabajo asíncrono fallido quede en la DLQ y sea reprocesable desde el panel
+  (human-in-the-loop), no perdido en el log
+
 Genera los 6 archivos SEPARADOS por marcadores EXACTOS (una línea con el marcador,
 sin espacios extra):
 ===FILE: docs/personas/analyst.md===
@@ -248,7 +293,10 @@ operator/apprentice/demo-master siguen la REGLA OBLIGATORIA de la anatomía §11
 (Regla P16) descrita arriba: sus criterios de éxito/fracaso VERIFICAN el estándar
 (dashboard del módulo, papelera + borrado permanente, dots menu con toggle status,
 pageviews de create/edit con URL propia en modalidad wizard y avanzado, datos
-cruzados consultables, batch processes, detalles con tabs, scroll sin errores).`,
+cruzados consultables, batch processes, detalles con tabs, scroll sin errores). Si el
+producto tiene flujos de creación de registros, también aplican los criterios de la
+cola de trabajo §11.6/§11.7 (Regla P17). Si es SaaS o con data streaming, también
+aplican los criterios event-driven §12 (Regla P18).`,
     user: `Proyecto: ${spec.projectName} — ${spec.oneLiner}
 Dominio: ${spec.domain}. Descripción: ${spec.description}
 Usuarios objetivo: ${spec.targetUsers.join(", ")}
@@ -291,14 +339,25 @@ Los 4 archivos SEPARADOS por marcadores EXACTOS:
 ===FILE: docs/personas/cold-run/power.md===
 
 - adversario: intenta romper la app maliciosamente (inputs hostiles, inyecciones,
-  abuso de límites) — específico del dominio.
+  abuso de límites) — específico del dominio. Si hay cola de trabajo (P17): intenta
+  desbordar el rate limit con ráfagas de guardados — el presupuesto de reintentos
+  con backoff debe proteger el backend y los errores deben estacionarse en
+  notificaciones, nunca tumber la cola.
 - edge: casos límite del dominio (archivos de 2GB, 0 items, caracteres unicode,
-  conexiones interrumpidas — adaptados al producto).
+  conexiones interrumpidas — adaptados al producto). Si hay cola de trabajo (P17):
+  conexión caída a mitad de guardado — el autosave rehidrata el borrador al volver
+  y el ítem queda reintentable; si es SaaS/streaming (P18): desconexión durante
+  un broadcast — al reconectar, rehidratación sin huecos ni duplicados.
 - novato: primer contacto sin conocimiento técnico (para paneles CRUD: solo logra
-  completar la creación guiado por el wizard paso a paso).
+  completar la creación guiado por el wizard paso a paso; con cola de trabajo:
+  encadena 2-3 registros distintos con "Guardar y crear otro" y entiende el estado
+  de cada ítem en la cola sin leer documentación).
 - power: usuario experto que exprime la app al límite con atajos y volumen (para
   paneles CRUD: batch processes con N registros, modo avanzado del form, quick edit
-  inline y reordenamiento draggable).`,
+  inline y reordenamiento draggable; menú contextual de clic derecho con las
+  acciones del dots menu; con cola de trabajo: captura masiva verificando que los
+  toasts se agregan y no saturan; si es SaaS/streaming: reprocesa ítems de la DLQ
+  y verifica el broadcast en dos clientes sin refrescar).`,
     user: `Proyecto: ${spec.projectName} — ${spec.oneLiner}
 Dominio: ${spec.domain}. Riesgos conocidos: ${spec.risks.join("; ")}
 Seguridad: ${spec.securityNotes.join("; ")}
@@ -373,7 +432,7 @@ en lenguaje natural)
 ## El bucle agéntico (párrafo: investigar → planear → pre-report → ejecutar →
 pro-report → auto-crítica → auto-aprendizaje → iterar hasta los goals)
 ## Goals del proyecto (lista G1..Gn)
-## Reglas cardinales (tabla resumida P1-P16 con una línea cada una)`,
+## Reglas cardinales (tabla resumida P1-P18 con una línea cada una)`,
     user: `Spec: ${JSON.stringify({ projectName: spec.projectName, oneLiner: spec.oneLiner, description: spec.description, goals: spec.goals, domain: spec.domain, stack: spec.stack }, null, 2)}
 
 Genera el README.md completo.`,

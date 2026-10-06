@@ -469,3 +469,23 @@
   desaparece: cualquier LLM condicionado por AGENTS.md construye paneles
   completos (dashboard, papelera, wizard/avanzado, batch, tabs, beauty
   scrolls, datos cruzados) desde la primera iteración.
+
+## [WIN-021] Work Queue Agéntico + Arquitectura Event-Driven Canonizadas
+- **Fecha:** 2026-10-06
+- **Clase PSIM:** W1 (Capability Strengthening) + W6 (Persona Satisfied)
+- **Fuerza de Porter:** Fuerza 3 (Poder de Compradores — satisfacción del operador)
+- **Evidencia:** Directriz del operador promoted (AGENTS.md v2.2.0). Reglas
+  P17 (Cola de Trabajo de Creación Continua: "Guardar y crear otro", autosave,
+  reintentos rate-limit aware con presupuesto, toasts sin saturar, errores a
+  notificaciones human-in-the-loop) + P18 (Arquitectura Event-Driven para
+  SaaS/streaming: event bus, caching por eventos, hooks/filters, queuing con
+  DLQ, inner pipelines, data transport, broadcasting) + §11.6-11.9 (cola,
+  notificaciones, menú contextual clic derecho, killer features por perfil) +
+  §12 completo. AP-035 + AP-036 + BP #131-132 + Killer Features #112-115.
+  Todo scaffold instanciado con Protocolo 11 hereda ambas reglas: la
+  constitución viaja en AGENTS.md y los derivados las citan.
+- **Impacto:** La captura masiva de registros se vuelve fluida y resiliente
+  (autosave + reintentos honestos con el rate limit + errores human-in-the-loop),
+  la pantalla nunca se satura y todo SaaS o app de streaming nace event-driven
+  por diseño — el tiempo real es arquitectura, no parche. El dashboard con
+  identidad por rol y el menú contextual elevan cada panel a corporate grade.
